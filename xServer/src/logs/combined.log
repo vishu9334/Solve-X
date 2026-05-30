@@ -1,0 +1,5 @@
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-05-30T19:03:15.987Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-05-30T19:03:15.987Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-05-30T19:03:15.987Z"}
+{"level":"debug","message":"Health check endpoint hit","timestamp":"2026-05-30T19:03:38.955Z"}
+{"level":"http","message":"::1 GET /health 200 114 - 2.333 ms","timestamp":"2026-05-30T19:03:38.958Z"}
