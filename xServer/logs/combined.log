@@ -1,3 +1,0 @@
-{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-05-30T19:22:14.588Z"}
-{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-05-30T19:22:14.588Z"}
-{"level":"info","message":"Active environment: development","timestamp":"2026-05-30T19:22:14.588Z"}
