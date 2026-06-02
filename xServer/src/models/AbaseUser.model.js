@@ -15,7 +15,7 @@ const baseUserSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    isVerifiedUser: {
+    isVerified: {
       type: Boolean,
       default: false,
     },

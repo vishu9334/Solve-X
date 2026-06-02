@@ -5,7 +5,6 @@ const studentProfileSchema = new Schema({
       ref:"CommonUser"
     },
     bio: String,
-    interests: [String],
   }, { timestamps: true });
   
   export const StudentProfile = mongoose.model("StudentProfile", studentProfileSchema);

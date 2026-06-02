@@ -10,9 +10,8 @@ const mentorProfileSchema = new Schema({
       "MERN",
       "System Design",
       "AI",
-      "Programming",
       "DevOps",
-      "Other",]
+      ,]
   },
   isVerifiedMentor: { type: Boolean, default: false }, // here we invoke middleware to flag true. after assessment clear then true. this key word to authorization route handle 
   verificationStatus: {
