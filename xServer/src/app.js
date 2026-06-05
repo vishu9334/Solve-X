@@ -2,7 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import morgan from 'morgan';
 import {logger} from '../src/utils/logger.js'
-
+import QNGRoute from './routes/QNG.routes.js';
+import activitySessionRoutes from './routes/activitySession.routes.js';
 const app = express();
 
 // ─── Morgan Logger Middleware Integration ────────────────────────────────────
@@ -34,6 +35,9 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.use("/api/v1", QNGRoute);
+app.use("/api/v1/activity-sessions", activitySessionRoutes);
+
 // ─── 404 Route Handler ────────────────────────────────────────────────────────
 app.use((req, res, next) => {
   const err = new Error(`Route ${req.originalUrl} not found`);
@@ -43,7 +47,7 @@ app.use((req, res, next) => {
 
 // ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use((err, req, res, next) => {
-  const statusCode = err.status || 500;
+  const statusCode = err.statusCode || err.status || 500;
 
   // Log critical errors with stack trace, otherwise info level
   if (statusCode >= 500) {
@@ -56,6 +60,7 @@ app.use((err, req, res, next) => {
     status: "error",
     statusCode,
     message: err.message || "Internal Server Error",
+    errors: err.errors?.length ? err.errors : undefined,
     stack: process.env.NODE_ENV === "production" ? undefined : err.stack,
   });
 });
