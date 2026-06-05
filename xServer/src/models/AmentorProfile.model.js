@@ -1,17 +1,19 @@
-import mongoose, { Schema } from 'mongoose'
+import mongoose, { Schema } from 'mongoose';
+
 const mentorProfileSchema = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
-    ref:"CommonUser"
+    ref: "CommonUser",
   },
   skillCategory: {
     type: String,
-    enum: ["DSA",
+    enum: [
+      "DSA",
       "MERN",
       "System Design",
       "AI",
       "DevOps",
-      ,]
+    ],
   },
   isVerifiedMentor: { type: Boolean, default: false }, // here we invoke middleware to flag true. after assessment clear then true. this key word to authorization route handle 
   verificationStatus: {
@@ -21,7 +23,7 @@ const mentorProfileSchema = new Schema({
   },
   lastAssessmentAttemptId: {
     type: Schema.Types.ObjectId,
-    ref: "AssessmentAttempt",
+    ref: "Attempt",
   },
   verifiedAt: { type: Date },
   rejectedAt: { type: Date },
