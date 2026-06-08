@@ -8,5 +8,8 @@ export default {
     PORT          : process.env.PORT,
     ADMIN_EMAIL   : process.env.ADMIN_EMAIL,
     ROLE_MENTOR   : process.env.ROLE_MENTOR,
-    ROLE_ADMIN    : process.env.ROLE_ADMIN
+    ROLE_ADMIN    : process.env.ROLE_ADMIN,
+    APP_PASSWORD  : process.env.APP_PASSWORD,
+    APP_EMAIL     : process.env.APP_EMAIL,
+    SECRET_TOKEN  : process.env.SECRET_TOKEN,
 };
