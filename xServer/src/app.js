@@ -35,8 +35,8 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.use("/api/v1/qng", QNGRoute);
-app.use("/api/v1/activity-sessions", activitySessionRoutes);
+app.use("/api/v1/", QNGRoute, activitySessionRoutes);
+
 
 // ─── 404 Route Handler ────────────────────────────────────────────────────────
 app.use((req, res, next) => {
