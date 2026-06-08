@@ -39,3 +39,213 @@
 {"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-05T12:39:33.505Z"}
 {"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-05T12:39:33.505Z"}
 {"level":"info","message":"Active environment: development","timestamp":"2026-06-05T12:39:33.505Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-05T13:31:58.294Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-05T13:31:58.295Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-05T13:31:58.296Z"}
+{"level":"warn","message":"Route /favicon.ico not found","timestamp":"2026-06-05T13:33:39.389Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T02:45:22.551Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T02:45:22.553Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T02:45:22.553Z"}
+{"level":"error","message":"Operation `commonusers.findOne()` buffering timed out after 10000ms - Stack: MongooseError: Operation `commonusers.findOne()` buffering timed out after 10000ms\n    at Timeout._onTimeout (C:\\Users\\Piyush\\Desktop\\Solves\\Solve-X\\xServer\\node_modules\\mongoose\\lib\\drivers\\node-mongodb-native\\collection.js:142:25)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)","timestamp":"2026-06-08T02:46:41.728Z"}
+{"level":"error","message":"Operation `commonusers.findOne()` buffering timed out after 10000ms - Stack: MongooseError: Operation `commonusers.findOne()` buffering timed out after 10000ms\n    at Timeout._onTimeout (C:\\Users\\Piyush\\Desktop\\Solves\\Solve-X\\xServer\\node_modules\\mongoose\\lib\\drivers\\node-mongodb-native\\collection.js:142:25)\n    at listOnTimeout (node:internal/timers:608:17)\n    at process.processTimers (node:internal/timers:543:7)","timestamp":"2026-06-08T02:51:58.347Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T02:55:07.299Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T02:55:07.306Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T02:55:07.307Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T02:55:07.308Z"}
+{"level":"info","message":"OTP Email sent to priyanshugangwar951@gmail.com: <0708b0aa-1d35-a0ba-442b-1ad3fd7a5cbe@gmail.com>","timestamp":"2026-06-08T03:00:40.454Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:05:34.309Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:05:34.327Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:05:34.328Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:05:34.329Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:15:11.251Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:15:11.280Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:15:11.281Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:15:11.282Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:15:25.167Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:15:25.179Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:15:25.179Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:15:25.180Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:25:39.963Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:25:39.974Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:25:39.975Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:25:39.976Z"}
+{"level":"warn","message":"Invalid email or OTP","timestamp":"2026-06-08T03:26:37.946Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:26:51.586Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:26:51.596Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:26:51.597Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:26:51.598Z"}
+{"level":"warn","message":"Validation failed","timestamp":"2026-06-08T03:27:15.141Z"}
+{"level":"warn","message":"Validation failed","timestamp":"2026-06-08T03:29:02.052Z"}
+{"level":"info","message":"OTP Email sent to priyanshugangwar951@gmail.com: <c24d26c9-c59a-cd8f-1a41-bc9327046f51@gmail.com>","timestamp":"2026-06-08T03:29:35.092Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:32:23.384Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:32:23.395Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:32:23.396Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:32:23.397Z"}
+{"level":"warn","message":"Invalid email or OTP","timestamp":"2026-06-08T03:33:12.617Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:54:10.791Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:54:10.814Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:54:10.815Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:54:10.817Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:55:23.734Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:55:23.746Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:55:23.747Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:55:23.747Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:55:40.438Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:55:40.447Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:55:40.449Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:55:40.449Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T03:55:52.920Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T03:55:52.930Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T03:55:52.931Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T03:55:52.932Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:02:24.334Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:02:24.345Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:02:24.346Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:02:24.347Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:06:08.402Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:06:08.411Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:06:08.412Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:06:08.413Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:14:08.158Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:14:08.176Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:14:08.177Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:14:08.178Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:14:14.025Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:14:14.034Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:14:14.035Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:14:14.036Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:14:32.344Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:14:32.353Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:14:32.354Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:14:32.355Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:14:46.778Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:14:46.788Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:14:46.789Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:14:46.790Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:15:07.611Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:15:07.623Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:15:07.624Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:15:07.625Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:20:45.965Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:20:45.976Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:20:45.977Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:20:45.978Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:21:04.346Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:21:04.356Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:21:04.357Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:21:04.359Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:32:25.526Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:32:25.542Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:32:25.543Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:32:25.544Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:32:35.787Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:32:35.798Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:32:35.799Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:32:35.800Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:32:58.072Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:32:58.084Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:32:58.085Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:32:58.087Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:33:18.251Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:33:18.261Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:33:18.262Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:33:18.263Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:35:51.898Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:35:51.909Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:35:51.910Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:35:51.910Z"}
+{"level":"info","message":"OTP Email sent to priyanshugangwar951@gmail.com: <070f66c8-b7aa-14e5-0718-197a70eda803@gmail.com>","timestamp":"2026-06-08T04:41:11.971Z"}
+{"level":"warn","message":"Validation failed","timestamp":"2026-06-08T04:45:12.935Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:50:38.674Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:50:38.683Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:50:38.684Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:50:38.686Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:54:44.629Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:54:44.640Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:54:44.641Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:54:44.643Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:55:38.816Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:55:38.827Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:55:38.828Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:55:38.829Z"}
+{"level":"warn","message":"Invalid email or password","timestamp":"2026-06-08T04:56:05.625Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:56:25.879Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:56:25.889Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:56:25.891Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:56:25.892Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:56:45.414Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:56:45.423Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:56:45.424Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:56:45.426Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:57:09.940Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:57:09.950Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:57:09.951Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:57:09.952Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:57:54.303Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:57:54.315Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:57:54.316Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:57:54.317Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:58:12.283Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:58:12.292Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:58:12.294Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:58:12.295Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:59:08.174Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:59:08.184Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:59:08.185Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:59:08.186Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T04:59:18.875Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T04:59:18.885Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T04:59:18.886Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T04:59:18.887Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:02:43.351Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:02:43.364Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:02:43.365Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:02:43.366Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:11:00.918Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:11:00.930Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:11:00.931Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:11:00.932Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:11:07.498Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:11:07.506Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:11:07.507Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:11:07.507Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:11:33.623Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:11:33.635Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:11:33.636Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:11:33.637Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:11:55.846Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:11:55.856Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:11:55.857Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:11:55.858Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:14:14.515Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:14:14.525Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:14:14.526Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:14:14.527Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:14:27.458Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:14:27.467Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:14:27.468Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:14:27.469Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:14:40.900Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:14:40.909Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:14:40.910Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:14:40.911Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:14:56.280Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:14:56.289Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:14:56.290Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:14:56.291Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:15:09.877Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:15:09.887Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:15:09.888Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:15:09.889Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:17:40.919Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:17:40.928Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:17:40.929Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:17:40.930Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:35:52.339Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:35:52.370Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:35:52.372Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:35:52.373Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb://localhost:27017/solve-x","timestamp":"2026-06-08T05:36:03.848Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-08T05:36:03.858Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-08T05:36:03.858Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-08T05:36:03.859Z"}

@@ -34,5 +34,5 @@ const baseUserSchema = new Schema(
     timestamps: true,              // ← sirf ek jagah
   }
 );
-
+  
 export const CommonUser = mongoose.model("CommonUser", baseUserSchema);
