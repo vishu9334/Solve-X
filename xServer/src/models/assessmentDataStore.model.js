@@ -1,9 +1,7 @@
-// models/assessment.model.js
 import mongoose, { Schema } from "mongoose";
 
 const assessmentStoreSchema = new Schema(
   {
-
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "CommonUser",
@@ -15,19 +13,11 @@ const assessmentStoreSchema = new Schema(
       required: true,
       trim: true,
     },
-                // Ik assessment form hoga MCQ
+
     category: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: "Skill",
       required: true,
-      enum: [
-        "DSA",
-        "MERN",
-        "System Design",
-        "AI",
-        "Programming",
-        "DevOps",
-        "Other",
-      ],
       index: true,
     },
 
@@ -44,10 +34,13 @@ const assessmentStoreSchema = new Schema(
     passingPercentage: {
       type: Number,
       required: true,
+      min: 0,
+      max: 100,
     },
 
     maxWarningsAllowed: {
       type: Number,
+      default: 3,
     },
   },
   { timestamps: true }

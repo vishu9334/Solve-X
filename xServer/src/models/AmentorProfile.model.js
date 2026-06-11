@@ -1,33 +1,52 @@
 import mongoose, { Schema } from 'mongoose';
 
 const mentorProfileSchema = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: "CommonUser",
-  },
-  skillCategory: {
-    type: String,
-    enum: [
-      "DSA",
-      "MERN",
-      "System Design",
-      "AI",
-      "DevOps",
-    ],
-  },
-  isVerifiedMentor: { type: Boolean, default: false }, // here we invoke middleware to flag true. after assessment clear then true. this key word to authorization route handle 
-  verificationStatus: {
-    type: String,
-    enum: ["pending", "reject", "approved"], // typo fix: "pendding" → "pending"
-    default: "pending",
-  },
-  lastAssessmentAttemptId: {
-    type: Schema.Types.ObjectId,
-    ref: "Attempt",
-  },
-  verifiedAt: { type: Date },
-  rejectedAt: { type: Date },
-  rejectionReason: { type: String, trim: true, lowercase: true },
+    userId: {
+        type: Schema.Types.ObjectId,
+        ref: "CommonUser",
+        required: true,
+        unique: true, // ✅ ek user ka ek hi profile
+    },
+
+    // ✅ Skill collection se ref
+    skillCategory: {
+        type: Schema.Types.ObjectId,
+        ref: "Skill",
+        default: null,
+    },
+
+    isVerifiedMentor: {
+        type: Boolean,
+        default: false,
+    },
+
+    verificationStatus: {
+        type: String,
+        enum: ["pending", "rejected", "approved"],
+        default: "pending",
+    },
+
+    lastAssessmentAttemptId: {
+        type: Schema.Types.ObjectId,
+        ref: "Attempt",
+        default: null,
+    },
+
+    verifiedAt: {
+        type: Date,
+        default: null,
+    },
+
+    rejectedAt: {
+        type: Date,
+        default: null,
+    },
+
+    rejectionReason: {
+        type: String,
+        trim: true,
+        default: null,
+    },
 }, { timestamps: true });
 
 export const MentorProfile = mongoose.model("MentorProfile", mentorProfileSchema);

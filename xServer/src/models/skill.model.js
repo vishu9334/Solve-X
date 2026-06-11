@@ -1,0 +1,76 @@
+import mongoose, { Schema } from "mongoose";
+import { toTitleCase } from "../utils/toTitleCase.util.js";
+
+const skillSchema = new Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+      // DSA, MERN, System Design — always Title Case
+    },
+
+    slug: {
+      type: String,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      // auto-generated from name: "React Native" → "react-native"
+    },
+
+    description: {
+      type: String,
+      trim: true,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+
+    mentorCount: {
+      type: Number,
+      default: 0, // kitne mentors hain is skill mein
+    },
+
+    source: {
+      type: String,
+      enum: ["admin", "mentor"],
+      default: "mentor",
+      // admin-created skills are never auto-deleted
+    },
+
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "CommonUser",
+      default: null,
+      // null = seeded/system, otherwise userId of admin or mentor
+    },
+
+    assessmentId: {
+      type: Schema.Types.ObjectId,
+      ref: "AssessmentStore",
+      default: null, // is skill ka assessment kaun sa hai
+    },
+  },
+  { timestamps: true }
+);
+
+// Auto Title Case name + generate slug before save
+skillSchema.pre("save", function (next) {
+  if (this.isModified("name")) {
+    this.name = toTitleCase(this.name);
+    this.slug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  }
+  next();
+});
+
+// Case-insensitive collation index on name for duplicate checks
+skillSchema.index(
+  { name: 1 },
+  { unique: true, collation: { locale: "en", strength: 2 } }
+);
+
+export const Skill = mongoose.model("Skill", skillSchema);

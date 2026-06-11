@@ -21,7 +21,7 @@ const baseUserSchema = new Schema(
     },
     avatar: {
       type: String,
-      default: null,
+      default:"https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png",
     },
     role: {
       type: String,
@@ -34,5 +34,5 @@ const baseUserSchema = new Schema(
     timestamps: true,              // ← sirf ek jagah
   }
 );
-
+  
 export const CommonUser = mongoose.model("CommonUser", baseUserSchema);

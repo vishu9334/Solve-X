@@ -15,14 +15,15 @@ import {
   submitActivitySessionValidator,
   userActivitySessionsValidator,
 } from "../validators/activitySession.validator.js";
+import { verifyAccessToken } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.post("/start", validate(startActivitySessionValidator), startActivitySession);
-router.post("/:sessionId/events", validate(recordActivityEventValidator), recordActivityEvent);
-router.post("/:sessionId/submit", validate(submitActivitySessionValidator), submitActivitySession);
-router.get("/user/:userId", validate(userActivitySessionsValidator), getUserActivitySessions);
-router.get("/:sessionId/report", validate(sessionIdParamValidator), getActivitySessionReport);
-router.get("/:sessionId", validate(sessionIdParamValidator), getActivitySession);
+router.post("/activity-sessions/start",             verifyAccessToken, validate(startActivitySessionValidator),   startActivitySession);
+router.post("/activity-sessions/:sessionId/events", verifyAccessToken, validate(recordActivityEventValidator),    recordActivityEvent);
+router.post("/activity-sessions/:sessionId/submit", verifyAccessToken, validate(submitActivitySessionValidator),  submitActivitySession);
+router.get("/activity-sessions/user",               verifyAccessToken, validate(userActivitySessionsValidator),   getUserActivitySessions);  // ✅ :userId hataya
+router.get("/activity-sessions/:sessionId/report",  verifyAccessToken, validate(sessionIdParamValidator),         getActivitySessionReport);
+router.get("/activity-sessions/:sessionId",         verifyAccessToken, validate(sessionIdParamValidator),         getActivitySession);
 
 export default router;

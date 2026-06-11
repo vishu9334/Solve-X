@@ -122,7 +122,7 @@ const assessmentActivitySessionSchema = new Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref:"CommonUser"
+      ref: "CommonUser"
     },
 
     category: {
@@ -190,6 +190,11 @@ const assessmentActivitySessionSchema = new Schema(
     events: {
       type: [activityEventSchema],
       default: [],
+    },
+    assessmentId: {
+      type: Schema.Types.ObjectId,
+      ref: "AssessmentStore",
+      required: true,
     },
   },
   { timestamps: true }

@@ -3,6 +3,7 @@ import mongoose,{Schema} from 'mongoose'
 const adminProfileSchema = new Schema({
     userId: {
       type: Schema.Types.ObjectId,
+      required: true,
       ref:"CommonUser",
     },
     bio:{

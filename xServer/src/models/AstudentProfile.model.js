@@ -2,6 +2,7 @@ import mongoose,{Schema} from 'mongoose'
 const studentProfileSchema = new Schema({
     userId: {
       type: Schema.Types.ObjectId,
+      unique: true,
       ref:"CommonUser"
     },
     bio: String,

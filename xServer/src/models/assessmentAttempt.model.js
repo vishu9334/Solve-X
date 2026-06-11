@@ -22,15 +22,25 @@ const attemptSchema = new Schema(
       min: 1,
     },
 
+    // status track karo
+    status: {
+      type: String,
+      enum: ["pending", "in_progress", "passed", "failed"],
+      default: "pending",
+    },
+
+    // score + result track karo
     attempts: [{
-      type: Schema.Types.ObjectId,
-      ref: "AssessmentActivitySession",
-    }],
+      sessionId: { type: Schema.Types.ObjectId, ref: "AssessmentActivitySession" },
+      score: { type: Number, default: 0 },
+      isPassed: { type: Boolean, default: false },
+      attemptedAt: { type: Date, default: Date.now },
+  }],
   },
-  { timestamps: true }
+{ timestamps: true }
 );
 
-// Ek user ka ek hi tracker hoga per assessment
+// ek user ka ek hi tracker per assessment
 attemptSchema.index({ userId: 1, assessmentId: 1 }, { unique: true });
 
 export const Attempt = mongoose.model("Attempt", attemptSchema);

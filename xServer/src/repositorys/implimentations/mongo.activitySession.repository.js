@@ -26,6 +26,12 @@ class MongoActivitySessionRepository extends IActivitySessionRepository {
       .populate("userId", "name email")
       .lean();
   }
+  async findSessionByIdAndUser(sessionId, userId) {
+    return AssessmentActivitySession.findOne({ 
+        _id: sessionId, 
+        userId  
+    });
+  }
 
   async saveSession(session) {
     return session.save();

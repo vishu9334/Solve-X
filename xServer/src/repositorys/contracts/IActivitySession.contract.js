@@ -11,6 +11,9 @@ class IActivitySessionRepository {
     throw new Error("Method not implemented");
   }
 
+  async findSessionByIdAndUser(sessionId, userId) {
+    throw new Error("Method not implemented");
+  }
   async findSessionsByUser(query) {
     throw new Error("Method not implemented");
   }

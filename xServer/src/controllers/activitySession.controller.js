@@ -1,9 +1,9 @@
 import { ApiResponse } from "../utils/ApiResponseHandler.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import activitySessionService from "../services/activitySession.service.js";
+import activitySessionService from "../services/SActivitysession.service.js";
 
 export const startActivitySession = asyncHandler(async (req, res) => {
-  const userId = req.user?._id || req.body.userId;
+  const userId = req.user.userId; // ✅
   const { category, screen, metadata } = req.body;
 
   const session = await activitySessionService.startSession({
@@ -20,8 +20,9 @@ export const startActivitySession = asyncHandler(async (req, res) => {
 
 export const recordActivityEvent = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
+  const userId = req.user.userId; // ✅
 
-  const session = await activitySessionService.recordEvent(sessionId, req.body);
+  const session = await activitySessionService.recordEvent(sessionId, userId, req.body);
 
   return res
     .status(200)
@@ -30,8 +31,9 @@ export const recordActivityEvent = asyncHandler(async (req, res) => {
 
 export const submitActivitySession = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
+  const userId = req.user.userId; // ✅
 
-  const session = await activitySessionService.submitSession(sessionId, req.body);
+  const session = await activitySessionService.submitSession(sessionId, userId, req.body);
 
   return res
     .status(200)
@@ -40,8 +42,9 @@ export const submitActivitySession = asyncHandler(async (req, res) => {
 
 export const getActivitySession = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
+  const userId = req.user.userId; // ✅
 
-  const session = await activitySessionService.getSessionById(sessionId);
+  const session = await activitySessionService.getSessionById(sessionId, userId);
 
   return res
     .status(200)
@@ -49,7 +52,7 @@ export const getActivitySession = asyncHandler(async (req, res) => {
 });
 
 export const getUserActivitySessions = asyncHandler(async (req, res) => {
-  const userId = req.user?._id || req.params.userId;
+  const userId = req.user.userId; // ✅
   const { category } = req.query;
 
   const sessions = await activitySessionService.getSessionsByUser({
@@ -64,8 +67,9 @@ export const getUserActivitySessions = asyncHandler(async (req, res) => {
 
 export const getActivitySessionReport = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
+  const userId = req.user.userId; // ✅
 
-  const report = await activitySessionService.getSessionReport(sessionId);
+  const report = await activitySessionService.getSessionReport(sessionId, userId);
 
   return res
     .status(200)

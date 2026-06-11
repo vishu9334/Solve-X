@@ -6,8 +6,12 @@ const client = new Mistral({
   apiKey: AiConfig.AI_API_KEY,
 });
 
-export async function generateMCQ(topic, difficulty = "Medium", count = 5) {
+export async function generateMCQ(topic, difficulty = "Medium") {
+  const isDSA = topic.toLowerCase().includes("dsa") || topic.toLowerCase().includes("data structure");
+  const count = isDSA ? 5 : 10;
+
   const jsonSchemaExample = {
+    durationMinutes: 15,
     questions: [
       {
         questionText: "The question text or code snippet",
@@ -33,6 +37,7 @@ Rules:
 - correctAnswer must exactly match one value from options.
 - Difficulty must always be "${difficulty}".
 - Topic must be "${topic}".
+- Estimate a dynamic "durationMinutes" (integer) for the entire test based on the complexity, reading difficulty, and time needed to solve the generated questions (give at least 1.5 - 2 minutes per question).
 
 JSON structure:
 ${JSON.stringify(jsonSchemaExample)}
@@ -68,11 +73,58 @@ ${JSON.stringify(jsonSchemaExample)}
     throw new Error("AI returned empty response");
   }
 
-  const mcqData = JSON.parse(rawContent);
+  let cleaned = rawContent.trim();
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "");
+  }
+
+  const mcqData = JSON.parse(cleaned.trim());
 
   if (!Array.isArray(mcqData.questions)) {
     throw new Error("Invalid MCQ response format");
   }
 
   return mcqData;
+}
+
+
+export async function generateEmailContent({ type, userName, score, skillName, reason }) {
+  let prompt = "";
+  if (type === "pass") {
+    prompt = `Write a professional and congratulatory email to mentor candidate ${userName} who has passed the Solve-X skill assessment for "${skillName}" with a score of ${score}%. Let them know their profile is now verified.`;
+  } else if (type === "fail") {
+    prompt = `Write an encouraging but firm email to mentor candidate ${userName} who did not pass the Solve-X skill assessment for "${skillName}" (Score: ${score}%). Encourage them to study and try again, keeping in mind the max attempt limits.`;
+  } else if (type === "auto_submit") {
+    prompt = `Write a formal warning email to mentor candidate ${userName} whose Solve-X skill assessment session for "${skillName}" was auto-submitted due to suspicious proctoring activity (warnings or violations: ${reason}). Explain that their assessment was terminated and submitted automatically.`;
+  }
+
+  const response = await client.chat.complete({
+    model: AiConfig.MISTRAL_MODEL,
+    messages: [
+      {
+        role: "system",
+        content: "You are the Solve-X Assessment System. Write a professional, concise email subject and body in HTML format. Return only JSON with subject and body keys.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    response_format: {
+      type: "json_object",
+    },
+    temperature: 0.7,
+  });
+
+  const rawContent = response.choices?.[0]?.message?.content;
+  if (!rawContent) {
+    throw new Error("AI returned empty response");
+  }
+
+  let cleaned = rawContent.trim();
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "");
+  }
+
+  return JSON.parse(cleaned.trim());
 }
