@@ -1,4 +1,5 @@
 import { ApiError } from "../utils/ApiError.js";
+import mongoose from "mongoose";
 import mentorRepository from "../repositorys/implimentations/mongo.mentor.repository.js";
 import { generateMCQ, generateEmailContent } from "./AI/AI.service.js";
 import redis from "../configs/redis.config.js";
@@ -27,6 +28,10 @@ class MentorService {
         let skill;
 
         if (skillId) {
+            // Validate if skillId is a valid ObjectId to prevent CastError
+            if (!mongoose.Types.ObjectId.isValid(skillId)) {
+                throw new ApiError(400, "Invalid skillId format. Must be a 24-character hex string.");
+            }
             // Existing skill by ID
             skill = await mentorRepository.findSkillById(skillId);
             if (!skill) throw new ApiError(404, "Skill not found or inactive.");
@@ -182,6 +187,10 @@ class MentorService {
                 mentorProfile.verificationStatus = "rejected";
                 mentorProfile.rejectedAt = new Date();
                 mentorProfile.rejectionReason = "Assessment failed: max attempts reached.";
+                
+                if (mentorProfile.skillCategory) {
+                    await mentorRepository.decrementAndCleanup(mentorProfile.skillCategory);
+                }
             }
             await mentorProfile.save();
         }
@@ -256,6 +265,10 @@ class MentorService {
                 mentorProfile.verificationStatus = "rejected";
                 mentorProfile.rejectedAt = new Date();
                 mentorProfile.rejectionReason = "Assessment failed: suspicious activity and max attempts reached.";
+                
+                if (mentorProfile.skillCategory) {
+                    await mentorRepository.decrementAndCleanup(mentorProfile.skillCategory);
+                }
             }
             await mentorProfile.save();
         }

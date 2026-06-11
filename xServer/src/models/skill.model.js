@@ -59,12 +59,11 @@ const skillSchema = new Schema(
 );
 
 // Auto Title Case name + generate slug before save
-skillSchema.pre("save", function (next) {
+skillSchema.pre("save", function () {
   if (this.isModified("name")) {
     this.name = toTitleCase(this.name);
     this.slug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   }
-  next();
 });
 
 // Case-insensitive collation index on name for duplicate checks
