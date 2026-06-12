@@ -1670,3 +1670,77 @@
 {"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T19:51:32.301Z"}
 {"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T19:51:32.301Z"}
 {"level":"info","message":"Active environment: development","timestamp":"2026-06-11T19:51:32.301Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:17:17.375Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:17:17.377Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:17:17.383Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:17:17.383Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:17:17.384Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:23:39.421Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:23:39.422Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:23:39.427Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:23:39.428Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:23:39.428Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:25:33.160Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:25:33.161Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:25:33.164Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:25:33.164Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:25:33.164Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:45:08.133Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:45:08.134Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:45:08.141Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:45:08.141Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:45:08.141Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:45:11.680Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:45:11.681Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:45:11.685Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:45:11.686Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:45:11.686Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:53:42.000Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:53:42.002Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:53:42.010Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:53:42.010Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:53:42.010Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:53:44.249Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:53:44.251Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:53:44.258Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:53:44.258Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:53:44.258Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:53:53.240Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:53:53.241Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:53:53.246Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:53:53.246Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:53:53.246Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T21:56:59.736Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T21:56:59.738Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T21:56:59.744Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T21:56:59.745Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T21:56:59.745Z"}
+{"level":"warn","message":"Invalid email or password.","timestamp":"2026-06-11T21:57:13.464Z"}
+{"level":"warn","message":"Invalid email or password.","timestamp":"2026-06-11T22:18:05.655Z"}
+{"level":"warn","message":"User not found.","timestamp":"2026-06-11T22:18:12.311Z"}
+{"level":"error","message":"Cast to ObjectId failed for value \"MERN\" (type string) at path \"_id\" for model \"Skill\" - Stack: CastError: Cast to ObjectId failed for value \"MERN\" (type string) at path \"_id\" for model \"Skill\"\n    at SchemaObjectId.cast (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/schema/objectId.js:252:11)\n    at SchemaType.applySetters (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/schemaType.js:1372:12)\n    at SchemaType.castForQuery (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/schemaType.js:1792:17)\n    at cast (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/cast.js:386:32)\n    at Query.cast (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/query.js:5212:12)\n    at Query._castConditions (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/query.js:2409:10)\n    at model.Query._findOne (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/query.js:2756:8)\n    at model.Query.exec (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/query.js:4797:80)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async MentorService.selectSkill (file:///Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My%20Drive/project%20by%20Anshu%20trenner/Tranning/Solve-X/xServer/src/services/mentor.service.js:31:21)","timestamp":"2026-06-11T22:27:52.323Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T22:29:41.200Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T22:29:41.202Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T22:29:41.206Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T22:29:41.207Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T22:29:41.207Z"}
+{"level":"warn","message":"jwt expired","timestamp":"2026-06-11T22:33:55.368Z"}
+{"level":"warn","message":"Invalid email or password.","timestamp":"2026-06-11T22:34:31.034Z"}
+{"level":"error","message":"AssessmentStore validation failed: category: Path `category` is required. - Stack: ValidationError: AssessmentStore validation failed: category: Path `category` is required.\n    at model.validate (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/document.js:2864:36)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async model.$__save (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/model.js:393:7)\n    at async model.save (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/model.js:667:5)\n    at async Function.create (/Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My Drive/project by Anshu trenner/Tranning/Solve-X/xServer/node_modules/mongoose/lib/model.js:2747:5)\n    at async MongoMentorRepository.createSkillWithAssessment (file:///Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My%20Drive/project%20by%20Anshu%20trenner/Tranning/Solve-X/xServer/src/repositorys/implimentations/mongo.mentor.repository.js:32:28)\n    at async MentorService.selectSkill (file:///Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My%20Drive/project%20by%20Anshu%20trenner/Tranning/Solve-X/xServer/src/services/mentor.service.js:44:25)\n    at async file:///Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My%20Drive/project%20by%20Anshu%20trenner/Tranning/Solve-X/xServer/src/controllers/mentor.controller.js:12:18","timestamp":"2026-06-11T22:36:07.084Z"}
+{"level":"warn","message":"Invalid email or password.","timestamp":"2026-06-11T22:38:42.178Z"}
+{"level":"warn","message":"Route /api/v1/invalid-route not found","timestamp":"2026-06-11T22:41:20.422Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T22:45:18.524Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T22:45:18.526Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T22:45:18.531Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T22:45:18.531Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T22:45:18.532Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-11T22:45:59.771Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-11T22:45:59.771Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-11T22:45:59.774Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-11T22:45:59.775Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-11T22:45:59.775Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-12T04:58:47.071Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-12T04:58:47.071Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-12T04:58:47.074Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-12T04:58:47.074Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-12T04:58:47.074Z"}

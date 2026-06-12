@@ -7,7 +7,7 @@ const skillSchema = new Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true,
+      // Unique enforced via case-insensitive collation index below
       // DSA, MERN, System Design — always Title Case
     },
 

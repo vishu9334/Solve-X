@@ -1,0 +1,351 @@
+{
+  "info": {
+    "name": "Solve-X Backend API",
+    "_postman_id": "solve-x-2026",
+    "description": "Complete API collection for Solve-X mentor verification platform.\n\n## Testing Flow Order:\n1. Register (mentor role)\n2. Verify OTP\n3. Login → saves accessToken automatically\n4. Get Skills (browse available)\n5. Select Skill → saves attemptId\n6. Start Activity Session → saves sessionId\n7. (Optional) Record Events\n8. Submit Assessment → email sent!\n9. Logout\n\n## Setup:\n- Base URL: http://localhost:8000/api/v1\n- Run `node seed.js` before testing for pre-seeded data",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000/api/v1" },
+    { "key": "accessToken", "value": "" },
+    { "key": "attemptId", "value": "" },
+    { "key": "sessionId", "value": "" },
+    { "key": "skillId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "🔐 1. Auth APIs",
+      "description": "User registration, OTP verification, login, logout, password reset",
+      "item": [
+        {
+          "name": "Step 1 → Register (Mentor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/register", "host": ["{{baseUrl}}"], "path": ["register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Mentor\",\n  \"email\": \"your-email@gmail.com\",\n  \"password\": \"Test@1234\",\n  \"role\": \"mentor\"\n}"
+            },
+            "description": "Register a new mentor. OTP will be sent to the email.\n\n**Fields:**\n- name (required): min 1 char\n- email (required): valid email\n- password (required): min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special (@$!%*?&)\n- role (optional): \"mentor\" | \"student\" | \"admin\" (default: student)\n\n**Next Step:** Check email for OTP → use in Step 2"
+          }
+        },
+        {
+          "name": "Step 2 → Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "    console.log('✅ accessToken saved automatically');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/verify-otp", "host": ["{{baseUrl}}"], "path": ["verify-otp"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your-email@gmail.com\",\n  \"otp\": \"1234\"\n}"
+            },
+            "description": "Verify OTP received on email. Creates user in MongoDB.\n\n**Fields:**\n- email (required): same email used in register\n- otp (required): exactly 4 digits (string)\n\n**Auto-saves:** accessToken → used in all protected APIs\n\n**If role was mentor:** MentorProfile auto-created with isVerifiedMentor: false"
+          }
+        },
+        {
+          "name": "Step 3 → Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.accessToken) {",
+                  "    pm.collectionVariables.set('accessToken', res.data.accessToken);",
+                  "    console.log('✅ accessToken saved automatically');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/login", "host": ["{{baseUrl}}"], "path": ["login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your-email@gmail.com\",\n  \"password\": \"Test@1234\"\n}"
+            },
+            "description": "Login with email/password → returns JWT tokens.\n\n**Fields:**\n- email (required)\n- password (required)\n\n**Auto-saves:** accessToken for subsequent requests.\n\n**Seeded accounts (after running node seed.js):**\n- Admin: admin@solve-x.com / AdminPassword@123\n- Mentor: mentor@solve-x.com / MentorPassword@123"
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/forgot-password", "host": ["{{baseUrl}}"], "path": ["forgot-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your-email@gmail.com\"\n}"
+            },
+            "description": "Send password reset OTP to email.\n\n**Rate limit:** max 2 requests per 30 minutes."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/reset-password", "host": ["{{baseUrl}}"], "path": ["reset-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your-email@gmail.com\",\n  \"otp\": \"5678\",\n  \"password\": \"NewPass@123\"\n}"
+            },
+            "description": "Verify reset OTP + set new password.\n\n**Fields:**\n- email (required)\n- otp (required): 4 digit string from email\n- password (required): same strong password rules as register"
+          }
+        },
+        {
+          "name": "Step 9 → Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/logout", "host": ["{{baseUrl}}"], "path": ["logout"] },
+            "description": "Blacklist tokens in Redis. After this, old tokens won't work.\n\n**Auth:** Bearer Token required"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📚 2. Skill APIs",
+      "description": "Browse available skill categories",
+      "item": [
+        {
+          "name": "Step 4 → Get All Skills",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.length > 0) {",
+                  "    pm.collectionVariables.set('skillId', res.data[0]._id);",
+                  "    console.log('✅ First skillId saved: ' + res.data[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/skills", "host": ["{{baseUrl}}"], "path": ["skills"] },
+            "description": "Public API — no auth needed.\nReturns all active skills with name, slug, description, mentorCount, source.\n\n**Auto-saves:** first skill's _id as skillId\n\n**Use Case:** Browse skills before selecting in Step 5."
+          }
+        }
+      ]
+    },
+    {
+      "name": "🎯 3. Mentor Assessment APIs",
+      "description": "Select skill, generate AI questions, submit answers",
+      "item": [
+        {
+          "name": "Step 5A → Select Skill (by skillId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.attempt) {",
+                  "    pm.collectionVariables.set('attemptId', res.data.attempt._id);",
+                  "    console.log('✅ attemptId saved: ' + res.data.attempt._id);",
+                  "    console.log('📝 Questions count: ' + res.data.questions.questions.length);",
+                  "    console.log('⏱️ Duration: ' + res.data.questions.durationMinutes + ' min');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/mentor/select-skill", "host": ["{{baseUrl}}"], "path": ["mentor", "select-skill"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skillId\": \"{{skillId}}\"\n}"
+            },
+            "description": "Select an existing skill by its MongoDB ObjectId (from GET /skills).\n\n**Auth:** Bearer Token required\n\n**Response contains:**\n- skill object\n- attempt object (save attemptId!)\n- questions array with correctAnswer (for testing — hide in frontend)\n\n**Auto-saves:** attemptId"
+          }
+        },
+        {
+          "name": "Step 5B → Select Skill (by skillName — Dynamic)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.attempt) {",
+                  "    pm.collectionVariables.set('attemptId', res.data.attempt._id);",
+                  "    console.log('✅ attemptId saved: ' + res.data.attempt._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/mentor/select-skill", "host": ["{{baseUrl}}"], "path": ["mentor", "select-skill"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"skillName\": \"React Native\"\n}"
+            },
+            "description": "Create or select skill by name (dynamic).\n\n- If \"React Native\" already exists → uses existing\n- If not → creates new skill + assessment + AI questions\n- Name auto-converted to Title Case\n\n**Auto-saves:** attemptId"
+          }
+        },
+        {
+          "name": "Step 8 → Submit Assessment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/mentor/submit-assessment", "host": ["{{baseUrl}}"], "path": ["mentor", "submit-assessment"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attemptId\": \"{{attemptId}}\",\n  \"sessionId\": \"{{sessionId}}\",\n  \"answers\": [\n    {\n      \"questionId\": \"PASTE_QUESTION_TEXT_HERE\",\n      \"selectedAnswer\": \"PASTE_SELECTED_OPTION_HERE\"\n    }\n  ]\n}"
+            },
+            "description": "Submit assessment answers for grading.\n\n**Fields:**\n- attemptId (required): from Step 5 response\n- sessionId (required): from Step 6 response\n- answers (required): array of { questionId, selectedAnswer }\n  - questionId = exact question text from Step 5\n  - selectedAnswer = exact option text\n\n**What happens after submit:**\n1. Answers graded against cached correct answers\n2. Proctoring data checked (warnings < max)\n3. MentorProfile updated (approved/rejected)\n4. Result email sent via Brevo queue\n5. Redis question cache cleaned\n\n**Pass Condition:** score >= 60% AND activityDecision === 'clean'\n\n**📧 EMAIL SENT HERE — check inbox!**"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🖥️ 4. Activity Session APIs (Proctoring)",
+      "description": "Monitor browser activity during assessment",
+      "item": [
+        {
+          "name": "Step 6 → Start Activity Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) {",
+                  "    pm.collectionVariables.set('sessionId', res.data._id);",
+                  "    console.log('✅ sessionId saved: ' + res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/activity-sessions/start", "host": ["{{baseUrl}}"], "path": ["activity-sessions", "start"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Mern Stack\",\n  \"screen\": {\n    \"innerWidth\": 1920,\n    \"innerHeight\": 1080,\n    \"isFullscreen\": true\n  }\n}"
+            },
+            "description": "Start a proctoring session for assessment monitoring.\n\n**Fields:**\n- category (required): skill name, slug, or ObjectId\n- screen (optional): browser dimensions\n\n**Auto-saves:** sessionId\n\n**Use this sessionId in Step 7 (events) and Step 8 (submit)**"
+          }
+        },
+        {
+          "name": "Step 7 → Record Activity Event (Tab Switch)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/activity-sessions/{{sessionId}}/events", "host": ["{{baseUrl}}"], "path": ["activity-sessions", "{{sessionId}}", "events"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventType\": \"TAB_SWITCHED\",\n  \"message\": \"User switched to another tab\"\n}"
+            },
+            "description": "Record a proctoring event.\n\n**Allowed eventType values:**\nFULLSCREEN_PROMPT_SHOWN, FULLSCREEN_ENTERED, FULLSCREEN_EXITED,\nTAB_SWITCHED, TAB_RETURNED, WINDOW_BLUR, WINDOW_FOCUS,\nSCREEN_RESIZED, PAGE_REFRESH, PAGE_CLOSE,\nTEST_STARTED, TEST_SUBMITTED, TIME_EXPIRED\n\n**Severity:**\n- critical: TAB_SWITCHED, PAGE_REFRESH, PAGE_CLOSE\n- warning: FULLSCREEN_EXITED, WINDOW_BLUR, SCREEN_RESIZED\n- info: all others\n\n**⚠️ 3+ warnings → auto-submit + fail!**\n\n**TIP:** Skip this step for a CLEAN pass test."
+          }
+        },
+        {
+          "name": "Submit Activity Session (Manual)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/activity-sessions/{{sessionId}}/submit", "host": ["{{baseUrl}}"], "path": ["activity-sessions", "{{sessionId}}", "submit"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Test completed normally\"\n}"
+            },
+            "description": "Manually end/submit the proctoring session.\n\nNote: submit-assessment (Step 8) auto-submits the session if not already ended."
+          }
+        },
+        {
+          "name": "Get Activity Session",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/activity-sessions/{{sessionId}}", "host": ["{{baseUrl}}"], "path": ["activity-sessions", "{{sessionId}}"] },
+            "description": "Get full details of a specific proctoring session."
+          }
+        },
+        {
+          "name": "Get My Sessions",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/activity-sessions/user", "host": ["{{baseUrl}}"], "path": ["activity-sessions", "user"] },
+            "description": "List all sessions for the logged-in user.\n\nOptional query param: ?category=Mern Stack"
+          }
+        },
+        {
+          "name": "Get Session Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/activity-sessions/{{sessionId}}/report", "host": ["{{baseUrl}}"], "path": ["activity-sessions", "{{sessionId}}", "report"] },
+            "description": "Get detailed proctoring analysis report:\n- Event breakdown by type\n- Warning/critical counts\n- Flags (tab switch, fullscreen exit, etc.)\n- Duration\n- Activity decision (clean/suspicious/rejected)"
+          }
+        }
+      ]
+    }
+  ]
+}
