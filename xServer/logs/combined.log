@@ -1744,3 +1744,30 @@
 {"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-12T04:58:47.074Z"}
 {"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-12T04:58:47.074Z"}
 {"level":"info","message":"Active environment: development","timestamp":"2026-06-12T04:58:47.074Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-12T20:57:36.888Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-12T20:57:36.889Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-12T20:57:36.895Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-12T20:57:36.895Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-12T20:57:36.895Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-12T21:00:01.500Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-12T21:00:01.502Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-12T21:00:01.509Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-12T21:00:01.509Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-12T21:00:01.509Z"}
+{"level":"warn","message":"Access token missing.","timestamp":"2026-06-12T21:04:05.658Z"}
+{"level":"warn","message":"Student id's not valid","timestamp":"2026-06-12T21:04:05.870Z"}
+{"level":"warn","message":"These all are required fields.","timestamp":"2026-06-12T21:04:05.917Z"}
+{"level":"warn","message":"Doubt session not found or already closed.","timestamp":"2026-06-12T21:04:05.959Z"}
+{"level":"warn","message":"No active session found.","timestamp":"2026-06-12T21:04:06.002Z"}
+{"level":"warn","message":"No active session found.","timestamp":"2026-06-12T21:05:47.743Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-12T21:06:05.345Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-12T21:06:05.346Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-12T21:06:05.349Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-12T21:06:05.349Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-12T21:06:05.349Z"}
+{"level":"error","message":"Cannot read properties of null (reading '_id') - Stack: TypeError: Cannot read properties of null (reading '_id')\n    at file:///Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My%20Drive/project%20by%20Anshu%20trenner/Tranning/Solve-X/xServer/src/services/student.service.js:59:67\n    at Array.map (<anonymous>)\n    at studentService.skillMatchingByStudent (file:///Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My%20Drive/project%20by%20Anshu%20trenner/Tranning/Solve-X/xServer/src/services/student.service.js:59:39)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async file:///Users/magicmac/Library/CloudStorage/GoogleDrive-vishalkumarptn32@gmail.com/My%20Drive/project%20by%20Anshu%20trenner/Tranning/Solve-X/xServer/src/controllers/students.controller.js:15:26","timestamp":"2026-06-12T21:07:27.349Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-12T21:07:37.486Z"}
+{"level":"info","message":"Email worker started successfully","timestamp":"2026-06-12T21:07:37.488Z"}
+{"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-12T21:07:37.493Z"}
+{"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-12T21:07:37.493Z"}
+{"level":"info","message":"Active environment: development","timestamp":"2026-06-12T21:07:37.493Z"}

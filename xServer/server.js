@@ -7,6 +7,9 @@ import {logger} from './src/utils/logger.js';
 import mongoose from 'mongoose';
 import config from './src/configs/config.js';
 
+import http from 'http';
+import {initSocket} from './src/helpers/socket/socket.helper.js'
+
 const PORT = process.env.PORT || 8000;
 
 // Connect to MongoDB and start Express Server
@@ -15,11 +18,13 @@ mongoose.connect(config.MONGODB_URI)
     logger.info(`Connected to MongoDB successfully at ${config.MONGODB_URI}`);
     import("./src/workers/email.worker.js");
     logger.info("Email worker started successfully");
-    const server = app.listen(PORT, () => {
-  logger.info(`Solve-X server successfully started on port ${PORT}`);
-  logger.info(`Health check active at http://localhost:${PORT}/health`);
-  logger.info(`Active environment: ${process.env.NODE_ENV || "development"}`);
-});
+    const server = http.createServer(app);
+    initSocket(server);
+    server.listen(PORT, () => {
+      logger.info(`Solve-X server successfully started on port ${PORT}`);
+      logger.info(`Health check active at http://localhost:${PORT}/health`);
+      logger.info(`Active environment: ${process.env.NODE_ENV || "development"}`);
+    });
 
 // ─── Unhandled Rejection & Uncaught Exception Handlers ───────────────────────
 process.on("unhandledRejection", (reason, promise) => {
