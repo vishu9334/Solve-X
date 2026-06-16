@@ -50,13 +50,13 @@ async function seed() {
     const adminPasswordHash = await bcrypt.hash("AdminPassword@123", 10);
     const adminUser = await SimpleUserAuth.create({
       name: "Admin User",
-      email: "admin@solve-x.com",
+      email: "connect.solvex99@gmail.com",
       username: "admin",
       password: adminPasswordHash,
       role: "admin",
       isVerified: true,
     });
-    console.log(`👤 Seeded Admin: admin@solve-x.com (Password: AdminPassword@123)`);
+    console.log(`👤 Seeded Admin: connect.solvex99@gmail.com (Password: AdminPassword@123)`);
 
     // 3. Create Mentor User & Profile
     const mentorPasswordHash = await bcrypt.hash("MentorPassword@123", 10);
