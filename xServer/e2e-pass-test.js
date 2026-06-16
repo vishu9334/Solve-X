@@ -24,7 +24,7 @@ import config from "./src/configs/config.js";
 dotenv.config();
 
 const REAL_EMAIL = "vishalkumarptn32@gmail.com";
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = "http://localhost:8001/api/v1";
 
 function toTitleCase(str) {
   if (!str) return str;

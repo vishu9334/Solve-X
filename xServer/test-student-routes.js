@@ -9,7 +9,7 @@ import config from "./src/configs/config.js";
 
 dotenv.config();
 
-const BASE_URL = "http://localhost:8000/api/v1";
+const BASE_URL = "http://localhost:8001/api/v1";
 const STUDENT_EMAIL = "student_test_route@solve-x.com";
 const PASSWORD = "RouteTestPassword@123";
 
