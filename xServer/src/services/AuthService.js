@@ -12,6 +12,13 @@ class AuthService {
             throw new ApiError(400, "All fields are required.");
         }
 
+        if (role === "admin") {
+            const allowedAdmins = ["connect.solvex99@gmail.com", "vishalkumarptn32@gmail.com"];
+            if (!allowedAdmins.includes(email.toLowerCase())) {
+                throw new ApiError(403, "Access denied. This email is not authorized for admin registration.");
+            }
+        }
+
         const existedUser = await AuthRepository.findUserByEmail(email);
         if (existedUser) throw new ApiError(409, "User already exists.");
 

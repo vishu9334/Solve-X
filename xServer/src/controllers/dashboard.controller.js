@@ -173,6 +173,11 @@ class DashboardController {
             throw new ApiError(403, "Access denied. Only admins can access the admin dashboard.");
         }
 
+        const allowedAdmins = ["connect.solvex99@gmail.com", "vishalkumarptn32@gmail.com"];
+        if (!allowedAdmins.includes(user.email.toLowerCase())) {
+            throw new ApiError(403, "Access denied. This email is not authorized for admin access.");
+        }
+
         // 2. User role distribution counts
         const totalStudents = await CommonUser.countDocuments({ role: "student" });
         const totalMentors = await CommonUser.countDocuments({ role: "mentor" });
