@@ -1771,3 +1771,8 @@
 {"level":"info","message":"Solve-X server successfully started on port 8000","timestamp":"2026-06-12T21:07:37.493Z"}
 {"level":"info","message":"Health check active at http://localhost:8000/health","timestamp":"2026-06-12T21:07:37.493Z"}
 {"level":"info","message":"Active environment: development","timestamp":"2026-06-12T21:07:37.493Z"}
+{"level":"info","message":"Starting unverified mentor cleanup task...","timestamp":"2026-06-16T13:03:16.606Z"}
+{"level":"info","message":"Found 1 unverified mentor(s) to cleanup.","timestamp":"2026-06-16T13:03:16.658Z"}
+{"level":"info","message":"Cleaned up mentor userId 6a314992d9511d62890e7d76:\n              - Deleted CommonUser: true\n              - Deleted MentorProfile: true\n              - Deleted Attempts: 1\n              - Deleted Answers: 1\n              - Deleted Activity Sessions: 1\n            ","timestamp":"2026-06-16T13:03:16.905Z"}
+{"level":"info","message":"Unverified mentor cleanup task completed successfully.","timestamp":"2026-06-16T13:03:16.906Z"}
+{"level":"info","message":"Connected to MongoDB successfully at mongodb+srv://dummy_database:dummy_database@cluster0.tjeeo1h.mongodb.net/solve-x","timestamp":"2026-06-16T13:04:07.874Z"}

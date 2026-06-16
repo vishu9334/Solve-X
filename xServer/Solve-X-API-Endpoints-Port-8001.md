@@ -130,6 +130,56 @@ This document contains the complete list of backend API endpoints for the Solve-
 
 ---
 
+### ➔ Forgot Password
+* **Method**: `POST`
+* **Path**: `/forgot-password`
+* **Auth**: ❌ No
+* **Request Body**:
+  ```json
+  {
+    "email": "user@example.com"
+  }
+  ```
+* **Success Response (200)**:
+  ```json
+  {
+    "statusCode": 200,
+    "data": {
+      "email": "user@example.com",
+      "message": "Password reset OTP sent successfully."
+    },
+    "message": "Password reset OTP sent to your email."
+  }
+  ```
+
+---
+
+### ➔ Reset Password
+* **Method**: `POST`
+* **Path**: `/reset-password`
+* **Auth**: ❌ No
+* **Request Body**:
+  ```json
+  {
+    "email": "user@example.com",
+    "otp": "1234",
+    "password": "NewStrongPassword123!"
+  }
+  ```
+* **Success Response (200)**:
+  ```json
+  {
+    "statusCode": 200,
+    "data": {
+      "email": "user@example.com",
+      "message": "Password reset successfully."
+    },
+    "message": "Password updated successfully."
+  }
+  ```
+
+---
+
 ## 🎓 2. Student APIs
 
 ### ➔ Ask a Doubt
