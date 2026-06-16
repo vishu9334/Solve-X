@@ -22,7 +22,7 @@ const router = Router();
 router.post("/activity-sessions/start",             verifyAccessToken, validate(startActivitySessionValidator),   startActivitySession);
 router.post("/activity-sessions/:sessionId/events", verifyAccessToken, validate(recordActivityEventValidator),    recordActivityEvent);
 router.post("/activity-sessions/:sessionId/submit", verifyAccessToken, validate(submitActivitySessionValidator),  submitActivitySession);
-router.get("/activity-sessions/user",               verifyAccessToken, validate(userActivitySessionsValidator),   getUserActivitySessions);  // ✅ :userId hataya
+router.get("/activity-sessions/user",               verifyAccessToken, validate(userActivitySessionsValidator),   getUserActivitySessions);
 router.get("/activity-sessions/:sessionId/report",  verifyAccessToken, validate(sessionIdParamValidator),         getActivitySessionReport);
 router.get("/activity-sessions/:sessionId",         verifyAccessToken, validate(sessionIdParamValidator),         getActivitySession);
 

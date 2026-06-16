@@ -2,6 +2,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiResponse } from "../utils/ApiResponseHandler.js";
 import AuthService from "../services/AuthService.js";
 import TokenManager from "../utils/UTokenManager.util.js";
+import { ApiError } from "../utils/ApiError.js";
 
 class AuthController {
     register = asyncHandler(async(req, res)=>{
@@ -69,6 +70,16 @@ class AuthController {
 
       return res.status(200).json(
         new ApiResponse(200, response, { message: "Password updated successfully." })
+      );
+    })
+    reGenerateToken = asyncHandler(async(req, res)=>{
+      const { refreshToken } = req.cookies;
+      const { accessToken } = await AuthService.regenerateToken({ refreshToken });
+
+      TokenManager.setAccessTokenHeader(res, accessToken);
+
+      return res.status(200).json(
+        new ApiResponse(200, { accessToken }, { message: "Access token regenerated successfully." })
       );
     })
 }

@@ -116,7 +116,7 @@ class AuthService {
         if (!accessToken) {
             throw new ApiError(400, "Access token required.");
         }
-    
+
         await redisWhereHouse.blacklistTokens(accessToken, refreshToken);
     }
 
@@ -164,7 +164,28 @@ class AuthService {
 
         return { email, message: "Password reset successfully." };
     }
-    
+
+    async regenerateToken({ refreshToken }) {
+        if (!refreshToken) {
+            throw new ApiError(401, "Refresh token is not valid or provided.");
+        }
+
+        let decoded;
+        try {
+            decoded = TokenManager.verifyRefreshToken(refreshToken);
+        } catch (error) {
+            throw new ApiError(401, "Refresh token is expired or invalid.");
+        }
+
+        const userId = decoded?.payload?.userId;
+        if (!userId) {
+            throw new ApiError(401, "Invalid refresh token payload.");
+        }
+
+        const accessToken = TokenManager.generateAccessToken({ userId });
+        return { accessToken };
+    }
+
 }
 
 export default new AuthService();

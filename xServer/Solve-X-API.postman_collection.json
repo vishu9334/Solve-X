@@ -10,7 +10,9 @@
     { "key": "accessToken", "value": "" },
     { "key": "attemptId", "value": "" },
     { "key": "sessionId", "value": "" },
-    { "key": "skillId", "value": "" }
+    { "key": "skillId", "value": "" },
+    { "key": "studentId", "value": "" },
+    { "key": "doubtSessionId", "value": "" }
   ],
   "item": [
     {
@@ -343,6 +345,106 @@
             ],
             "url": { "raw": "{{baseUrl}}/activity-sessions/{{sessionId}}/report", "host": ["{{baseUrl}}"], "path": ["activity-sessions", "{{sessionId}}", "report"] },
             "description": "Get detailed proctoring analysis report:\n- Event breakdown by type\n- Warning/critical counts\n- Flags (tab switch, fullscreen exit, etc.)\n- Duration\n- Activity decision (clean/suspicious/rejected)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 5. Student Doubt APIs",
+      "description": "Student raises a doubt session, mentors offer assistance, student selects a mentor, and completes session.",
+      "item": [
+        {
+          "name": "Step 10 → Student Ask Doubt",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data.doubtSessionId) {",
+                  "    pm.collectionVariables.set('doubtSessionId', res.data.doubtSessionId);",
+                  "    console.log('✅ doubtSessionId saved: ' + res.data.doubtSessionId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/student/ask-doubt/{{studentId}}?skillIdentifier={{skillId}}&selectSessionTime=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["student", "ask-doubt", "{{studentId}}"],
+              "query": [
+                { "key": "skillIdentifier", "value": "{{skillId}}" },
+                { "key": "selectSessionTime", "value": "10" }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"typeWriteQuestion\": \"How do I fix a hydration error in Next.js?\"\n}"
+            },
+            "description": "Post a new doubt question as a student.\n\n**Auth:** Bearer Token required\n**Params:**\n- userId (in path): Student's user ID\n- skillIdentifier (query): skill category ID (from Step 4)\n- selectSessionTime (query): duration in minutes\n\n**Auto-saves:** doubtSessionId"
+          }
+        },
+        {
+          "name": "Step 11 → Mentor Reply Doubt",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/mentor/reply-doubt",
+              "host": ["{{baseUrl}}"],
+              "path": ["mentor", "reply-doubt"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doubtSessionId\": \"{{doubtSessionId}}\",\n  \"price\": 150,\n  \"availableTime\": 10\n}"
+            },
+            "description": "Mentor responds to a student's doubt with a price and available time offer.\n\n**Auth:** Bearer Token required (log in as mentor)\n**Fields:**\n- doubtSessionId: ID of the doubt session\n- price: cost of the session (number)\n- availableTime: duration of session offered (optional)"
+          }
+        },
+        {
+          "name": "Step 12 → Student Select Mentor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/student/select-mentor/{{doubtSessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["student", "select-mentor", "{{doubtSessionId}}"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selectedMentorId\": \"PASTE_MENTOR_USER_ID_HERE\"\n}"
+            },
+            "description": "Student selects a mentor from the offers received.\n\n**Auth:** Bearer Token required (log in as student)\n**Fields:**\n- selectedMentorId: User ID of the mentor selected from the offers"
+          }
+        },
+        {
+          "name": "Step 13 → Student End Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/student/end-session/{{doubtSessionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["student", "end-session", "{{doubtSessionId}}"]
+            },
+            "description": "Student ends the active doubt session manually.\n\n**Auth:** Bearer Token required (log in as student)\n**Path Params:**\n- doubtSessionId: ID of the doubt session"
           }
         }
       ]

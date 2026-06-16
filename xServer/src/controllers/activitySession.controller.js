@@ -31,7 +31,7 @@ export const recordActivityEvent = asyncHandler(async (req, res) => {
 
 export const submitActivitySession = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
-  const userId = req.user.userId; // ✅
+  const userId = req.user.userId; 
 
   const session = await activitySessionService.submitSession(sessionId, userId, req.body);
 

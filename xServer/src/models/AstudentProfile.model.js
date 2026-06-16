@@ -6,6 +6,15 @@ const studentProfileSchema = new Schema({
       ref:"CommonUser"
     },
     bio: String,
+    subscriptionStatus: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "inactive",
+    },
+    subscriptionExpiresAt: {
+      type: Date,
+      default: null,
+    },
   }, { timestamps: true });
   
   export const StudentProfile = mongoose.model("StudentProfile", studentProfileSchema);

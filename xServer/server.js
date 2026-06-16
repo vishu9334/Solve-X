@@ -18,6 +18,9 @@ mongoose.connect(config.MONGODB_URI)
     logger.info(`Connected to MongoDB successfully at ${config.MONGODB_URI}`);
     import("./src/workers/email.worker.js");
     logger.info("Email worker started successfully");
+    import("./src/cron/mentorCleanup.cron.js").then((module) => {
+      module.initMentorCleanupCron();
+    });
     const server = http.createServer(app);
     initSocket(server);
     server.listen(PORT, () => {

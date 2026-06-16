@@ -327,11 +327,13 @@ class MentorService {
         );
         if (alreadyOffered) throw new ApiError(400, "You have already sent an offer for this doubt.");
 
+        const offerPrice = 20; // Enforce fixed ₹20 per doubt for now
+
         // Push mentor offer into DoubtSession
         doubtSession.mentorOffers.push({
             mentorId: userId,
             mentorName: mentor.name,
-            price,
+            price: offerPrice,
             availableTime,
             offeredAt: new Date()
         });
@@ -343,7 +345,7 @@ class MentorService {
             mentorId: userId,
             mentorName: mentor.name,
             mentorAvatar: mentor.avatar,
-            price,
+            price: offerPrice,
             availableTime
         });
 
