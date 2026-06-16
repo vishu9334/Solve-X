@@ -3,6 +3,7 @@ import { MentorProfile } from "../../models/AmentorProfile.model.js";
 import { Skill } from "../../models/skill.model.js";
 import { Attempt } from "../../models/assessmentAttempt.model.js";
 import { AssessmentStore } from "../../models/assessmentDataStore.model.js";
+import mongoose from "mongoose";
 
 class MongoMentorRepository extends IMentorRepository {
     async findMentorProfile(userId) {
@@ -28,18 +29,24 @@ class MongoMentorRepository extends IMentorRepository {
 
     // Create new skill + its AssessmentStore in one go
     async createSkillWithAssessment({ name, createdBy, source = "mentor" }) {
-        // 1. Create AssessmentStore first (empty, AI will fill later)
+        // 1. Generate ObjectIds first to prevent Mongoose validation constraints from failing
+        const assessmentId = new mongoose.Types.ObjectId();
+        const skillId = new mongoose.Types.ObjectId();
+
+        // 2. Create AssessmentStore with valid skillId as category
         const assessment = await AssessmentStore.create({
+            _id: assessmentId,
             createdBy,
             title: `${name} Assessment`,
-            category: null, // will update after skill creation
+            category: skillId,
             durationMinutes: 0, // AI will calculate dynamically
             totalQuestions: 0,
             passingPercentage: 60,
         });
 
-        // 2. Create Skill (pre-save hook will Title Case name + generate slug)
+        // 3. Create Skill
         const skill = new Skill({
+            _id: skillId,
             name,
             createdBy,
             source,
@@ -47,10 +54,6 @@ class MongoMentorRepository extends IMentorRepository {
             mentorCount: 0,
         });
         await skill.save();
-
-        // 3. Link AssessmentStore back to skill
-        assessment.category = skill._id;
-        await assessment.save();
 
         return skill;
     }

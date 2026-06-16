@@ -7,6 +7,8 @@ import mentorRoutes from './routes/mentor.routes.js';
 import activitySessionRoutes from './routes/activitySession.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import skillRoutes from './routes/skill.routes.js';
+import studentRoutes from './routes/student.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 const app = express();
 
 const morganMiddleware = morgan(
@@ -35,7 +37,7 @@ app.get("/health", (req, res) => {
 });
 
 
-app.use("/api/v1", mentorRoutes, activitySessionRoutes, authRoutes, skillRoutes);
+app.use("/api/v1", mentorRoutes, activitySessionRoutes, authRoutes, skillRoutes, studentRoutes, dashboardRoutes);
 
 app.use((req, res, next) => {
   const err = new Error(`Route ${req.originalUrl} not found`);

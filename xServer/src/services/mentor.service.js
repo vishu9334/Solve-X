@@ -1,4 +1,5 @@
 import { ApiError } from "../utils/ApiError.js";
+import mongoose from "mongoose";
 import mentorRepository from "../repositorys/implimentations/mongo.mentor.repository.js";
 import { generateMCQ, generateEmailContent } from "./AI/AI.service.js";
 import redis from "../configs/redis.config.js";
@@ -11,6 +12,8 @@ import { AssessmentStore } from "../models/assessmentDataStore.model.js";
 import AssessmentEvaluator from "../helpers/AssessmentEvaluator.js";
 import activitySessionService from "./SActivitysession.service.js";
 import emailQueue from "../queue/email.queue.js";
+import {sendNotificationToUser} from '../helpers/socket/socket.helper.js'
+import { DoubtSession } from "../models/doubtSession.model.js";
 
 class MentorService {
     async selectSkill(userId, { skillId, skillName }) {
@@ -27,6 +30,10 @@ class MentorService {
         let skill;
 
         if (skillId) {
+            // Validate if skillId is a valid ObjectId to prevent CastError
+            if (!mongoose.Types.ObjectId.isValid(skillId)) {
+                throw new ApiError(400, "Invalid skillId format. Must be a 24-character hex string.");
+            }
             // Existing skill by ID
             skill = await mentorRepository.findSkillById(skillId);
             if (!skill) throw new ApiError(404, "Skill not found or inactive.");
@@ -182,6 +189,10 @@ class MentorService {
                 mentorProfile.verificationStatus = "rejected";
                 mentorProfile.rejectedAt = new Date();
                 mentorProfile.rejectionReason = "Assessment failed: max attempts reached.";
+                
+                if (mentorProfile.skillCategory) {
+                    await mentorRepository.decrementAndCleanup(mentorProfile.skillCategory);
+                }
             }
             await mentorProfile.save();
         }
@@ -256,6 +267,10 @@ class MentorService {
                 mentorProfile.verificationStatus = "rejected";
                 mentorProfile.rejectedAt = new Date();
                 mentorProfile.rejectionReason = "Assessment failed: suspicious activity and max attempts reached.";
+                
+                if (mentorProfile.skillCategory) {
+                    await mentorRepository.decrementAndCleanup(mentorProfile.skillCategory);
+                }
             }
             await mentorProfile.save();
         }
@@ -286,6 +301,58 @@ class MentorService {
 
         // Clean up Redis cache for questions
         await redis.del(`assessment:questions:${attempt._id.toString()}`);
+    }
+
+    /**
+     * Mentor sends a price/time offer for a student's doubt session
+     */
+    async replyToStudentDoubt(userId, { doubtSessionId, price, availableTime }) {
+        if (!mongoose.Types.ObjectId.isValid(doubtSessionId))
+            throw new ApiError(400, "Invalid doubt session ID");
+
+        // Fetch mentor's real name
+        const mentor = await CommonUser.findById(userId).select("name email avatar");
+        if (!mentor) throw new ApiError(404, "Mentor not found.");
+
+        // Validate doubt session exists and is open
+        const doubtSession = await DoubtSession.findOne({
+            _id: doubtSessionId,
+            status: "open"
+        });
+        if (!doubtSession) throw new ApiError(404, "Doubt session not found or already closed.");
+
+        // Check if mentor already sent an offer
+        const alreadyOffered = doubtSession.mentorOffers.find(
+            offer => offer.mentorId.toString() === userId.toString()
+        );
+        if (alreadyOffered) throw new ApiError(400, "You have already sent an offer for this doubt.");
+
+        const offerPrice = 20; // Enforce fixed ₹20 per doubt for now
+
+        // Push mentor offer into DoubtSession
+        doubtSession.mentorOffers.push({
+            mentorId: userId,
+            mentorName: mentor.name,
+            price: offerPrice,
+            availableTime,
+            offeredAt: new Date()
+        });
+        await doubtSession.save();
+
+        // Notify student that a new mentor offer arrived
+        sendNotificationToUser(doubtSession.studentId, "mentor_offer_received", {
+            doubtSessionId: doubtSession._id,
+            mentorId: userId,
+            mentorName: mentor.name,
+            mentorAvatar: mentor.avatar,
+            price: offerPrice,
+            availableTime
+        });
+
+        return {
+            message: "Offer sent to student successfully.",
+            doubtSessionId: doubtSession._id
+        };
     }
 }
 

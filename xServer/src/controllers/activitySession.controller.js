@@ -3,7 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import activitySessionService from "../services/SActivitysession.service.js";
 
 export const startActivitySession = asyncHandler(async (req, res) => {
-  const userId = req.user.userId; // ✅
+  const userId = req.user.userId; 
   const { category, screen, metadata } = req.body;
 
   const session = await activitySessionService.startSession({
@@ -31,7 +31,7 @@ export const recordActivityEvent = asyncHandler(async (req, res) => {
 
 export const submitActivitySession = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
-  const userId = req.user.userId; // ✅
+  const userId = req.user.userId; 
 
   const session = await activitySessionService.submitSession(sessionId, userId, req.body);
 

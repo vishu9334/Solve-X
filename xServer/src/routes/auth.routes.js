@@ -17,6 +17,7 @@ router.post("/verify-otp", validate(verifyOtpValidator), AuthController.verifyOT
 router.post("/login", validate(loginValidator), AuthController.login);
 router.post("/forgot-password", validate(forgotPasswordValidator), AuthController.forgotPassword);
 router.post("/reset-password", validate(resetPasswordValidator), AuthController.resetPassword);
+router.post("/regenerate-token", AuthController.reGenerateToken);
 router.post("/logout",     verifyAccessToken, AuthController.logout);
 
 export default router;

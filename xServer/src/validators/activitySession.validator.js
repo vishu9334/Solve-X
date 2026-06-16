@@ -84,9 +84,6 @@ export const sessionIdParamValidator = {
 };
 
 export const userActivitySessionsValidator = {
-  params: z.object({
-    userId: objectIdSchema,
-  }),
   query: z.object({
     category: z.string().trim().min(1).optional(),
   }),
