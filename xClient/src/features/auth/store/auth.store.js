@@ -1,13 +1,37 @@
 import { create } from "zustand";
-import {devtools} from 'zustand/middleware';
+import { devtools } from "zustand/middleware";
 
-const useAuthStore = create(devtools((set)=>({
-    accessToken: null,
-    user:null,
+const useAuthStore = create(
+  devtools(
+    (set) => ({
+      accessToken: null,
+      user: null,
+      isCheckingSession: false,
 
-    setAccessToken:(token)=>set({accessToken: token}),
-    setUser: (user)=>set({user:user}),
-    logout: ()=> set({accessToken:null, user:null})
-})))
+      setAccessToken: (token) =>
+        set({ accessToken: token }, false, "auth/setAccessToken"),
 
-export default useAuthStore
+      setUser: (user) =>
+        set({ user }, false, "auth/setUser"),
+
+      setCheckingSession: (isCheckingSession) =>
+        set({ isCheckingSession }, false, "auth/setCheckingSession"),
+
+      logout: () =>
+        set(
+          {
+            accessToken: null,
+            user: null,
+            isCheckingSession: false,
+          },
+          false,
+          "auth/logout"
+        ),
+    }),
+    {
+      name: "AuthStore",
+    }
+  )
+);
+
+export default useAuthStore;

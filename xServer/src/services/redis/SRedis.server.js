@@ -147,5 +147,75 @@ class redisWhereHouse {
     }
   }
 
+  async enforceRegisterOtpRateLimit(email, maxAttempts = 3, windowSeconds = 30 * 60) {
+    try {
+      const key = `register:limit:${email}`;
+      const count = await redis.incr(key);
+
+      if (count === 1) {
+        await redis.expire(key, windowSeconds);
+      }
+
+      if (count > maxAttempts) {
+        const ttl = await redis.ttl(key);
+        const waitMinutes = Math.max(1, Math.ceil(ttl / 60));
+        throw new ApiError(
+          429,
+          `Too many registration attempts. Please try again after ${waitMinutes} minutes.`
+        );
+      }
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      throw new ApiError(429, error.message || "Registration rate limit exceeded.");
+    }
+  }
+  async userExists(email) {
+    try {
+      const key = `user:${email}`;
+      const exists = await redis.exists(key);
+      return exists === 1;
+    } catch (error) {
+      throw new ApiError(400, error.message || "Error checking user registration state.");
+    }
+  }
+
+  async enforceResendRateLimit(email, maxAttempts = 3, windowSeconds = 3600) {
+    try {
+      const key = `otp:resend:count:${email}`;
+      const count = await redis.incr(key);
+
+      if (count === 1) {
+        await redis.expire(key, windowSeconds);
+      }
+
+      if (count > maxAttempts) {
+        const ttl = await redis.ttl(key);
+        const waitMinutes = Math.max(1, Math.ceil(ttl / 60));
+        throw new ApiError(
+          429,
+          `Too many resend attempts. Please try again after ${waitMinutes} minutes.`
+        );
+      }
+
+      return {
+        attemptsRemaining: maxAttempts - count,
+      };
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      throw new ApiError(429, error.message || "Resend rate limit exceeded.");
+    }
+  }
+
+  async updateUserOTP(email, hashOTP, ttlInSeconds = 600) {
+    try {
+      const key = `user:${email}`;
+      await redis.hset(key, "otp", hashOTP);
+      await redis.expire(key, ttlInSeconds);
+    } catch (error) {
+      throw new ApiError(400, error.message || "Failed to update OTP in Redis.");
+    }
+  }
 }
-export default new redisWhereHouse
+
+export default new redisWhereHouse;
+

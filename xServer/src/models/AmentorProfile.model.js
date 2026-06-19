@@ -5,10 +5,9 @@ const mentorProfileSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: "CommonUser",
         required: true,
-        unique: true, // ✅ ek user ka ek hi profile
+        unique: true,
     },
 
-    // ✅ Skill collection se ref
     skillCategory: {
         type: Schema.Types.ObjectId,
         ref: "Skill",

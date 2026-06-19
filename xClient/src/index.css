@@ -1,1 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=BBH+Bartle&family=Edu+VIC+WA+NT+Beginner:wght@400..700&family=Hammersmith+One&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Raleway:ital,wght@0,100..900;1,100..900&family=Rubik+Mono+One&family=Saira+Stencil:ital,wght@0,100..900;1,100..900&family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 @import "tailwindcss";
+
+@theme {
+  --color-background: #12121d;
+  --color-on-background: #e3e0f1;
+  --color-surface: #12121d;
+  --color-surface-bright: #383845;
+  --color-surface-container: #1f1e2a;
+  --color-surface-container-low: #1b1a26;
+  --color-surface-container-lowest: #0d0d18;
+  --color-surface-container-high: #292935;
+  --color-surface-container-highest: #343440;
+
+  --color-primary: #d2bbff;
+  --color-on-primary: #3f008e;
+  --color-primary-container: #7c3aed;
+  --color-on-primary-container: #ede0ff;
+
+  --color-secondary: #c4c1fb;
+  --color-on-secondary: #2d2a5b;
+  --color-secondary-container: #444173;
+  --color-on-secondary-container: #b3afe9;
+
+  --color-tertiary: #4edea3;
+  --color-on-tertiary: #003824;
+  --color-tertiary-container: #007650;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-outline: #958da1;
+  --color-outline-variant: #4a4455;
+
+  --font-sora: "Sora", sans-serif;
+  --font-dm-sans: "DM Sans", sans-serif;
+
+  --font-architects-daughter: "Architects Daughter", cursive;
+  --font-bbh-bartle: "BBH Bartle", sans-serif;
+  --font-edu-vic-wa-nt-beginner: "Edu VIC WA NT Beginner", cursive;
+  --font-raleway: "Raleway", sans-serif;
+  --font-rubik-mono-one: "Rubik Mono One", monospace;
+  --font-saira-stencil: "Saira Stencil", sans-serif;
+  --font-shantell-sans: "Shantell Sans", cursive;
+  --font-hammersmith-one: "Hammersmith One", sans-serif;
+  --font-josefin-sans: "Josefin Sans", sans-serif;
+}
+
+.glass-card {
+  background: rgba(26, 26, 46, 0.6);
+  backdrop-filter: blur(12px);
+  border: 0.5px solid rgba(124, 58, 237, 0.2);
+  transition: all 0.3s ease-in-out;
+}
+
+.glass-card:hover {
+  border-color: rgba(124, 58, 237, 1);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+  transform: translateY(-2px);
+}
+
+.light-leak {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.15) 0%, rgba(124, 58, 237, 0) 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.animate-pulse-emerald {
+  animation: pulse-emerald 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-emerald {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: .4;
+  }
+}
+
+/* Custom font utility classes */
+.rubik-mono-one-regular {
+  font-family: "Rubik Mono One", monospace;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.bbh-bartle-regular {
+  font-family: "BBH Bartle", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.saira-stencil-regular {
+  font-family: "Saira Stencil", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.shantell-sans-regular {
+  font-family: "Shantell Sans", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.architects-daughter-regular {
+  font-family: "Architects Daughter", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.edu-vic-wa-nt-beginner-regular {
+  font-family: "Edu VIC WA NT Beginner", cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.raleway-regular {
+  font-family: "Raleway", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.hammersmith-one-regular {
+  font-family: "Hammersmith One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.josefin-sans-regular {
+  font-family: "Josefin Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Custom cursor — hide default on public page (desktop only) */
+@media (pointer: fine) {
+  .custom-cursor-active,
+  .custom-cursor-active * {
+    cursor: none !important;
+  }
+}
+
+/* Serif font for italic accent text (cleanvoice-style) */
+.font-georgia {
+  font-family: Georgia, "Times New Roman", serif;
+}

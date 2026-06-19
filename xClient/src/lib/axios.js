@@ -1,44 +1,90 @@
 import axios from "axios";
-import useAuthStore from '../features/auth/store/auth.store.js'
+import useAuthStore from "../features/auth/store/auth.store.js";
 
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || '/api/v1',
-    withCredentials: true,
-    headers: {
-        'Accept': 'application/json',
+  baseURL: import.meta.env.VITE_API_URL || "/api/v1",
+  withCredentials: true,
+  headers: {
+    Accept: "application/json",
+  },
+});
+
+const getAccessTokenFromHeader = (headers) => {
+  const authHeader = headers?.["authorization"];
+
+  return authHeader?.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : null;
+};
+
+const isPublicAuthRoute = (url = "") => {
+  return (
+    url.includes("/login") ||
+    url.includes("/register") ||
+    url.includes("/verify-otp") ||
+    url.includes("/resend-otp") ||
+    url.includes("/forgot-password") ||
+    url.includes("/reset-password") ||
+    url.includes("/regenerate-token")
+  );
+};
+
+api.interceptors.request.use(
+  (config) => {
+    const token = useAuthStore.getState().accessToken;
+    console.log("token response", token)
+    if (token && !isPublicAuthRoute(config.url)) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-})
 
-api.interceptors.request.use((config) => {
-    const token = useAuthStore.getState().accessToken
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  (response) => response,
+    
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (!originalRequest) {
+      return Promise.reject(error);
     }
 
-    return config
-})
+    const shouldRegenerateToken =
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isPublicAuthRoute(originalRequest.url);
 
-api.interceptors.response.use((response) => {
-    return response
-},
-    async (error) => {
-        const originalRequest = error.config;
-        if (error.response?.status === 401 && !originalRequest._retry) {
-            originalRequest._retry = true
-
-            try {
-                const refreshResponse = await api.post('/regenerate-token');
-                console.log('reeeefresg', refreshResponse);
-                const newAccessToken = refreshResponse.data.accessToken;
-                useAuthStore.getState().setAccessToken(newAccessToken);
-                originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-                return api(originalRequest);
-            } catch (error) {
-                useAuthStore.getState().logout()
-                window.location.href = '/login'
-            }
-
-        }
+    if (!shouldRegenerateToken) {
+      return Promise.reject(error);
     }
-)
-export default api
+
+    originalRequest._retry = true;
+
+    try {
+      const refreshResponse = await api.post("/regenerate-token");
+      const newAccessToken =
+      getAccessTokenFromHeader(refreshResponse.headers) ||
+      refreshResponse.data?.data?.accessToken;
+      console.log("new token",newAccessToken)
+
+      if (!newAccessToken) {
+        throw new Error("No access token returned");
+      }
+
+      useAuthStore.getState().setAccessToken(newAccessToken);
+
+      originalRequest.headers = originalRequest.headers || {};
+      originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+
+      return api(originalRequest);
+    } catch (err) {
+      useAuthStore.getState().logout();
+      return Promise.reject(err);
+    }
+  }
+);
+
+export default api;

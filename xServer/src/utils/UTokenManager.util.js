@@ -10,13 +10,13 @@ class TokenManager {
   }
 
   generateAccessToken(payload) {
-    return jwt.sign({payload, jti: randomNumGenerator()}, this.secretKey, {
+    return jwt.sign({...payload, jti: randomNumGenerator()}, this.secretKey, {
       expiresIn: this.accessTokenExpiry,
     });
   }
 
   generateRefreshToken(payload) {
-    return jwt.sign({payload, jti: randomNumGenerator()}, this.refreshKey, {
+    return jwt.sign({...payload, jti: randomNumGenerator()}, this.refreshKey, {
       expiresIn: this.refreshTokenExpiry,
     });
   }
@@ -29,32 +29,33 @@ class TokenManager {
     return jwt.verify(token, this.refreshKey);
   }
 
-  setRefreshTokenCookie(res, token) {
-    const options = {
+  getRefreshTokenCookieOptions() {
+    return {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      path: "/",
     };
-
-    res.cookie("refreshToken", token, options);
   }
 
-  clearRefreshTokenCookie(res) {
-    res.clearCookie("refreshToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+  setRefreshTokenCookie(res, token) {
+    res.cookie("refreshToken", token, {
+      ...this.getRefreshTokenCookieOptions(),
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
   }
 
-  clearAccessTokenHeader(res) {
-    res.removeHeader("Authorization");
+   clearRefreshTokenCookie(res) {
+    res.clearCookie("refreshToken", this.getRefreshTokenCookieOptions());
   }
 
   setAccessTokenHeader(res, token) {
     res.setHeader("Authorization", `Bearer ${token}`);
   }
+  clearAccessTokenHeader(res) {
+    res.removeHeader("Authorization");
+  }
+
 }
 
 export default new TokenManager();

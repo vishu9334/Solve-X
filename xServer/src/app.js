@@ -1,5 +1,4 @@
 import express from 'express'
-import cors from 'cors'
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import {logger} from '../src/utils/logger.js'
@@ -22,7 +21,6 @@ const morganMiddleware = morgan(
 
 app.use(morganMiddleware);
 
-app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -22,6 +22,8 @@ class AuthService {
         const existedUser = await AuthRepository.findUserByEmail(email);
         if (existedUser) throw new ApiError(409, "User already exists.");
 
+        await redisWhereHouse.enforceRegisterOtpRateLimit(email);
+
         const username = email.split("@")[0];
 
         const OTP = f4R();
@@ -119,12 +121,12 @@ class AuthService {
 
         return { accessToken, refreshToken, userObj };
     }
+
     async logout(accessToken, refreshToken) {
         if (!accessToken) {
             throw new ApiError(400, "Access token required.");
         }
-
-        await redisWhereHouse.blacklistTokens(accessToken, refreshToken);
+       return await redisWhereHouse.blacklistTokens(accessToken, refreshToken);
     }
 
     async forgotPassword({ email }) {
@@ -184,7 +186,7 @@ class AuthService {
             throw new ApiError(401, "Refresh token is expired or invalid.");
         }
 
-        const userId = decoded?.payload?.userId;
+        const userId = decoded?.userId;;
         if (!userId) {
             throw new ApiError(401, "Invalid refresh token payload.");
         }
@@ -193,6 +195,60 @@ class AuthService {
         return { accessToken };
     }
 
+    async getCurrentUser(userId) {
+        if (!userId) {
+            throw new ApiError(400, "User ID is required.");
+        }
+
+        const user = await AuthRepository.findById(userId);
+        if (!user) {
+            throw new ApiError(404, "User not found.");
+        }
+
+        let mentorProfile = null;
+        if (user.role === "mentor") {
+            const { MentorProfile } = await import("../models/AmentorProfile.model.js");
+            mentorProfile = await MentorProfile.findOne({ userId: user._id });
+        }
+
+        const userObj = user.toObject ? user.toObject() : user;
+        delete userObj.password;
+
+        if (mentorProfile) {
+            userObj.mentorProfile = {
+                isVerifiedMentor: mentorProfile.isVerifiedMentor,
+                verificationStatus: mentorProfile.verificationStatus,
+            };
+        }
+
+        return { userObj };
+    }
+
+    async resendOtp(email) {
+        if (!email) {
+            throw new ApiError(400, "Email required for OTP resend.");
+        }
+
+        const exists = await redisWhereHouse.userExists(email);
+        if (!exists) {
+            throw new ApiError(400, "Registration data not found or expired. Please register again.");
+        }
+
+        const limitInfo = await redisWhereHouse.enforceResendRateLimit(email);
+
+        const newOTP = f4R();
+        const hashOTP = await hashingMethod(newOTP);
+
+        await redisWhereHouse.updateUserOTP(email, hashOTP, 600);
+
+        await emailQueue.add("send-otp", { email, otp: newOTP });
+
+        return {
+            email,
+            attemptsRemaining: limitInfo.attemptsRemaining,
+            message: "OTP resent successfully."
+        };
+    }
 }
 
 export default new AuthService();

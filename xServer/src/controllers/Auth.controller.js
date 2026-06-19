@@ -8,43 +8,34 @@ class AuthController {
     register = asyncHandler(async(req, res)=>{
       const {name, email, password, role} = req.body;
      const reponse = await AuthService.register({name,email,password,role})
-     res.status(200).json(new ApiResponse(200,reponse, {message:"OTP send on your email."}))
+      return res.status(200).json(new ApiResponse(200,reponse, {message:"OTP send on your email."}))
     })
 
     verifyOTP = asyncHandler(async(req, res)=>{
       const {email, otp} = req.body;
       const {accessToken,refreshToken,userObj} = await AuthService.verifyOTP(email, otp);
-     res.setHeader('Authorization', `Bearer ${accessToken}`);
-
-     res.cookie("refreshToken", refreshToken, {
-      httpOnly:true,
-      secure:true,
-      sameSite:'strict',
-      maxAge : 7 * 24 * 60 * 60 * 1000 
-     })
-     return res.status(200).json(new ApiResponse(200, {accessToken,refreshToken,userObj}, {message:"User register successful"}));
+     TokenManager.setAccessTokenHeader(res, accessToken);
+      TokenManager.setRefreshTokenCookie(res, refreshToken);
+     return res.status(200).json(new ApiResponse(200, {userObj}, {message:"User register successful"}));
+    //  return res.status(200).json(new ApiResponse(200, {accessToken,refreshToken,userObj}, {message:"User register successful"}));
     })
 
     login = asyncHandler(async (req, res) => {
       const { email, password } = req.body;
 
-      TokenManager.clearRefreshTokenCookie(res);
-      TokenManager.clearAccessTokenHeader(res);
-
       const { accessToken, refreshToken, userObj } = await AuthService.login({ email, password });
-
-      TokenManager.setAccessTokenHeader(res, accessToken);
-      TokenManager.setRefreshTokenCookie(res, refreshToken);
+       TokenManager.setAccessTokenHeader(res, accessToken);
+       TokenManager.setRefreshTokenCookie(res, refreshToken);
 
       return res.status(200).json(
-        new ApiResponse(200, { accessToken, refreshToken, userObj }, { message: "Login successful" })
+        new ApiResponse(200, { userObj }, { message: "Login successful" })
+        // new ApiResponse(200, { accessToken, refreshToken, userObj }, { message: "Login successful" })
       );
     })
 
     logout = asyncHandler(async (req, res) => {
       const accessToken = req.accessToken;
       const refreshToken = req.cookies?.refreshToken;
-
       await AuthService.logout(accessToken, refreshToken);
 
       TokenManager.clearRefreshTokenCookie(res);
@@ -72,15 +63,33 @@ class AuthController {
         new ApiResponse(200, response, { message: "Password updated successfully." })
       );
     })
+
     reGenerateToken = asyncHandler(async(req, res)=>{
-      const { refreshToken } = req.cookies;
+      const refreshToken= req.cookies?.refreshToken;
+       if (!refreshToken) {
+      throw new ApiError(401, "No active session found.");
+    }
       const { accessToken } = await AuthService.regenerateToken({ refreshToken });
 
       TokenManager.setAccessTokenHeader(res, accessToken);
 
       return res.status(200).json(
-        new ApiResponse(200, { accessToken }, { message: "Access token regenerated successfully." })
+        new ApiResponse(200, {}, { message: "Access token regenerated successfully." })
       );
+    })
+
+    getCurrentUser = asyncHandler(async (req, res) => {
+      const userId = req.user.userId;
+      const response = await AuthService.getCurrentUser(userId);
+      return res.status(200).json(
+        new ApiResponse(200, response, { message: "User profile fetched successfully." })
+      );
+    })
+
+    resendOTP = asyncHandler(async(req, res)=>{
+      const {email} = req.body;
+      const response = await AuthService.resendOtp(email);
+      return res.status(200).json(new ApiResponse(200, response, { message: "OTP resend successful" }));
     })
 }
 

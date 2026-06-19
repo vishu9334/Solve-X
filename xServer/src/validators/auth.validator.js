@@ -89,10 +89,22 @@ const resetPasswordValidator = {
   }),
 };
 
+const resendOtpValidator = {
+  body: z.object({
+    email: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .min(1, "Email is required")
+      .email("Invalid email format"),
+  }),
+};
+
 export {
   registerValidator,
   verifyOtpValidator,
   loginValidator,
   forgotPasswordValidator,
   resetPasswordValidator,
+  resendOtpValidator,
 };
