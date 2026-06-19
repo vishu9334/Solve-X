@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 
-const hashingMethod = async(value, rounds)=> {
+const hashingMethod = async(value, rounds = 10)=> {
         const hashing = await bcrypt.hash(value, Number(rounds))
         return hashing
 }

@@ -77,6 +77,12 @@ class AuthService {
             });
         }
 
+        // Automatically create adminProfile if role is admin
+        if (createdUser.role === "admin") {
+            const { adminProfile } = await import("../models/AadminProfile.model.js");
+            await adminProfile.create({ userId: createdUser._id });
+        }
+
         const accessToken = TokenManager.generateAccessToken({ userId: createdUser._id });
         const refreshToken = TokenManager.generateRefreshToken({ userId: createdUser._id });
 
