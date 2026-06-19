@@ -192,6 +192,36 @@ class studentService {
 
         return { message: "Session ended successfully." };
     }
+
+    studentDashboard = async ({ userId }) => {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId))
+            throw new ApiError(400, "Valid userId is required");
+
+        const data = await studentRepository.studentDashboard(userId);
+        if (!data) throw new ApiError(404, "Student not found");
+
+        return data;
+    }
+
+    updateStudentProfile = async ({ userId, bio, name }) => {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId))
+            throw new ApiError(400, "Valid userId is required");
+
+        if (!bio && !name)
+            throw new ApiError(400, "Provide at least bio or name to update");
+
+        const result = {};
+
+        if (bio) {
+            result.profile = await studentRepository.updateStudentBio(userId, bio);
+        }
+
+        if (name) {
+            result.user = await studentRepository.updateStudentName(userId, name);
+        }
+
+        return result;
+    }
 }
 
 export default new studentService()

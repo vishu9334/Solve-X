@@ -32,21 +32,20 @@ const skillSchema = new Schema(
 
     mentorCount: {
       type: Number,
-      default: 0, // kitne mentors hain is skill mein
+      default: 0,
     },
 
     source: {
       type: String,
       enum: ["admin", "mentor"],
       default: "mentor",
-      // admin-created skills are never auto-deleted
+     
     },
 
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: "CommonUser",
       default: null,
-      // null = seeded/system, otherwise userId of admin or mentor
     },
 
     assessmentId: {

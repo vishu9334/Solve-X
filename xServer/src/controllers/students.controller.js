@@ -46,6 +46,20 @@ class studentController {
 
         res.status(200).json(new ApiResponse(200, response, "Session ended."));
     })
+
+    studentDashBoard = asyncHandler(async (req, res) => {
+        const { userId } = req.params
+        const response = await studentService.studentDashboard({ userId })
+        return res.status(200).json(new ApiResponse(200, response, "Student dashboard fetched success."))
+    })
+
+    updateStudentProfile = asyncHandler(async (req, res) => {
+        const userId = req.user.userId
+        const { bio, name } = req.body
+
+        const response = await studentService.updateStudentProfile({ userId, bio, name })
+        return res.status(200).json(new ApiResponse(200, response, "Profile updated successfully."))
+    })
 }
 
 export default new studentController()
