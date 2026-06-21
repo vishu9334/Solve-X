@@ -101,7 +101,7 @@ class ActivitySessionService {
 
   // ─── Submit ───────────────────────────────────────────
 
-  async submitSession(sessionId, userId, eventData = {}) {
+  async submitWindowSession(sessionId, userId, eventData = {}) {
     if (!sessionId) throw new ApiError(400, "sessionId is required");
 
     const doc = await this.activitySessionRepository.findSessionByIdAndUser(sessionId, userId);

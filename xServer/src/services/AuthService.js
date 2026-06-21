@@ -12,11 +12,19 @@ class AuthService {
             throw new ApiError(400, "All fields are required.");
         }
 
+        const allowedAdmins = ["connect.solvex99@gmail.com", "vishalkumarptn32@gmail.com"];
+        const isAdminEmail = allowedAdmins.includes(email.toLowerCase());
+
         if (role === "admin") {
-            const allowedAdmins = ["connect.solvex99@gmail.com", "vishalkumarptn32@gmail.com"];
-            if (!allowedAdmins.includes(email.toLowerCase())) {
+            // Admin role sirf allowed emails ke liye
+            if (!isAdminEmail) {
                 throw new ApiError(403, "Access denied. This email is not authorized for admin registration.");
             }
+        }
+
+        if (isAdminEmail && role !== "admin") {
+            // Admin email student/mentor ke roop mein register nahi ho sakti
+            throw new ApiError(403, "This email is reserved for admin registration only.");
         }
 
         const existedUser = await AuthRepository.findUserByEmail(email);
@@ -100,7 +108,7 @@ class AuthService {
         return { accessToken, refreshToken, userObj };
     }
 
-    async login({ email, password }) {
+    async login({email, password} ) {
         if (!email || !password) {
             throw new ApiError(400, "Email and password are required.");
         }

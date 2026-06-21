@@ -1,13 +1,15 @@
 import { Router } from "express";
-import { selectSkill, submitAssessment, replyToStudentDoubt } from "../controllers/mentor.controller.js";
+import { selectSkill, submitAssessment, replyToStudentDoubt, mentorProfile, updateMentorDescription } from "../controllers/mentor.controller.js";
 import { verifyAccessToken } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
-import { submitAssessmentValidator } from "../validators/mentor.validator.js";
+import { submitAssessmentValidator, selectSkillValidator, replyToDoubtValidator, updateSkillDescriptionValidator } from "../validators/mentor.validator.js";
 
 const router = Router();
 
-router.post("/mentor/select-skill", verifyAccessToken, selectSkill);
-router.post("/mentor/submit-assessment", verifyAccessToken, validate(submitAssessmentValidator), submitAssessment);
-router.post("/mentor/reply-doubt", verifyAccessToken, replyToStudentDoubt);
+router.post("/mentor/select-skill", verifyAccessToken, validate(selectSkillValidator), selectSkill);
+router.post("/mentor/submit-assessment/:attemptId", verifyAccessToken, validate(submitAssessmentValidator), submitAssessment);
+router.post("/mentor/reply-doubt", verifyAccessToken, validate(replyToDoubtValidator), replyToStudentDoubt);
+router.get("/mentor/profile", verifyAccessToken, mentorProfile);
+router.patch("/mentor/skill/description", verifyAccessToken, validate(updateSkillDescriptionValidator), updateMentorDescription);
 
 export default router;

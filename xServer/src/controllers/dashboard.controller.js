@@ -6,6 +6,7 @@ import { StudentProfile } from "../models/AstudentProfile.model.js";
 import { MentorProfile } from "../models/AmentorProfile.model.js";
 import { DoubtSession } from "../models/doubtSession.model.js";
 import { Skill } from "../models/skill.model.js";
+import mentorService from "../services/mentor.service.js";
 
 class DashboardController {
     /**
@@ -65,7 +66,7 @@ class DashboardController {
      * Get dashboard details for Mentor
      */
     getMentorDashboard = asyncHandler(async (req, res) => {
-        const userId = req.user?._id;
+        const userId = req.user?._id || req.user?.userId;
 
         // 1. Verify user is mentor
         const user = await CommonUser.findById(userId);
@@ -76,85 +77,11 @@ class DashboardController {
             throw new ApiError(403, "Access denied. Only mentors can access the mentor dashboard.");
         }
 
-        // 2. Fetch mentor profile
-        const profile = await MentorProfile.findOne({ userId }).populate("skillCategory");
-        if (!profile) {
-            throw new ApiError(404, "Mentor profile not found.");
-        }
-
-        let stats = null;
-        let recentSessions = [];
-        let opportunities = [];
-        let activeSession = null;
-
-        // 3. If verified, get stats and open opportunities
-        if (profile.isVerifiedMentor) {
-            const completedSessions = await DoubtSession.find({
-                selectedMentorId: userId,
-                status: "completed"
-            });
-
-            // Calculate earnings
-            let totalEarnings = 0;
-            completedSessions.forEach(session => {
-                const offer = session.mentorOffers.find(o => o.mentorId.toString() === userId.toString());
-                if (offer) {
-                    totalEarnings += offer.price;
-                }
-            });
-
-            // Active session
-            activeSession = await DoubtSession.findOne({
-                selectedMentorId: userId,
-                status: "in_session"
-            }).populate("studentId", "name email avatar");
-
-            // Recent resolved sessions
-            recentSessions = await DoubtSession.find({
-                selectedMentorId: userId,
-                status: "completed"
-            })
-                .sort({ sessionEndedAt: -1 })
-                .limit(5)
-                .populate("studentId", "name email avatar");
-
-            // Open opportunities matching skill category
-            if (profile.skillCategory) {
-                opportunities = await DoubtSession.find({
-                    skillId: profile.skillCategory._id,
-                    status: "open",
-                    "mentorOffers.mentorId": { $ne: userId } // Don't show if already offered
-                })
-                    .sort({ createdAt: -1 })
-                    .populate("studentId", "name email avatar");
-            }
-
-            stats = {
-                totalResolved: completedSessions.length,
-                totalEarnings,
-                hasActiveSession: !!activeSession
-            };
-        }
+        // 2. Fetch mentor dashboard using service (single-query aggregation)
+        const dashboardData = await mentorService.getMentorDashboard(userId);
 
         return res.status(200).json(
-            new ApiResponse(200, {
-                profile: {
-                    name: user.name,
-                    email: user.email,
-                    avatar: user.avatar,
-                    isVerifiedMentor: profile.isVerifiedMentor,
-                    verificationStatus: profile.verificationStatus,
-                    skill: profile.skillCategory ? {
-                        name: profile.skillCategory.name,
-                        slug: profile.skillCategory.slug
-                    } : null,
-                    rejectionReason: profile.rejectionReason
-                },
-                stats,
-                activeSession,
-                recentSessions,
-                opportunities
-            }, "Mentor dashboard data fetched successfully.")
+            new ApiResponse(200, dashboardData, "Mentor dashboard data fetched successfully.")
         );
     });
 

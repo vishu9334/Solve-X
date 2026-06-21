@@ -20,7 +20,7 @@ export const startActivitySession = asyncHandler(async (req, res) => {
 
 export const recordActivityEvent = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
-  const userId = req.user.userId; // ✅
+  const userId = req.user.userId;
 
   const session = await activitySessionService.recordEvent(sessionId, userId, req.body);
 
@@ -29,11 +29,11 @@ export const recordActivityEvent = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, session, "Activity event recorded successfully"));
 });
 
-export const submitActivitySession = asyncHandler(async (req, res) => {
+export const submitActivityWindowSession = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
   const userId = req.user.userId; 
 
-  const session = await activitySessionService.submitSession(sessionId, userId, req.body);
+  const session = await activitySessionService.submitWindowSession(sessionId, userId, req.body);
 
   return res
     .status(200)
@@ -42,7 +42,7 @@ export const submitActivitySession = asyncHandler(async (req, res) => {
 
 export const getActivitySession = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
-  const userId = req.user.userId; // ✅
+  const userId = req.user.userId;
 
   const session = await activitySessionService.getSessionById(sessionId, userId);
 
@@ -52,7 +52,7 @@ export const getActivitySession = asyncHandler(async (req, res) => {
 });
 
 export const getUserActivitySessions = asyncHandler(async (req, res) => {
-  const userId = req.user.userId; // ✅
+  const userId = req.user.userId;
   const { category } = req.query;
 
   const sessions = await activitySessionService.getSessionsByUser({
@@ -67,7 +67,7 @@ export const getUserActivitySessions = asyncHandler(async (req, res) => {
 
 export const getActivitySessionReport = asyncHandler(async (req, res) => {
   const { sessionId } = req.params;
-  const userId = req.user.userId; // ✅
+  const userId = req.user.userId;
 
   const report = await activitySessionService.getSessionReport(sessionId, userId);
 
