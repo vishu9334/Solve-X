@@ -16,8 +16,9 @@ const PORT = process.env.PORT || 8000;
 mongoose.connect(config.MONGODB_URI)
   .then(() => {
     logger.info(`Connected to MongoDB successfully at ${config.MONGODB_URI}`);
-    import("./src/workers/email.worker.js");
-    logger.info("Email worker started successfully");
+    import("./src/workers/email.worker.js")
+      .then(() => logger.info("Email worker started successfully"))
+      .catch((err) => logger.error(`Email worker failed to start: ${err.message}`));
     import("./src/cron/mentorCleanup.cron.js").then((module) => {
       module.initMentorCleanupCron();
     });

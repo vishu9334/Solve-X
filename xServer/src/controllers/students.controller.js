@@ -8,7 +8,7 @@ class studentController {
      * Student posts a doubt question — notifies mentors
      */
     studentReaseQuestion = asyncHandler(async (req, res) => {
-        const { userId } = req.params
+        const userId = req.user?._id || req.user?.userId || req.params.userId;
         const { skillIdentifier, selectSessionTime } = req.query
         const { typeWriteQuestion } = req.body
 
@@ -48,7 +48,7 @@ class studentController {
     })
 
     studentDashBoard = asyncHandler(async (req, res) => {
-        const { userId } = req.params
+        const userId = req.user?._id || req.user?.userId || req.params.userId;
         const response = await studentService.studentDashboard({ userId })
         return res.status(200).json(new ApiResponse(200, response, "Student dashboard fetched success."))
     })
@@ -59,6 +59,26 @@ class studentController {
 
         const response = await studentService.updateStudentProfile({ userId, bio, name })
         return res.status(200).json(new ApiResponse(200, response, "Profile updated successfully."))
+    })
+
+    getActiveSession = asyncHandler(async (req, res) => {
+        const userId = req.user?._id || req.user?.userId;
+        const response = await studentService.getActiveSession(userId);
+        return res.status(200).json(new ApiResponse(200, response, "Active doubt session fetched successfully."));
+    })
+
+    getDoubtSessionOffers = asyncHandler(async (req, res) => {
+        const userId = req.user?._id || req.user?.userId;
+        const { doubtSessionId } = req.params;
+        const response = await studentService.getDoubtSessionOffers(userId, doubtSessionId);
+        return res.status(200).json(new ApiResponse(200, response, "Doubt session offers fetched successfully."));
+    })
+
+    getDoubtSessionDetails = asyncHandler(async (req, res) => {
+        const userId = req.user?._id || req.user?.userId;
+        const { doubtSessionId } = req.params;
+        const response = await studentService.getDoubtSessionDetails(userId, doubtSessionId);
+        return res.status(200).json(new ApiResponse(200, response, "Doubt session details fetched successfully."));
     })
 }
 

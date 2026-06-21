@@ -62,7 +62,7 @@ export const recordActivityEventValidator = {
   }),
 };
 
-export const submitActivitySessionValidator = {
+export const submitActivityWindowSessionValidator = {
   params: z.object({
     sessionId: objectIdSchema,
   }),

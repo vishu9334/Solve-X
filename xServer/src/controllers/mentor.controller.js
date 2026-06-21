@@ -17,13 +17,13 @@ export const selectSkill = asyncHandler(async (req, res) => {
 });
 
 export const submitAssessment = asyncHandler(async (req, res) => {
-    const userId = req.user.userId;
-    const { attemptId, sessionId, answers } = req.body;
+    const userId = req.user?._id || req.user?.userId;
+    const { attemptId } = req.params;
+    const { answers } = req.body;
 
     const data = await mentorService.submitAssessment({
         userId,
         attemptId,
-        sessionId,
         answers
     });
 
@@ -49,6 +49,19 @@ export const replyToStudentDoubt = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, data, "Offer sent to student.")
     );
+});
+
+export const mentorProfile = asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const data = await mentorService.mentorProfile(userId);
+    return res.status(200).json(new ApiResponse(200, data, "Mentor profile data fetched successfully"));
+});
+
+export const updateMentorDescription = asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const { description } = req.body;
+    const data = await mentorService.updateMentorDescription(userId, description);
+    return res.status(200).json(new ApiResponse(200, data, "Skill description updated successfully"));
 });
 
 

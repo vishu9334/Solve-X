@@ -17,6 +17,9 @@ class studentService {
 
         const isExisted = await studentRepository.findStudentId(userId)
         if (!isExisted) throw new ApiError(404, "Unauthorized student!")
+        if (isExisted.role !== "student") {
+            throw new ApiError(403, "Access denied. Only students can post doubts.");
+        }
 
         if (!skillIdentifier || !selectSessionTime || !typeWriteQuestion)
             throw new ApiError(400, "These all are required fields.");
@@ -94,6 +97,35 @@ class studentService {
             throw new ApiError(400, "Invalid doubt session ID");
         if (!mongoose.Types.ObjectId.isValid(selectedMentorId))
             throw new ApiError(400, "Invalid mentor ID");
+
+        // Verify caller is a student
+        const student = await studentRepository.findStudentId(userId);
+        if (!student || student.role !== "student") {
+            throw new ApiError(403, "Access denied. Only students can select mentors.");
+        }
+
+        // Verify selected user is a mentor and is verified
+        const { CommonUser } = await import("../models/AbaseUser.model.js");
+        const { MentorProfile } = await import("../models/AmentorProfile.model.js");
+
+        const selectedMentor = await CommonUser.findById(selectedMentorId);
+        if (!selectedMentor || selectedMentor.role !== "mentor") {
+            throw new ApiError(400, "Invalid mentor selection. Selected user is not a mentor.");
+        }
+
+        const selectedMentorProfile = await MentorProfile.findOne({ userId: selectedMentorId });
+        if (!selectedMentorProfile || !selectedMentorProfile.isVerifiedMentor) {
+            throw new ApiError(400, "Invalid mentor selection. Selected mentor is not verified.");
+        }
+
+        // Check if the selected mentor is already busy in an active session
+        const activeMentorSession = await DoubtSession.findOne({
+            selectedMentorId,
+            status: "in_session"
+        });
+        if (activeMentorSession) {
+            throw new ApiError(400, "This mentor is currently busy in another active session. Please select another mentor.");
+        }
 
         const doubtSession = await DoubtSession.findOne({
             _id: doubtSessionId,
@@ -221,6 +253,52 @@ class studentService {
         }
 
         return result;
+    }
+
+    getActiveSession = async (userId) => {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId))
+            throw new ApiError(400, "Valid userId is required");
+
+        const session = await DoubtSession.findOne({
+            studentId: userId,
+            status: { $in: ["open", "mentor_selected", "in_session"] }
+        }).populate("selectedMentorId", "name email avatar");
+
+        return session;
+    }
+
+    getDoubtSessionOffers = async (userId, doubtSessionId) => {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId))
+            throw new ApiError(400, "Valid userId is required");
+        if (!doubtSessionId || !mongoose.Types.ObjectId.isValid(doubtSessionId))
+            throw new ApiError(400, "Valid doubtSessionId is required");
+
+        const session = await DoubtSession.findOne({
+            _id: doubtSessionId,
+            studentId: userId
+        }).populate("mentorOffers.mentorId", "name email avatar");
+
+        if (!session) throw new ApiError(404, "Doubt session not found or unauthorized");
+
+        return session.mentorOffers;
+    }
+
+    getDoubtSessionDetails = async (userId, doubtSessionId) => {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId))
+            throw new ApiError(400, "Valid userId is required");
+        if (!doubtSessionId || !mongoose.Types.ObjectId.isValid(doubtSessionId))
+            throw new ApiError(400, "Valid doubtSessionId is required");
+
+        const session = await DoubtSession.findOne({
+            _id: doubtSessionId,
+            studentId: userId
+        })
+        .populate("selectedMentorId", "name email avatar")
+        .populate("skillId", "name slug");
+
+        if (!session) throw new ApiError(404, "Doubt session not found or unauthorized");
+
+        return session;
     }
 }
 

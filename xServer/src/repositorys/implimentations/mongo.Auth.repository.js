@@ -9,7 +9,7 @@ class AuthRepository extends IAuthRepository {
   }
 
   async findUserByEmail(email) {
-    return await SimpleUserAuth.findOne({ email });
+    return await SimpleUserAuth.findOne( {email} );
   }
 
   async findById(userId) {
