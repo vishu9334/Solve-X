@@ -26,7 +26,7 @@ class AuthController {
       const { accessToken, refreshToken, userObj } = await AuthService.login({ email, password });
        TokenManager.setAccessTokenHeader(res, accessToken);
        TokenManager.setRefreshTokenCookie(res, refreshToken);
-
+       console.log(accessToken)
       return res.status(200).json(
         new ApiResponse(200, { userObj }, { message: "Login successful" })
         // new ApiResponse(200, { accessToken, refreshToken, userObj }, { message: "Login successful" })

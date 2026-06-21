@@ -11,7 +11,7 @@ export const useCurrentUser = () => {
   const query = useQuery({
     queryKey: ["auth", "current-user"],
     queryFn: getCurrentUserApi,
-    retry: false,
+    retry: 1,
     staleTime: 1000 * 60 * 5,
   });
 

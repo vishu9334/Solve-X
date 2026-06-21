@@ -33,6 +33,7 @@ export const loginApi = async (data) => {
 export const registerApi = async (data) => {
   try {
     const apiResponse = await api.post("/register", data);
+    console.log(data)
 
     return {
       ...apiResponse.data?.data,
