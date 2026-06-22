@@ -153,3 +153,27 @@
 .font-georgia {
   font-family: Georgia, "Times New Roman", serif;
 }
+
+/* Custom scrollbar */
+.scrollbar-custom::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-custom::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.scrollbar-custom::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+.scrollbar-custom::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Custom Admin Dashboard Radial Background Gradient */
+.bg-admin-dashboard {
+  background: radial-gradient(circle at 82% 6%, rgba(255, 217, 110, 0.42), transparent 28%),
+              radial-gradient(circle at 76% 18%, rgba(62, 62, 244, 0.55), transparent 34%),
+              radial-gradient(circle at 28% 90%, rgba(255, 217, 110, 0.30), transparent 28%),
+              linear-gradient(180deg, #050509 0%, #060612 58%, #15131a 100%);
+}

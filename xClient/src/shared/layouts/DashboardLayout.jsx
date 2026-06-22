@@ -30,33 +30,39 @@ const DashboardLayout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-[#111111] font-mono flex flex-col justify-between selection:bg-black selection:text-white">
-            {/* DASHBOARD HEADER */}
-            <header className="flex justify-between items-center bg-white border-b border-neutral-200 px-8 py-4 shadow-sm">
-                <Link to={user ? `/dashboard/${user.role}` : '/public'} className="flex items-center space-x-3 group cursor-pointer text-current no-underline">
-                    <img src="/logo.png" alt="Solve-X Logo" className="w-8 h-8 object-contain transition-transform duration-300 group-hover:scale-110" />
-                    <span className="text-sm font-bold tracking-[0.2em] uppercase">SOLVE-X // DASHBOARD</span>
+        <div
+            style={{ backgroundColor: "#0c0b11" }}
+            className="h-screen text-white font-mono flex flex-col justify-between box-border overflow-hidden"
+        >
+
+            {/* DASHBOARD HEADER - Floating Pill Glass Navbar */}
+            <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[1200px] z-[1000] flex justify-between items-center bg-[#0c0b11]/80 border border-white/15 px-7 py-3 rounded-full shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] backdrop-blur-md box-border text-white">
+                <Link to={user ? `/dashboard/${user.role}` : '/public'} className="flex items-center gap-3 no-underline text-white cursor-pointer group">
+                    <img src="/logo.png" alt="Solve-X Logo" className="w-7 h-7 object-contain transition-transform duration-300 group-hover:scale-110" />
+                    <span className="text-[13px] font-bold tracking-[0.2em] uppercase">
+                        SOLVE-X // DASHBOARD
+                    </span>
                 </Link>
 
-                <nav className="flex items-center space-x-6 text-xs tracking-[0.2em] font-semibold">
+                <nav className="flex items-center gap-6 text-[12px] tracking-[0.2em] font-semibold">
                     {user && (
-                        <div className="flex items-center space-x-4">
-                            <img 
-                                src={getAvatarUrl(user)} 
-                                alt="User Avatar" 
-                                className="w-9 h-9 rounded-full border border-neutral-300 bg-neutral-100 object-contain p-0.5" 
+                        <div className="flex items-center gap-4">
+                            <img
+                                src={getAvatarUrl(user)}
+                                alt="User Avatar"
+                                className="w-9 h-9 rounded-full border border-white/20 bg-white/5 object-contain p-0.5"
                             />
                             <div className="flex flex-col items-start">
-                                <span className="text-[10px] text-[#777777] uppercase leading-none mb-1">
+                                <span className="text-[9px] text-neutral-400 uppercase leading-none mb-1">
                                     {user.role}
                                 </span>
-                                <span className="text-xs text-black font-bold uppercase leading-none">
+                                <span className="text-[11px] text-white font-bold uppercase leading-none">
                                     {user.name || user.email}
                                 </span>
                             </div>
-                            <button 
+                            <button
                                 onClick={handleLogout}
-                                className="hover:text-neutral-500 transition-colors uppercase border border-black px-4 py-2 hover:bg-black hover:text-white duration-200 cursor-pointer text-xs font-semibold tracking-[0.2em] ml-2"
+                                className="bg-transparent border border-white text-white px-5 py-2 cursor-pointer text-[11px] font-bold tracking-[0.2em] ml-2 rounded-full transition-all duration-200 hover:bg-white hover:text-[#0c0b11]"
                             >
                                 LOGOUT
                             </button>
@@ -65,13 +71,13 @@ const DashboardLayout = () => {
                 </nav>
             </header>
 
-            {/* DASHBOARD CONTENT */}
-            <main className="flex-1 p-8 md:p-12 max-w-7xl w-full mx-auto">
+            {/* DASHBOARD CONTENT - Stretch fully to full screen width with offset for the floating navbar */}
+            <main className="flex-1 w-full pt-24 box-border flex flex-col overflow-hidden">
                 <Outlet />
             </main>
 
             {/* FOOTER */}
-            <footer className="border-t border-neutral-200 px-8 md:px-12 py-4 text-[10px] tracking-[0.2em] text-[#777777] flex justify-between bg-white">
+            <footer className="border-t border-white/10 px-8 py-4 text-[10px] tracking-[0.2em] text-[#777777] flex justify-between bg-transparent box-border">
                 <span>© 2026 SOLVE-X. ALL RIGHTS RESERVED.</span>
                 <span>[ STATUS: SECURE ]</span>
             </footer>

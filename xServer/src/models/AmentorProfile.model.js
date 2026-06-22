@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-
+import {socialMediaLinkSchema} from './socialMediaBase.model.js'
 const mentorProfileSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
@@ -30,7 +30,52 @@ const mentorProfileSchema = new Schema({
         ref: "Attempt",
         default: null,
     },
-
+      socialLinks: {
+          type: [socialMediaLinkSchema],
+          default: [],
+        },
+    jobTitle: {
+        type: String,
+        default: "",
+    },
+    company: {
+        type: String,
+        default: "",
+    },
+    experienceYears: {
+        type: Number,
+        default: 0,
+    },
+    education: {
+        type: String,
+        default: "",
+    },
+    certifications: {
+        type: [String],
+        default: [],
+    },
+    rating: {
+        type: Number,
+        default: 5.0,
+    },
+    ratingCount: {
+        type: Number,
+        default: 0,
+    },
+    timezone: {
+        type: String,
+        default: "",
+    },
+    preferredLanguage: {
+        type: String,
+        default: "",
+    },
+    payoutDetails: {
+        upiId: { type: String, default: "" },
+        bankName: { type: String, default: "" },
+        accountNumber: { type: String, default: "" },
+        ifscCode: { type: String, default: "" },
+    },
     verifiedAt: {
         type: Date,
         default: null,

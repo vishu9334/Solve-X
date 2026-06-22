@@ -39,7 +39,67 @@ class IMentorRepository {
         throw new Error("Method not implemented");
     }
 
+    async updateMentorProfile(userId, updateData) {
+        throw new Error("Method not implemented");
+    }
+
     async updateMentorDescription(userId, description) {
+        throw new Error("Method not implemented");
+    }
+
+    async findAttemptWithAssessment(attemptId, userId) {
+        throw new Error("Method not implemented");
+    }
+
+    async findUserById(userId) {
+        throw new Error("Method not implemented");
+    }
+
+    async findAttemptByAssessment(userId, assessmentId) {
+        throw new Error("Method not implemented");
+    }
+
+    async findAssessmentStoreById(assessmentId) {
+        throw new Error("Method not implemented");
+    }
+
+    async updateAssessmentStore(assessmentId, updateData) {
+        throw new Error("Method not implemented");
+    }
+
+    async findLatestActivitySession(userId, assessmentId) {
+        throw new Error("Method not implemented");
+    }
+
+    async saveAnswers(attemptId, answersToInsert) {
+        throw new Error("Method not implemented");
+    }
+
+    async saveAttempt(attempt) {
+        throw new Error("Method not implemented");
+    }
+
+    async findSkillByAssessmentId(assessmentId) {
+        throw new Error("Method not implemented");
+    }
+
+    async saveMentorProfile(mentorProfile) {
+        throw new Error("Method not implemented");
+    }
+
+    async findActiveSessionForMentor(userId) {
+        throw new Error("Method not implemented");
+    }
+
+    async findOpenDoubtSession(doubtSessionId) {
+        throw new Error("Method not implemented");
+    }
+
+    async saveDoubtSession(doubtSession) {
+        throw new Error("Method not implemented");
+    }
+
+    async countActiveBids(userId) {
         throw new Error("Method not implemented");
     }
 }

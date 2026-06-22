@@ -78,6 +78,11 @@ class MongoStudentRepository extends IstudentContract {
                             { $first: "$profile" },
                             {
                                 bio: null,
+                                socialLinks: [],
+                                skills: [],
+                                education: "",
+                                preferredLanguage: "",
+                                timezone: "",
                                 subscriptionStatus: "inactive",
                                 subscriptionExpiresAt: null
                             }
@@ -278,6 +283,11 @@ class MongoStudentRepository extends IstudentContract {
                     },
                     profile: {
                         bio: "$profile.bio",
+                        socialLinks: "$profile.socialLinks",
+                        skills: "$profile.skills",
+                        education: "$profile.education",
+                        preferredLanguage: "$profile.preferredLanguage",
+                        timezone: "$profile.timezone",
                         subscriptionStatus: "$profile.subscriptionStatus",
                         subscriptionExpiresAt: "$profile.subscriptionExpiresAt"
                     },
@@ -303,12 +313,101 @@ class MongoStudentRepository extends IstudentContract {
         );
     }
 
+    updateStudentProfileFields = async (userId, updateData) => {
+        return await StudentProfile.findOneAndUpdate(
+            { userId },
+            { $set: updateData },
+            { new: true, upsert: true }
+        );
+    }
+
     updateStudentName = async (userId, name) => {
         return await CommonUser.findByIdAndUpdate(
             userId,
             { $set: { name } },
             { new: true }
         );
+    }
+
+    findStudentProfile = async (userId) => {
+        return await StudentProfile.findOne({ userId });
+    }
+
+    createStudentProfile = async (userId, data = {}) => {
+        return await StudentProfile.create({ userId, ...data });
+    }
+
+    findActiveSessionForStudent = async (studentId) => {
+        return await DoubtSession.findOne({
+            studentId,
+            status: { $in: ["open", "mentor_selected", "in_session"] }
+        });
+    }
+
+    findActiveSessionForStudentPopulated = async (studentId) => {
+        return await DoubtSession.findOne({
+            studentId,
+            status: { $in: ["open", "mentor_selected", "in_session"] }
+        }).populate("selectedMentorId", "name email avatar");
+    }
+
+    findDoubtSessionById = async (sessionId) => {
+        return await DoubtSession.findById(sessionId);
+    }
+
+    saveDoubtSession = async (session) => {
+        return await session.save();
+    }
+
+    findMentorProfileByUserId = async (userId) => {
+        return await MentorProfile.findOne({ userId });
+    }
+
+    findActiveSessionForMentor = async (mentorId) => {
+        return await DoubtSession.findOne({
+            selectedMentorId: mentorId,
+            status: "in_session"
+        });
+    }
+
+    findDoubtSessionByIdAndStudent = async (doubtSessionId, studentId) => {
+        return await DoubtSession.findOne({
+            _id: doubtSessionId,
+            studentId
+        });
+    }
+
+    findDoubtSessionByIdAndStudentWithOffers = async (doubtSessionId, studentId) => {
+        return await DoubtSession.findOne({
+            _id: doubtSessionId,
+            studentId
+        }).populate("mentorOffers.mentorId", "name email avatar");
+    }
+
+    findDoubtSessionByIdAndStudentWithDetails = async (doubtSessionId, studentId) => {
+        return await DoubtSession.findOne({
+            _id: doubtSessionId,
+            studentId
+        })
+        .populate("selectedMentorId", "name email avatar")
+        .populate("skillId", "name slug");
+    }
+
+    countDoubtSessions = async (studentId, status) => {
+        const query = { studentId };
+        if (status) query.status = status;
+        return await DoubtSession.countDocuments(query);
+    }
+
+    findCompletedDoubtSessions = async (studentId) => {
+        return await DoubtSession.find({ studentId, status: "completed" });
+    }
+
+    findRecentDoubtSessions = async (studentId, limit = 5) => {
+        return await DoubtSession.find({ studentId })
+            .sort({ createdAt: -1 })
+            .limit(limit)
+            .populate("selectedMentorId", "name email avatar");
     }
 }
 

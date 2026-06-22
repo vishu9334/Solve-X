@@ -55,9 +55,9 @@ class studentController {
 
     updateStudentProfile = asyncHandler(async (req, res) => {
         const userId = req.user.userId
-        const { bio, name } = req.body
+        const { bio, name, socialLinks, skills, education, preferredLanguage, timezone } = req.body
 
-        const response = await studentService.updateStudentProfile({ userId, bio, name })
+        const response = await studentService.updateStudentProfile({ userId, bio, name, socialLinks, skills, education, preferredLanguage, timezone })
         return res.status(200).json(new ApiResponse(200, response, "Profile updated successfully."))
     })
 

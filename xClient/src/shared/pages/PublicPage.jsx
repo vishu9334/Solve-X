@@ -158,10 +158,10 @@ const PublicPage = () => {
 
             {/* ── Floating Pill Navbar ── */}
             <header
-                className={`fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[1200px] z-50 flex justify-between items-center py-[14px] border backdrop-blur-[20px] px-6 rounded-full transition-all duration-300 ${
+                className={`fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[1200px] z-50 flex justify-between items-center py-[14px] border backdrop-blur-md px-6 rounded-full transition-all duration-300 ${
                     isPastHero
-                        ? 'bg-white/90 border-black/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)]'
-                        : 'bg-black/15 border-white/20 shadow-[inset_-0.5px_-0.5px_0px_rgba(255,255,255,0.7),inset_0.5px_0.5px_0px_rgba(255,255,255,0.7)]'
+                        ? 'bg-white/40 border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]'
+                        : 'bg-white/10 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]'
                 }`}
             >
                 {/* Logo */}
@@ -221,14 +221,7 @@ const PublicPage = () => {
             <section
                 ref={heroRef}
                 id="hero"
-                className="relative w-full min-h-screen flex items-center justify-center px-4 pt-32 pb-32 text-white overflow-hidden"
-                style={{
-                    background:
-                        'radial-gradient(circle at 82% 6%, rgba(255,217,110,0.42), transparent 28%),' +
-                        'radial-gradient(circle at 76% 18%, rgba(62,62,244,0.55), transparent 34%),' +
-                        'radial-gradient(circle at 28% 90%, rgba(255,217,110,0.30), transparent 28%),' +
-                        'linear-gradient(180deg, #050509 0%, #060612 58%, #15131a 100%)',
-                }}
+                className="w-full min-h-screen flex items-center justify-center px-4 pt-32 pb-32 text-white overflow-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_90%,rgba(255,217,110,0.30),transparent_28%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)]"
             >
                 {/* Bottom fade to #f4f4f4 */}
                 <div
@@ -240,7 +233,7 @@ const PublicPage = () => {
                 />
 
                 {/* Hero Content */}
-                <div className="relative z-10 flex w-full max-w-[1100px] flex-col items-center gap-7 text-center">
+                <div className="flex w-full max-w-[1100px] flex-col items-center gap-7 text-center">
 
                     {/* Badge */}
                     <div className="hero-stagger inline-flex items-center gap-2 rounded-full bg-black/10 border border-white/12 py-2 px-4 backdrop-blur-sm">

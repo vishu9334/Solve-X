@@ -83,6 +83,11 @@ export const initSocket = (server) => {
     return io;
 };
 
+// ─── Helper: Get all currently online user IDs ───────────────────────────────
+export const getOnlineUsers = () => {
+    return Array.from(onlineUsers.keys());
+};
+
 // ─── Helper: Send notification to a single user ──────────────────────────────
 export const sendNotificationToUser = (userId, eventName, payload) => {
     if (!io || !userId) return;

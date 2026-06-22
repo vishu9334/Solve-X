@@ -64,4 +64,36 @@ export const updateMentorDescription = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, data, "Skill description updated successfully"));
 });
 
+export const updateMentorProfile = asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const { socialLinks, jobTitle, company, experienceYears, education, certifications, timezone, preferredLanguage, payoutDetails } = req.body;
+
+    if (
+        socialLinks === undefined &&
+        jobTitle === undefined &&
+        company === undefined &&
+        experienceYears === undefined &&
+        education === undefined &&
+        certifications === undefined &&
+        timezone === undefined &&
+        preferredLanguage === undefined &&
+        payoutDetails === undefined
+    ) {
+        throw new ApiError(400, "Provide at least one field to update");
+    }
+
+    const data = await mentorService.updateMentorProfile(userId, {
+        socialLinks,
+        jobTitle,
+        company,
+        experienceYears,
+        education,
+        certifications,
+        timezone,
+        preferredLanguage,
+        payoutDetails
+    });
+    return res.status(200).json(new ApiResponse(200, data, "Mentor profile updated successfully"));
+});
+
 

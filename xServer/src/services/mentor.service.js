@@ -3,17 +3,10 @@ import mongoose from "mongoose";
 import mentorRepository from "../repositorys/implimentations/mongo.mentor.repository.js";
 import { generateMCQ, generateEmailContent } from "./AI/AI.service.js";
 import redis from "../configs/redis.config.js";
-import { Answer } from "../models/Answer.model.js";
-import { Attempt } from "../models/assessmentAttempt.model.js";
-import { MentorProfile } from "../models/AmentorProfile.model.js";
-import { CommonUser } from "../models/AbaseUser.model.js";
-import { Skill } from "../models/skill.model.js";
-import { AssessmentStore } from "../models/assessmentDataStore.model.js";
 import AssessmentEvaluator from "../helpers/AssessmentEvaluator.js";
 import activitySessionService from "./SActivitysession.service.js";
 import emailQueue from "../queue/email.queue.js";
 import { sendNotificationToUser } from '../helpers/socket/socket.helper.js'
-import { DoubtSession } from "../models/doubtSession.model.js";
 
 class MentorService {
     async selectSkill(userId, { skillId, skillName }) {
@@ -61,7 +54,7 @@ class MentorService {
             }
 
             // If selecting the SAME skill, check if they can retry/continue (new test session)
-            const attempt = await Attempt.findOne({ userId, assessmentId: skill.assessmentId });
+            const attempt = await mentorRepository.findAttemptByAssessment(userId, skill.assessmentId);
             if (attempt) {
                 if (attempt.status === "passed") {
                     throw new ApiError(400, "You have already passed this assessment.");
@@ -74,13 +67,13 @@ class MentorService {
                 const questions = await generateMCQ(skill.name);
 
                 // Conditionally update AssessmentStore durationMinutes and totalQuestions
-                const assessmentStore = await AssessmentStore.findById(skill.assessmentId);
+                const assessmentStore = await mentorRepository.findAssessmentStoreById(skill.assessmentId);
                 if (assessmentStore) {
+                    const updateData = { totalQuestions: questions.questions.length };
                     if (!assessmentStore.durationMinutes || assessmentStore.durationMinutes === 0) {
-                        assessmentStore.durationMinutes = questions.durationMinutes || 15;
+                        updateData.durationMinutes = questions.durationMinutes || 15;
                     }
-                    assessmentStore.totalQuestions = questions.questions.length;
-                    await assessmentStore.save();
+                    await mentorRepository.updateAssessmentStore(skill.assessmentId, updateData);
                 }
 
                 // Store generated questions in Redis for 1 hour to grade securely
@@ -106,13 +99,13 @@ class MentorService {
         const questions = await generateMCQ(skill.name);
 
         // 8. Conditionally update AssessmentStore durationMinutes and totalQuestions
-        const assessmentStore = await AssessmentStore.findById(skill.assessmentId);
+        const assessmentStore = await mentorRepository.findAssessmentStoreById(skill.assessmentId);
         if (assessmentStore) {
+            const updateData = { totalQuestions: questions.questions.length };
             if (!assessmentStore.durationMinutes || assessmentStore.durationMinutes === 0) {
-                assessmentStore.durationMinutes = questions.durationMinutes || 15;
+                updateData.durationMinutes = questions.durationMinutes || 15;
             }
-            assessmentStore.totalQuestions = questions.questions.length;
-            await assessmentStore.save();
+            await mentorRepository.updateAssessmentStore(skill.assessmentId, updateData);
         }
 
         // Store generated questions in Redis for 1 hour to grade securely
@@ -135,7 +128,7 @@ class MentorService {
         }
 
         // 1. Fetch Attempt and check ownership
-        const attempt = await Attempt.findOne({ _id: attemptId, userId }).populate("assessmentId");
+        const attempt = await mentorRepository.findAttemptWithAssessment(attemptId, userId);
         if (!attempt) throw new ApiError(404, "Assessment attempt not found or unauthorized.");
 
         if (attempt.status === "passed" || attempt.status === "failed") {
@@ -143,11 +136,7 @@ class MentorService {
         }
 
         // 2. Fetch or Submit the Activity Session (find latest activity session for this user and assessment)
-        const { AssessmentActivitySession } = await import("../models/assessmentActivityDataStore.model.js");
-        let activitySession = await AssessmentActivitySession.findOne({
-            userId,
-            assessmentId: attempt.assessmentId._id
-        }).sort({ createdAt: -1 });
+        let activitySession = await mentorRepository.findLatestActivitySession(userId, attempt.assessmentId._id);
 
         if (!activitySession) throw new ApiError(404, "Activity session not found.");
         const sessionId = activitySession._id;
@@ -200,8 +189,7 @@ class MentorService {
             };
         });
 
-        await Answer.deleteMany({ attemptId });
-        await Answer.insertMany(answersToInsert);
+        await mentorRepository.saveAnswers(attemptId, answersToInsert);
 
         // 5. Evaluate the attempt using AssessmentEvaluator
         const evalResult = await AssessmentEvaluator.evaluate(attempt, activitySession);
@@ -224,10 +212,10 @@ class MentorService {
             }
         }
 
-        await attempt.save();
+        await mentorRepository.saveAttempt(attempt);
 
         // 7. Update MentorProfile
-        const mentorProfile = await MentorProfile.findOne({ userId });
+        const mentorProfile = await mentorRepository.findMentorProfile(userId);
         if (mentorProfile) {
             mentorProfile.lastAssessmentAttemptId = attempt._id;
             if (evalResult.isPassed) {
@@ -243,14 +231,14 @@ class MentorService {
                     await mentorRepository.decrementAndCleanup(mentorProfile.skillCategory);
                 }
             }
-            await mentorProfile.save();
+            await mentorRepository.saveMentorProfile(mentorProfile);
         }
 
         // 8. Generate and Send Result Email via Queue
-        const user = await CommonUser.findById(userId);
+        const user = await mentorRepository.findUserById(userId);
         console.log("[EMAIL-DEBUG] user found:", user ? user.email : "NULL — user not found!");
         if (user) {
-            const skill = await Skill.findOne({ assessmentId: attempt.assessmentId._id });
+            const skill = await mentorRepository.findSkillByAssessmentId(attempt.assessmentId._id);
             console.log("[EMAIL-DEBUG] skill found:", skill ? skill.name : "NULL — skill not found!");
             const emailType = evalResult.isPassed ? "pass" : "fail";
             console.log("[EMAIL-DEBUG] emailType:", emailType, "| score:", evalResult.score);
@@ -288,7 +276,7 @@ class MentorService {
 
     async handleAutoSubmit(userId, sessionId, activitySession) {
         // Find the attempt matching this user and assessmentId
-        const attempt = await Attempt.findOne({ userId, assessmentId: activitySession.assessmentId });
+        const attempt = await mentorRepository.findAttemptByAssessment(userId, activitySession.assessmentId);
         if (!attempt) return;
 
         if (attempt.status === "passed" || attempt.status === "failed") {
@@ -312,10 +300,10 @@ class MentorService {
             attempt.status = "in_progress";
         }
 
-        await attempt.save();
+        await mentorRepository.saveAttempt(attempt);
 
         // Update MentorProfile
-        const mentorProfile = await MentorProfile.findOne({ userId });
+        const mentorProfile = await mentorRepository.findMentorProfile(userId);
         if (mentorProfile) {
             mentorProfile.lastAssessmentAttemptId = attempt._id;
             if (attempt.status === "failed") {
@@ -327,13 +315,13 @@ class MentorService {
                     await mentorRepository.decrementAndCleanup(mentorProfile.skillCategory);
                 }
             }
-            await mentorProfile.save();
+            await mentorRepository.saveMentorProfile(mentorProfile);
         }
 
         // Generate and Send auto-submit warning/fail email via Queue
-        const user = await CommonUser.findById(userId);
+        const user = await mentorRepository.findUserById(userId);
         if (user) {
-            const skill = await Skill.findOne({ assessmentId: attempt.assessmentId });
+            const skill = await mentorRepository.findSkillByAssessmentId(attempt.assessmentId);
 
             try {
                 const emailContent = await generateEmailContent({
@@ -366,32 +354,26 @@ class MentorService {
             throw new ApiError(400, "Invalid doubt session ID");
 
         // Fetch mentor's details and check role
-        const mentor = await CommonUser.findById(userId);
+        const mentor = await mentorRepository.findUserById(userId);
         if (!mentor) throw new ApiError(404, "User not found.");
         if (mentor.role !== "mentor") {
             throw new ApiError(403, "Access denied. Only mentors can reply to doubts.");
         }
 
         // Check if mentor is verified
-        const mentorProfile = await MentorProfile.findOne({ userId });
+        const mentorProfile = await mentorRepository.findMentorProfile(userId);
         if (!mentorProfile || !mentorProfile.isVerifiedMentor) {
             throw new ApiError(403, "Access denied. Only verified mentors can reply to doubts.");
         }
 
         // Check if mentor already has an active doubt session
-        const activeSession = await DoubtSession.findOne({
-            selectedMentorId: userId,
-            status: "in_session"
-        });
+        const activeSession = await mentorRepository.findActiveSessionForMentor(userId);
         if (activeSession) {
             throw new ApiError(400, "You already have an active doubt session. Please complete or cancel it first.");
         }
 
         // Validate doubt session exists and is open
-        const doubtSession = await DoubtSession.findOne({
-            _id: doubtSessionId,
-            status: "open"
-        });
+        const doubtSession = await mentorRepository.findOpenDoubtSession(doubtSessionId);
         if (!doubtSession) throw new ApiError(404, "Doubt session not found or already closed.");
 
         // Check if doubt session skill matches mentor skill
@@ -415,7 +397,7 @@ class MentorService {
             availableTime,
             offeredAt: new Date()
         });
-        await doubtSession.save();
+        await mentorRepository.saveDoubtSession(doubtSession);
 
         // Notify student that a new mentor offer arrived
         sendNotificationToUser(doubtSession.studentId, "mentor_offer_received", {
@@ -448,9 +430,67 @@ class MentorService {
      */
     async getMentorDashboard(userId) {
         if (!userId) throw new ApiError(400, "User ID is required.");
+
+        const user = await mentorRepository.findUserById(userId);
+        if (!user) {
+            throw new ApiError(404, "User not found.");
+        }
+        if (user.role !== "mentor") {
+            throw new ApiError(403, "Access denied. Only mentors can access the mentor dashboard.");
+        }
+
         const data = await mentorRepository.mentorDashboardFetch(userId);
         if (!data) throw new ApiError(404, "Mentor dashboard data not found.");
+
+        // Calculate profile completion percentage
+        let completion = 40; // 20% name + 20% email are guaranteed
+        if (user.avatar && !user.avatar.includes("blank-profile-picture")) completion += 20;
+
+        const mentorProfile = await mentorRepository.findMentorProfile(userId);
+        if (mentorProfile) {
+            if (mentorProfile.socialLinks && mentorProfile.socialLinks.length > 0) completion += 20;
+        }
+
+        if (data.profile.skill && data.profile.skill.description) completion += 20;
+
+        // Calculate active bids count
+        const activeBidsCount = await mentorRepository.countActiveBids(userId);
+
+        if (data.stats) {
+            data.stats = {
+                ...data.stats,
+                activeBidsCount,
+                profileCompletion: completion
+            };
+        } else {
+            data.stats = {
+                totalResolved: 0,
+                totalEarnings: 0,
+                hasActiveSession: false,
+                activeBidsCount,
+                profileCompletion: completion
+            };
+        }
+
         return data;
+    }
+
+    /**
+     * Update mentor profile (socialLinks, etc.)
+     */
+    async updateMentorProfile(userId, updateData) {
+        if (!userId) throw new ApiError(400, "Credential not found");
+        const cleanUpdateData = {};
+        const allowedKeys = ["socialLinks", "jobTitle", "company", "experienceYears", "education", "certifications", "timezone", "preferredLanguage", "payoutDetails"];
+        allowedKeys.forEach(key => {
+            if (updateData[key] !== undefined) {
+                cleanUpdateData[key] = updateData[key];
+            }
+        });
+
+        const updated = await mentorRepository.updateMentorProfile(userId, cleanUpdateData);
+        if (!updated) throw new ApiError(404, "Mentor profile not found.");
+        return updated;
     }
 
     /**

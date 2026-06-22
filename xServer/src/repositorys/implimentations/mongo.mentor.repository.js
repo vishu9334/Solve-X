@@ -131,7 +131,18 @@ class MongoMentorRepository extends IMentorRepository {
                     isVerifiedMentor: "$result.isVerifiedMentor",
                     verificationStatus: "$result.verificationStatus",
                     skillCategory: "$result.skillCategory",
-                    verifiedAt: "$result.verifiedAt"
+                    verifiedAt: "$result.verifiedAt",
+                    socialLinks: "$result.socialLinks",
+                    jobTitle: "$result.jobTitle",
+                    company: "$result.company",
+                    experienceYears: "$result.experienceYears",
+                    education: "$result.education",
+                    certifications: "$result.certifications",
+                    rating: "$result.rating",
+                    ratingCount: "$result.ratingCount",
+                    timezone: "$result.timezone",
+                    preferredLanguage: "$result.preferredLanguage",
+                    payoutDetails: "$result.payoutDetails"
                 }
             },
             {
@@ -158,6 +169,17 @@ class MongoMentorRepository extends IMentorRepository {
                     username: 1,
                     isVerifiedMentor: 1,
                     verificationStatus: 1,
+                    socialLinks: 1,
+                    jobTitle: 1,
+                    company: 1,
+                    experienceYears: 1,
+                    education: 1,
+                    certifications: 1,
+                    rating: 1,
+                    ratingCount: 1,
+                    timezone: 1,
+                    preferredLanguage: 1,
+                    payoutDetails: 1,
                     skill: {
                         $cond: [
                             { $ifNull: ["$skillCategoryData", false] },
@@ -207,7 +229,18 @@ class MongoMentorRepository extends IMentorRepository {
                     isVerifiedMentor: "$profileDoc.isVerifiedMentor",
                     verificationStatus: "$profileDoc.verificationStatus",
                     rejectionReason: "$profileDoc.rejectionReason",
-                    verifiedAt: "$profileDoc.verifiedAt"
+                    verifiedAt: "$profileDoc.verifiedAt",
+                    socialLinks: "$profileDoc.socialLinks",
+                    jobTitle: "$profileDoc.jobTitle",
+                    company: "$profileDoc.company",
+                    experienceYears: "$profileDoc.experienceYears",
+                    education: "$profileDoc.education",
+                    certifications: "$profileDoc.certifications",
+                    rating: "$profileDoc.rating",
+                    ratingCount: "$profileDoc.ratingCount",
+                    timezone: "$profileDoc.timezone",
+                    preferredLanguage: "$profileDoc.preferredLanguage",
+                    payoutDetails: "$profileDoc.payoutDetails"
                 }
             },
             {
@@ -391,6 +424,22 @@ class MongoMentorRepository extends IMentorRepository {
                         avatar: "$avatar",
                         isVerifiedMentor: { $ifNull: ["$isVerifiedMentor", false] },
                         verificationStatus: { $ifNull: ["$verificationStatus", "pending"] },
+                        socialLinks: { $ifNull: ["$socialLinks", []] },
+                        jobTitle: { $ifNull: ["$jobTitle", ""] },
+                        company: { $ifNull: ["$company", ""] },
+                        experienceYears: { $ifNull: ["$experienceYears", 0] },
+                        education: { $ifNull: ["$education", ""] },
+                        certifications: { $ifNull: ["$certifications", []] },
+                        rating: { $ifNull: ["$rating", 5.0] },
+                        ratingCount: { $ifNull: ["$ratingCount", 0] },
+                        timezone: { $ifNull: ["$timezone", ""] },
+                        preferredLanguage: { $ifNull: ["$preferredLanguage", ""] },
+                        payoutDetails: {
+                            upiId: { $ifNull: ["$payoutDetails.upiId", ""] },
+                            bankName: { $ifNull: ["$payoutDetails.bankName", ""] },
+                            accountNumber: { $ifNull: ["$payoutDetails.accountNumber", ""] },
+                            ifscCode: { $ifNull: ["$payoutDetails.ifscCode", ""] }
+                        },
                         skill: {
                             $cond: [
                                 { $ifNull: ["$skillCategoryData", false] },
@@ -442,6 +491,14 @@ class MongoMentorRepository extends IMentorRepository {
         return result[0] || null;
     }
 
+    async updateMentorProfile(userId, updateData) {
+        return await MentorProfile.findOneAndUpdate(
+            { userId },
+            { $set: updateData },
+            { new: true, upsert: true }
+        );
+    }
+
     async updateMentorDescription(userId, description) {
         const mentorProfile = await MentorProfile.findOne({ userId });
         if (!mentorProfile?.skillCategory) return null;
@@ -450,6 +507,72 @@ class MongoMentorRepository extends IMentorRepository {
             { description },
             { new: true }
         );
+    }
+
+    async findAttemptWithAssessment(attemptId, userId) {
+        const { Attempt } = await import("../../models/assessmentAttempt.model.js");
+        return await Attempt.findOne({ _id: attemptId, userId }).populate("assessmentId");
+    }
+
+    async findUserById(userId) {
+        return await CommonUser.findById(userId);
+    }
+
+    async findAttemptByAssessment(userId, assessmentId) {
+        const { Attempt } = await import("../../models/assessmentAttempt.model.js");
+        return await Attempt.findOne({ userId, assessmentId });
+    }
+
+    async findAssessmentStoreById(assessmentId) {
+        const { AssessmentStore } = await import("../../models/assessmentDataStore.model.js");
+        return await AssessmentStore.findById(assessmentId);
+    }
+
+    async updateAssessmentStore(assessmentId, updateData) {
+        const { AssessmentStore } = await import("../../models/assessmentDataStore.model.js");
+        return await AssessmentStore.findByIdAndUpdate(assessmentId, updateData, { new: true });
+    }
+
+    async findLatestActivitySession(userId, assessmentId) {
+        const { AssessmentActivitySession } = await import("../../models/assessmentActivityDataStore.model.js");
+        return await AssessmentActivitySession.findOne({ userId, assessmentId }).sort({ createdAt: -1 });
+    }
+
+    async saveAnswers(attemptId, answersToInsert) {
+        const { Answer } = await import("../../models/Answer.model.js");
+        await Answer.deleteMany({ attemptId });
+        return await Answer.insertMany(answersToInsert);
+    }
+
+    async saveAttempt(attempt) {
+        return await attempt.save();
+    }
+
+    async findSkillByAssessmentId(assessmentId) {
+        return await Skill.findOne({ assessmentId });
+    }
+
+    async saveMentorProfile(mentorProfile) {
+        return await mentorProfile.save();
+    }
+
+    async findActiveSessionForMentor(userId) {
+        const { DoubtSession } = await import("../../models/doubtSession.model.js");
+        return await DoubtSession.findOne({ selectedMentorId: userId, status: "in_session" });
+    }
+
+    async findOpenDoubtSession(doubtSessionId) {
+        const { DoubtSession } = await import("../../models/doubtSession.model.js");
+        return await DoubtSession.findOne({ _id: doubtSessionId, status: "open" });
+    }
+
+    async saveDoubtSession(doubtSession) {
+        return await doubtSession.save();
+    }
+
+    async countActiveBids(userId) {
+        const { DoubtSession } = await import("../../models/doubtSession.model.js");
+        return await DoubtSession.countDocuments({ status: "open", "mentorOffers.mentorId": userId });
     }
 }
 

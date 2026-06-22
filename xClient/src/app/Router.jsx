@@ -15,7 +15,9 @@ import NotFoundPage from "../shared/pages/NotFoundPage";
 
 import StudentDashboard from "../features/dashboard/pages/StudentDashboard";
 import MentorDashboard from "../features/dashboard/pages/MentorDashboard";
-import AdminDashboard from "../features/dashboard/pages/AdminDashboard";
+import AdminDashboard from "../features/dashboard/admin/page/adminDashboard";
+
+import AdminProfile from '../features/profiles/admin/pages/adminProfile.page'
 
 export const router = createBrowserRouter([
   {
@@ -55,6 +57,7 @@ export const router = createBrowserRouter([
           { path: "/dashboard/student", element: <StudentDashboard /> },
         ],
       },
+      { path: "/admin/profile", element: <AdminProfile /> },
     ],
   },
 

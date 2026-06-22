@@ -10,6 +10,14 @@ class IAdminRepository {
     async updateAdminProfile(userId, updateData) {
         throw new Error("Method not implemented");
     }
+
+    async findUserById(userId) {
+        throw new Error("Method not implemented");
+    }
+
+    async getAdminDashboardStats(onlineIds) {
+        throw new Error("Method not implemented");
+    }
 }
 
 export default IAdminRepository;
