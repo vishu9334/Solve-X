@@ -33,9 +33,9 @@ export const useLogin = () => {
       toast.success(data?.message || "Login successful!");
 
       const roleRoutes = {
-        admin: "/dashboard/admin",
-        mentor: "/dashboard/mentor",
-        student: "/dashboard/student",
+        admin: "/admin-landing",
+        mentor: "/mentor-landing",
+        student: "/student-landing",
       };
 
       navigate(roleRoutes[userObj.role] || "/");

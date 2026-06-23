@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Navigate, Link } from "react-router-dom";
 import { useGetAdminProfile, useUpdateAdminProfile } from "../hooks/adminProfile.hook";
 import CustomCursor from "../../../../shared/components/CustomCursor";
+import { useCurrentUser } from "../../../auth/hooks/useCurrentUser.js";
 
 const platformIcons = {
   linkedin: "https://img.icons8.com/ios-filled/50/linkedin.png",
@@ -22,6 +24,7 @@ const formatExternalUrl = (url) => {
 };
 
 const AdminProfile = () => {
+  const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
   const { data: profileResponse, isLoading: isProfileLoading, isError: isProfileError, error: profileError } = useGetAdminProfile();
   const { mutate: updateProfile, isPending: isUpdating } = useUpdateAdminProfile();
 
@@ -35,6 +38,31 @@ const AdminProfile = () => {
 
   const profileData = profileResponse?.data || {};
   const displayedSocialLinks = socialLinks ?? profileData.socialLinks ?? [];
+
+  if (isCheckingSession) {
+    return (
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        backgroundColor: "#0c0b11",
+        color: "#ffffff",
+        fontFamily: "sans-serif"
+      }}>
+        <span style={{ fontSize: "14px", fontWeight: "500" }}>Checking admin session...</span>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (currentUser.role !== 'admin') {
+    if (currentUser.role === 'mentor') return <Navigate to="/mentor-landing" replace />;
+    return <Navigate to="/student-landing" replace />;
+  }
 
   if (isProfileLoading) {
     return (
@@ -122,7 +150,7 @@ const AdminProfile = () => {
 
   return (
     <div
-      className="admin-profile-page w-full min-h-screen relative px-4 py-24 sm:px-6 lg:px-8 text-white overflow-hidden bg-[#07070d]"
+      className="admin-profile-page w-full min-h-screen relative px-4 py-6 sm:px-6 lg:px-8 text-white overflow-hidden bg-[#07070d]"
     >
       <CustomCursor />
       <style>{`
@@ -184,6 +212,25 @@ const AdminProfile = () => {
 
       <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-6">
 
+      {/* Header Glass Navbar */}
+      <nav className="relative z-20 mx-auto flex w-full items-center justify-between rounded-full border border-white/10 bg-black/25 px-5 py-3 backdrop-blur-md">
+          <Link to="/admin-landing" className="flex items-center gap-3 text-white no-underline">
+              <img src="/logo.png" alt="Solve-X" className="h-6 w-6 object-contain" />
+              <span className="text-[10px] font-bold uppercase tracking-[0.22em]">Solve-X</span>
+          </Link>
+          <div className="flex items-center gap-5">
+              <Link to="/admin-landing" className="text-xs font-semibold text-white/70 hover:text-white transition-colors no-underline">
+                  Landing Page
+              </Link>
+              <Link to="/dashboard/admin" className="text-xs font-semibold text-white/70 hover:text-white transition-colors no-underline">
+                  Dashboard
+              </Link>
+              <Link to="/admin/profile" className="rounded-full bg-white px-5 py-2 text-xs font-bold text-black transition-transform hover:scale-105 no-underline">
+                  Admin Profile
+              </Link>
+          </div>
+      </nav>
+
       {/* Title & Header Block */}
       <div style={{
         display: "flex",
@@ -239,18 +286,18 @@ const AdminProfile = () => {
         backgroundColor: "rgba(12, 11, 22, 0.78)",
         border: "1px solid rgba(255, 255, 255, 0.08)",
         borderRadius: "24px",
-        padding: "24px",
+        padding: "16px",
         boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
         display: "flex",
         flexDirection: "column",
-        gap: "24px",
+        gap: "16px",
         boxSizing: "border-box"
       }}>
 
         <div style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "32px"
+          gap: "20px"
         }}>
 
           {/* Identity details */}
@@ -258,19 +305,19 @@ const AdminProfile = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-start",
-            gap: "24px"
+            gap: "14px"
           }}>
             {/* Avatar */}
             <div style={{
-              width: "96px",
-              height: "96px",
+              width: "72px",
+              height: "72px",
               borderRadius: "50%",
               backgroundColor: "#4f46e5",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               color: "#ffffff",
-              fontSize: "36px",
+              fontSize: "28px",
               fontWeight: "300",
               boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
             }}>
@@ -401,7 +448,7 @@ const AdminProfile = () => {
                 position: "relative",
                 width: "100%",
                 maxWidth: "280px",
-                minHeight: "200px",
+                minHeight: "140px",
                 backgroundColor: "#fef08a",
                 color: "#1f2937",
                 padding: "24px",
@@ -464,7 +511,7 @@ const AdminProfile = () => {
         </div>
 
         {/* Social Links Section */}
-        <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.1)", paddingTop: "24px", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div style={{ borderTop: "1px solid rgba(255, 255, 255, 0.1)", paddingTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
           <h3 style={{ fontSize: "14px", fontWeight: "600", color: "#ffffff", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>Social Links</h3>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -611,7 +658,7 @@ const AdminProfile = () => {
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", paddingTop: "16px", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", paddingTop: "12px", borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
           {isEditing ? (
             <>
               <button

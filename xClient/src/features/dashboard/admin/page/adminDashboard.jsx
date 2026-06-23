@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useGetAdminDashboard } from '../hooks/adminDashboard.hook.js';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { motion } from 'framer-motion';
+import { useCurrentUser } from "../../../auth/hooks/useCurrentUser.js";
 
 const StatCard = ({ label, value, accentClass }) => (
   <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5 shadow-md box-border">
@@ -11,7 +13,25 @@ const StatCard = ({ label, value, accentClass }) => (
 );
 
 const AdminDashboard = () => {
+    const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
     const { data: adminResponse, isLoading: isAdminLoading, isError: isAdminError, error: adminError } = useGetAdminDashboard();
+
+    if (isCheckingSession) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-white/60 font-mono animate-pulse">Checking admin session...</div>
+            </div>
+        );
+    }
+
+    if (!currentUser) {
+        return <Navigate to="/" replace />;
+    }
+
+    if (currentUser.role !== 'admin') {
+        if (currentUser.role === 'mentor') return <Navigate to="/mentor-landing" replace />;
+        return <Navigate to="/student-landing" replace />;
+    }
 
     if (isAdminLoading) {
         return (

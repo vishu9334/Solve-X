@@ -80,6 +80,12 @@ class studentController {
         const response = await studentService.getDoubtSessionDetails(userId, doubtSessionId);
         return res.status(200).json(new ApiResponse(200, response, "Doubt session details fetched successfully."));
     })
+
+    getStudentProfile = asyncHandler(async (req, res) => {
+        const userId = req.user?._id || req.user?.userId;
+        const response = await studentService.getStudentProfile({ userId });
+        return res.status(200).json(new ApiResponse(200, response, "Student profile fetched successfully."));
+    })
 }
 
 export default new studentController()

@@ -24,15 +24,15 @@ export const useVerificationOtp = () => {
 
       switch (userObj?.role) {
         case "student":
-          navigate("/dashboard/student");
+          navigate("/student-landing");
           break;
 
         case "mentor":
-          navigate("/dashboard/mentor");
+          navigate("/mentor-landing");
           break;
 
         case "admin":
-          navigate("/dashboard/admin");
+          navigate("/admin-landing");
           break;
 
         default:
@@ -73,7 +73,7 @@ export const useResendOtp = () => {
 
       // Redirect to public page when the OTP resend limit (429) is exceeded
       if (error?.status === 429 || error?.statusCode === 429 || error?.response?.status === 429) {
-        navigate("/public");
+        navigate("/");
       }
     },
   });

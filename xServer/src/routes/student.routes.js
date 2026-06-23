@@ -20,6 +20,7 @@ router.get("/student/dashboard/:userId", verifyAccessToken, studentController.st
 
 // Student updates bio and/or name
 router.patch("/student/profile", verifyAccessToken, studentController.updateStudentProfile);
+router.get("/student/profile", verifyAccessToken, studentController.getStudentProfile);
 
 // Student gets active doubt session
 router.get("/student/active-session", verifyAccessToken, studentController.getActiveSession);

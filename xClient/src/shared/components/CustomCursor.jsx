@@ -13,17 +13,18 @@ const CustomCursor = () => {
         // Quickset for initial position offscreen
         gsap.set([dot, ring], { xPercent: -50, yPercent: -50, x: -100, y: -100 });
 
-        const moveDot = (e) => {
-            gsap.to(dot, { x: e.clientX, y: e.clientY, duration: 0.08, ease: 'power2.out' });
-        };
-
-        const moveRing = (e) => {
-            gsap.to(ring, { x: e.clientX, y: e.clientY, duration: 0.35, ease: 'power3.out' });
-        };
+        // Reuse the same tween setters instead of allocating new tweens on
+        // every mouse event. This keeps pointer movement from competing with scroll.
+        const moveDotX = gsap.quickTo(dot, 'x', { duration: 0.08, ease: 'power2.out' });
+        const moveDotY = gsap.quickTo(dot, 'y', { duration: 0.08, ease: 'power2.out' });
+        const moveRingX = gsap.quickTo(ring, 'x', { duration: 0.35, ease: 'power3.out' });
+        const moveRingY = gsap.quickTo(ring, 'y', { duration: 0.35, ease: 'power3.out' });
 
         const handleMouseMove = (e) => {
-            moveDot(e);
-            moveRing(e);
+            moveDotX(e.clientX);
+            moveDotY(e.clientY);
+            moveRingX(e.clientX);
+            moveRingY(e.clientY);
         };
 
         // Hover targets — all links, buttons, and interactive elements

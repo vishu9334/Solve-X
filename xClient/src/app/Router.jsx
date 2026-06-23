@@ -11,13 +11,18 @@ import OTPVerificationPage from "../features/auth/pages/OTPPage";
 import PublicPage from "../shared/pages/PublicPage";
 import MentorDocPage from "../shared/pages/MentorDocPage";
 import StudentDocPage from "../shared/pages/StudentDocPage";
+import StudentLandingPage from "../shared/pages/StudentLandingPage";
+import MentorLandingPage from "../shared/pages/MentorLandingPage";
+import AdminLandingPage from "../shared/pages/AdminLandingPage";
 import NotFoundPage from "../shared/pages/NotFoundPage";
 
-import StudentDashboard from "../features/dashboard/pages/StudentDashboard";
-import MentorDashboard from "../features/dashboard/pages/MentorDashboard";
 import AdminDashboard from "../features/dashboard/admin/page/adminDashboard";
+import MentorDashboard from "../features/dashboard/mentor/page/MentorDashboard";
+import StudentDashboard from "../features/dashboard/student/page/StudentDashboard";
 
 import AdminProfile from '../features/profiles/admin/pages/adminProfile.page'
+import StudentProfile from "../features/profiles/student/pages/studentProfile.page";
+import MentorProfile from "../features/profiles/mentor/pages/mentorProfile.page";
 
 export const router = createBrowserRouter([
   {
@@ -32,7 +37,7 @@ export const router = createBrowserRouter([
   },
 
   {
-    path: "/public",
+    path: "/",
     element: <PublicPage />,
   },
 
@@ -47,6 +52,21 @@ export const router = createBrowserRouter([
   },
 
   {
+    path: "/student-landing",
+    element: <StudentLandingPage />,
+  },
+
+  {
+    path: "/mentor-landing",
+    element: <MentorLandingPage />,
+  },
+
+  {
+    path: "/admin-landing",
+    element: <AdminLandingPage />,
+  },
+
+  {
     element: <ProtectedRoute />,
     children: [
       {
@@ -58,9 +78,11 @@ export const router = createBrowserRouter([
         ],
       },
       { path: "/admin/profile", element: <AdminProfile /> },
+      { path: "/student/profile", element: <StudentProfile /> },
+      { path: "/mentor/profile", element: <MentorProfile /> },
     ],
   },
 
-  { path: "/", element: <Navigate to="/public" replace /> },
+  { path: "/public", element: <Navigate to="/" replace /> },
   { path: "*", element: <NotFoundPage /> },
 ]);

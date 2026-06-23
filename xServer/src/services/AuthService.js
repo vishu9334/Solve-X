@@ -77,18 +77,12 @@ class AuthService {
         // Automatically create MentorProfile if role is mentor
         let mentorProfile = null;
         if (createdUser.role === "mentor") {
-            const { MentorProfile } = await import("../models/AmentorProfile.model.js");
-            mentorProfile = await MentorProfile.create({
-                userId: createdUser._id,
-                isVerifiedMentor: false,
-                verificationStatus: "pending"
-            });
+            mentorProfile = await AuthRepository.createMentorProfile(createdUser._id);
         }
 
         // Automatically create adminProfile if role is admin
         if (createdUser.role === "admin") {
-            const { adminProfile } = await import("../models/AadminProfile.model.js");
-            await adminProfile.create({ userId: createdUser._id });
+            await AuthRepository.createAdminProfile(createdUser._id);
         }
 
         const accessToken = TokenManager.generateAccessToken({ userId: createdUser._id });
@@ -221,8 +215,7 @@ class AuthService {
 
         let mentorProfile = null;
         if (user.role === "mentor") {
-            const { MentorProfile } = await import("../models/AmentorProfile.model.js");
-            mentorProfile = await MentorProfile.findOne({ userId: user._id });
+            mentorProfile = await AuthRepository.findMentorProfileByUserId(user._id);
         }
 
         const userObj = user.toObject ? user.toObject() : user;

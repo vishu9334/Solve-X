@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import useAuthStore from '../../features/auth/store/auth.store';
-import { motion } from 'framer-motion';
+import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ReactLenis, useLenis } from 'lenis/react';
 import CustomCursor from '../components/CustomCursor';
 import CharacterSection from '../components/CharacterSection';
 import Preloader from '../components/Preloader';
+import { useCurrentUser } from '../../features/auth/hooks/useCurrentUser.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -28,6 +30,56 @@ const PublicPage = () => {
     const { user } = useAuthStore();
     const [isPastHero, setIsPastHero] = useState(false);
     const [preloaderComplete, setPreloaderComplete] = useState(() => window.__solveXPreloaderRun === true);
+    const { scrollY } = useScroll();
+    
+    const lenis = useLenis();
+
+    // ── Lock body scroll and Lenis during preloader ──
+    useEffect(() => {
+        if (!preloaderComplete) {
+            document.body.style.overflow = 'hidden';
+            if (lenis) lenis.stop();
+        } else {
+            document.body.style.overflow = '';
+            if (lenis) {
+                lenis.start();
+                lenis.scrollTo(0, { immediate: true });
+            } else {
+                window.scrollTo(0, 0);
+            }
+        }
+        return () => {
+            document.body.style.overflow = '';
+            if (lenis) lenis.start();
+        };
+    }, [preloaderComplete, lenis]);
+
+    // Hook up ScrollTrigger update to Lenis scroll tick to prevent jitter
+    useEffect(() => {
+        if (!lenis) return;
+        
+        const updateScrollTrigger = () => {
+            ScrollTrigger.update();
+        };
+        
+        lenis.on('scroll', updateScrollTrigger);
+        
+        return () => {
+            lenis.off('scroll', updateScrollTrigger);
+        };
+    }, [lenis]);
+
+    const handleScrollTo = (e, targetId) => {
+        e.preventDefault();
+        if (lenis) {
+            lenis.scrollTo(targetId, { offset: -88, duration: 1.2 });
+        } else {
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    };
 
     // GSAP refs
     const pageRef = useRef(null);
@@ -35,14 +87,12 @@ const PublicPage = () => {
     const howItWorksRef = useRef(null);
     const mentorSectionRef = useRef(null);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsPastHero(window.scrollY > window.innerHeight - 100);
-        };
-        window.addEventListener('scroll', handleScroll);
-        handleScroll();
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    useMotionValueEvent(scrollY, 'change', (latestScrollY) => {
+        const nextIsPastHero = latestScrollY > window.innerHeight - 100;
+        setIsPastHero((currentValue) => (
+            currentValue === nextIsPastHero ? currentValue : nextIsPastHero
+        ));
+    });
 
     // ── GSAP Animations ──
     useEffect(() => {
@@ -131,12 +181,18 @@ const PublicPage = () => {
         }, pageRef);
 
         return () => ctx.revert();
-    }, []);
+    }, [preloaderComplete]);
 
-    if (user) {
-        if (user.role === 'admin') return <Navigate to="/dashboard/admin" replace />;
-        if (user.role === 'mentor') return <Navigate to="/dashboard/mentor" replace />;
-        return <Navigate to="/dashboard/student" replace />;
+    const { data: currentUser, isPending } = useCurrentUser();
+
+    if (isPending) {
+        return null;
+    }
+
+    if (currentUser) {
+        if (currentUser.role === 'admin') return <Navigate to="/admin-landing" replace />;
+        if (currentUser.role === 'mentor') return <Navigate to="/mentor-landing" replace />;
+        return <Navigate to="/student-landing" replace />;
     }
 
     if (!preloaderComplete) {
@@ -151,41 +207,63 @@ const PublicPage = () => {
     }
 
     return (
-        <div ref={pageRef} className="min-h-screen flex flex-col bg-[#f4f4f4] overflow-x-hidden custom-cursor-active">
+        <ReactLenis root options={{ lerp: 0.08, duration: 1.2, smoothWheel: true }}>
+            <div ref={pageRef} className="public-page min-h-screen flex flex-col bg-[#f4f4f4] overflow-x-clip custom-cursor-active">
 
             {/* Custom Cursor */}
             <CustomCursor />
 
             {/* ── Floating Pill Navbar ── */}
-            <header
-                className={`fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[1200px] z-50 flex justify-between items-center py-[14px] border backdrop-blur-md px-6 rounded-full transition-all duration-300 ${
-                    isPastHero
-                        ? 'bg-white/40 border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)]'
-                        : 'bg-white/10 border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)]'
-                }`}
+            <motion.header
+                initial={false}
+                animate={{
+                    backgroundColor: isPastHero ? 'rgba(255, 255, 255, 0.95)' : 'rgba(17, 17, 27, 0.90)',
+                    borderColor: isPastHero ? 'rgba(0, 0, 0, 0.10)' : 'rgba(255, 255, 255, 0.15)',
+                    boxShadow: isPastHero
+                        ? '0 8px 24px rgba(31, 38, 135, 0.08)'
+                        : '0 8px 24px rgba(0, 0, 0, 0.24)',
+                }}
+                transition={{ type: 'spring', stiffness: 150, damping: 24, mass: 0.8 }}
+                className="fixed top-4 left-1/2 -translate-x-1/2 transform-gpu w-[92%] max-w-[1200px] z-50 flex justify-between items-center py-[14px] border px-6 rounded-full"
             >
                 {/* Logo */}
-                <div className="flex items-center gap-2.5">
+                <a
+                    href="#hero"
+                    onClick={(e) => handleScrollTo(e, '#hero')}
+                    className="flex items-center gap-2.5 cursor-pointer"
+                >
                     <img src="/logo.png" alt="Solve-X" className="w-7 h-7 object-contain" />
                     <span className={`text-sm font-semibold tracking-[0.15em] uppercase transition-colors duration-300 ${isPastHero ? 'text-black' : 'text-white'}`}>
                         SOLVE-X
                     </span>
-                </div>
+                </a>
 
                 {/* Nav Links */}
                 <nav className="hidden md:flex items-center gap-6">
                     {[
-                        { label: 'Home', to: '/hero' },
-                        { label: 'MentorDocs', to: '/mentor-doc' },
-                        { label: 'StudentDocs', to: '/student-doc' },
+                        { label: 'Home', to: '#hero', isAnchor: true },
+                        { label: 'How It Works', to: '#how-it-works', isAnchor: true },
+                        { label: 'Mentor', to: '#mentor', isAnchor: true },
+                        { label: 'MentorDocs', to: '/mentor-doc', isAnchor: false },
+                        { label: 'StudentDocs', to: '/student-doc', isAnchor: false },
                     ].map((item, i, arr) => (
                         <span key={item.to} className="nav-link-stagger flex items-center gap-6">
-                            <Link
-                                to={item.to}
-                                className={`text-sm transition-colors duration-300 tracking-[-0.01em] ${isPastHero ? 'text-slate-700 hover:text-black' : 'text-white/85 hover:text-white'}`}
-                            >
-                                {item.label}
-                            </Link>
+                            {item.isAnchor ? (
+                                <a
+                                    href={item.to}
+                                    onClick={(e) => handleScrollTo(e, item.to)}
+                                    className={`text-sm transition-colors duration-300 tracking-[-0.01em] ${isPastHero ? 'text-slate-700 hover:text-black' : 'text-white/85 hover:text-white'}`}
+                                >
+                                    {item.label}
+                                </a>
+                            ) : (
+                                <Link
+                                    to={item.to}
+                                    className={`text-sm transition-colors duration-300 tracking-[-0.01em] ${isPastHero ? 'text-slate-700 hover:text-black' : 'text-white/85 hover:text-white'}`}
+                                >
+                                    {item.label}
+                                </Link>
+                            )}
                             {i < arr.length - 1 && (
                                 <span className={`w-px h-[22px] shrink-0 ${isPastHero ? 'bg-slate-200' : 'bg-white/30'}`} />
                             )}
@@ -215,13 +293,13 @@ const PublicPage = () => {
                         </svg>
                     </Link>
                 </div>
-            </header>
+            </motion.header>
 
             {/* ── Hero Section ── */}
             <section
                 ref={heroRef}
                 id="hero"
-                className="w-full min-h-screen flex items-center justify-center px-4 pt-32 pb-32 text-white overflow-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_90%,rgba(255,217,110,0.30),transparent_28%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)]"
+                className="relative w-full min-h-screen flex items-center justify-center px-4 pt-32 pb-32 text-white overflow-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)]"
             >
                 {/* Bottom fade to #f4f4f4 */}
                 <div
@@ -481,6 +559,7 @@ const PublicPage = () => {
             </footer>
 
         </div>
+        </ReactLenis>
     );
 };
 

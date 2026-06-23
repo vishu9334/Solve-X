@@ -87,6 +87,25 @@ class AuthRepository extends IAuthRepository {
       { new: true }
     );
   }
+
+  async createMentorProfile(userId) {
+    const { MentorProfile } = await import("../../models/AmentorProfile.model.js");
+    return await MentorProfile.create({
+      userId,
+      isVerifiedMentor: false,
+      verificationStatus: "pending"
+    });
+  }
+
+  async createAdminProfile(userId) {
+    const { AdminProfile } = await import("../../models/AadminProfile.model.js");
+    return await AdminProfile.create({ userId });
+  }
+
+  async findMentorProfileByUserId(userId) {
+    const { MentorProfile } = await import("../../models/AmentorProfile.model.js");
+    return await MentorProfile.findOne({ userId });
+  }
 }
 
 export default new AuthRepository();

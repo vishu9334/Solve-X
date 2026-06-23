@@ -360,6 +360,16 @@ class studentService {
 
         return session;
     }
+
+    getStudentProfile = async ({ userId }) => {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId))
+            throw new ApiError(400, "Valid userId is required");
+
+        const data = await studentRepository.getStudentProfileWithDetails(userId);
+        if (!data) throw new ApiError(404, "Student profile not found");
+
+        return data;
+    }
 }
 
 export default new studentService()

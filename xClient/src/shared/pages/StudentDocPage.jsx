@@ -21,12 +21,12 @@ const StudentDocPage = () => {
         <div className="min-h-screen bg-[#0b0a2a] text-white font-mono overflow-x-hidden selection:bg-blue-500/30">
             {/* Header Navbar */}
             <header className="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl z-50 flex justify-between items-center py-5 border border-white/20 backdrop-blur-lg px-8 rounded-full bg-[#0b0a2a]/40 shadow-lg shadow-black/10">
-                <Link to="/public" className="flex items-center space-x-3 hover:opacity-90 transition-opacity">
+                <Link to="/" className="flex items-center space-x-3 hover:opacity-90 transition-opacity">
                     <img src="/logo.png" alt="Solve-X Logo" className="w-8 h-8 object-contain" />
                     <span className="text-md tracking-[0.2em] uppercase font-saira-stencil">SOLVE-X</span>
                 </Link>
                 <div className="flex items-center space-x-4">
-                    <Link to="/public" className="text-xs font-semibold tracking-[0.15em] border border-white/20 px-4 py-2 rounded-lg hover:bg-white/10 transition-colors uppercase">
+                    <Link to="/" className="text-xs font-semibold tracking-[0.15em] border border-white/20 px-4 py-2 rounded-lg hover:bg-white/10 transition-colors uppercase">
                         Back to Home
                     </Link>
                 </div>

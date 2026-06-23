@@ -16,13 +16,13 @@ const AuthLayout = () => {
     }, []);
 
     if (shouldRedirectToPublic) {
-        return <Navigate to="/public" replace />;
+        return <Navigate to="/" replace />;
     }
 
     if (user) {
-        if (user.role === 'admin') return <Navigate to="/dashboard/admin" replace />;
-        if (user.role === 'mentor') return <Navigate to="/dashboard/mentor" replace />;
-        return <Navigate to="/dashboard/student" replace />;
+        if (user.role === 'admin') return <Navigate to="/admin-landing" replace />;
+        if (user.role === 'mentor') return <Navigate to="/mentor-landing" replace />;
+        return <Navigate to="/student-landing" replace />;
     }
 
     return (

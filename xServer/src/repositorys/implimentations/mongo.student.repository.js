@@ -409,6 +409,63 @@ class MongoStudentRepository extends IstudentContract {
             .limit(limit)
             .populate("selectedMentorId", "name email avatar");
     }
+
+    getStudentProfileWithDetails = async (userId) => {
+        const result = await CommonUser.aggregate([
+            {
+                $match: {
+                    _id: new mongoose.Types.ObjectId(userId)
+                }
+            },
+            {
+                $lookup: {
+                    from: "studentprofiles",
+                    localField: "_id",
+                    foreignField: "userId",
+                    as: "result"
+                }
+            },
+            {
+                $set: {
+                    result: { 
+                        $ifNull: [
+                            { $arrayElemAt: ["$result", 0] },
+                            {
+                                bio: "",
+                                socialLinks: [],
+                                skills: [],
+                                education: "",
+                                preferredLanguage: "",
+                                timezone: "",
+                                subscriptionStatus: "inactive",
+                                subscriptionExpiresAt: null
+                            }
+                        ]
+                    }
+                }
+            },
+            {
+                $set: {
+                    bio: "$result.bio",
+                    socialLinks: "$result.socialLinks",
+                    skills: "$result.skills",
+                    education: "$result.education",
+                    preferredLanguage: "$result.preferredLanguage",
+                    timezone: "$result.timezone",
+                    subscriptionStatus: "$result.subscriptionStatus",
+                    subscriptionExpiresAt: "$result.subscriptionExpiresAt"
+                }
+            },
+            {
+                $unset: [
+                    "password",
+                    "result"
+                ]
+            }
+        ]);
+
+        return result[0] || null;
+    }
 }
 
 const studentRepository = new MongoStudentRepository()
