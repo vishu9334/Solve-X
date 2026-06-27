@@ -38,7 +38,6 @@ export const SocketProvider = ({ children }) => {
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
       const userId = user._id || user.id;
       if (userId) {
         newSocket.emit("register_user", userId);
@@ -49,7 +48,6 @@ export const SocketProvider = ({ children }) => {
 
     // For Mentor: Student asked a question matching their skill
     newSocket.on("student_asked_question", (data) => {
-      console.log("Received student_asked_question:", data);
       toast.info(`🔔 New Doubt posted in ${data.specializationName}: "${data.question}"`, {
         toastId: `asked_${data.doubtSessionId}`,
       });
@@ -60,7 +58,6 @@ export const SocketProvider = ({ children }) => {
 
     // For Mentor: Accepted by student for a doubt
     newSocket.on("mentor_selected_for_doubt", (data) => {
-      console.log("Received mentor_selected_for_doubt:", data);
       toast.success(`🎉 You have been selected for the doubt: "${data.question}"! Join chat.`, {
         autoClose: false,
       });
@@ -71,7 +68,6 @@ export const SocketProvider = ({ children }) => {
 
     // For Mentor: Offer not selected
     newSocket.on("mentor_not_selected", (data) => {
-      console.log("Received mentor_not_selected:", data);
       toast.info(data.message || "Student selected another mentor.");
       useNotificationStore.getState().addNotification("mentor_not_selected", data, data?._offline);
       queryClient.invalidateQueries({ queryKey: ["mentorDashboard"] });
@@ -79,7 +75,6 @@ export const SocketProvider = ({ children }) => {
 
     // For Student: Mentor sent an offer/bid
     newSocket.on("mentor_offer_received", (data) => {
-      console.log("Received mentor_offer_received:", data);
       toast.info(`💬 Mentor ${data.mentorName} sent a bid of $${data.price}!`, {
         toastId: `offer_${data.mentorId}`,
       });
@@ -90,7 +85,6 @@ export const SocketProvider = ({ children }) => {
 
     // For both: Join chat room redirect/update
     newSocket.on("join_chat_room", (data) => {
-      console.log("Received join_chat_room:", data);
       useNotificationStore.getState().addNotification("join_chat_room", data, data?._offline);
       queryClient.invalidateQueries({ queryKey: ["activeSession"] });
       queryClient.invalidateQueries({ queryKey: ["studentDashboard"] });
@@ -102,7 +96,6 @@ export const SocketProvider = ({ children }) => {
 
     // For both: Session ended by student/system
     newSocket.on("session_ended", (data) => {
-      console.log("Received session_ended:", data);
       toast.warn(data.message || "Doubt session has ended.");
       useNotificationStore.getState().addNotification("session_ended", data, data?._offline);
       queryClient.invalidateQueries({ queryKey: ["activeSession"] });
@@ -112,7 +105,6 @@ export const SocketProvider = ({ children }) => {
 
     // For both: Session expired (timer over)
     newSocket.on("session_expired", (data) => {
-      console.log("Received session_expired:", data);
       toast.error(data.message || "Session expired.");
       useNotificationStore.getState().addNotification("session_expired", data, data?._offline);
       queryClient.invalidateQueries({ queryKey: ["activeSession"] });
@@ -122,7 +114,6 @@ export const SocketProvider = ({ children }) => {
 
     // For Student: Doubt expired (no bids accepted/submitted in time)
     newSocket.on("doubt_expired", (data) => {
-      console.log("Received doubt_expired:", data);
       toast.error(data.message || "Doubt session expired.");
       useNotificationStore.getState().addNotification("doubt_expired", data, data?._offline);
       queryClient.invalidateQueries({ queryKey: ["studentDashboard"] });
@@ -131,7 +122,6 @@ export const SocketProvider = ({ children }) => {
 
     // For Mentor: Ignore warning notification
     newSocket.on("mentor_warning", (data) => {
-      console.log("Received mentor_warning:", data);
       toast.error(data.message || "Aapko ek warning mili hai.", {
         autoClose: false,
       });
@@ -139,7 +129,6 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on("disconnect", () => {
-      console.log("Socket disconnected");
     });
 
     return () => {

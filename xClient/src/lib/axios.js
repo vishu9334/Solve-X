@@ -32,7 +32,6 @@ const isPublicAuthRoute = (url = "") => {
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken;
-    console.log("token response", token)
     if (token && !isPublicAuthRoute(config.url)) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -68,8 +67,6 @@ api.interceptors.response.use(
       const newAccessToken =
       getAccessTokenFromHeader(refreshResponse.headers) ||
       refreshResponse.data?.data?.accessToken;
-      console.log("new token",newAccessToken)
-
       if (!newAccessToken) {
         throw new Error("No access token returned");
       }
