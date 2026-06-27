@@ -89,25 +89,6 @@ cd xServer && npm install
 cd ../xClient && npm install
 ```
 
-### Environment Variables
-
-**xServer/.env**
-```env
-PORT=8001
-MONGODB_URI=your_mongodb_connection_string
-JWT_ACCESS_SECRET=your_access_secret
-JWT_REFRESH_SECRET=your_refresh_secret
-BREVO_API_KEY=your_brevo_api_key
-FROM_EMAIL=your_sender_email
-REDIS_URL=redis://localhost:6379
-NODE_ENV=development
-```
-
-**xClient/.env**
-```env
-VITE_API_URL=http://localhost:8001/api/v1
-```
-
 ### Run
 
 ```bash
@@ -121,6 +102,7 @@ npm run dev
 App runs at: `http://localhost:5173`
 
 ---
+
 
 ## 🎭 Demo Access
 
