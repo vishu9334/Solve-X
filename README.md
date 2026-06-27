@@ -16,40 +16,85 @@
 
 ---
 
+## 💡 The Problem We Solve
+
+Students often struggle with doubts they can't resolve alone — and finding the right expert at the right time is hard.
+
+On the other side, talented mentors and subject matter experts have knowledge and skills to offer but **no easy way to monetize them online.**
+
+**Solve-X bridges that gap.**
+
+---
+
 ## 📖 What is Solve-X?
 
-Solve-X is a full-stack mentorship platform where **students** post academic doubts, **mentors** bid with their price and availability, and the student selects the best offer. Once matched, they collaborate in a **real-time chat workspace** with live video support via **Jitsi Meet**.
+**Solve-X** is a real-time mentorship marketplace where:
+
+- 🎓 **Students** post their academic doubts and instantly connect with qualified mentors
+- 👨‍🏫 **Mentors** bid on student doubts using their skill, knowledge, and availability — and **earn money** for every session they solve
+- 🛡️ **Admins** manage the entire ecosystem from a central dashboard
+
+It works like a **live auction for knowledge** — the student sees all incoming offers and selects the mentor who best fits their need and budget.
 
 ---
 
-## ✨ Key Features
+## 🔄 How It Works
 
-### 🎓 For Students
-- Post doubt sessions with subject, description, and duration
-- Receive real-time mentor bid offers via WebSocket notifications
-- Accept or decline offers directly from the notification panel
-- Join a live chat workspace and start a video session
+### 👩‍🎓 If you are a Student
 
-### 👨‍🏫 For Mentors
-- Receive new doubt notifications with session details
-- Submit competitive bid offers (price + available time)
-- Access a specialized assessment to get certified in skills
-- Join active chat sessions and initiate Jitsi video calls
+```
+1. Sign up → Post your doubt (topic, description, session duration)
+         ↓
+2. Mentors receive your doubt in real-time and submit bid offers
+   (each offer includes: price + available time slot)
+         ↓
+3. You review all offers from your notification panel
+         ↓
+4. Accept the best offer → A private chat workspace opens instantly
+         ↓
+5. Chat live with your mentor + join a video call via Jitsi Meet
+         ↓
+6. Session ends → Problem solved ✅
+```
 
-### 🛡️ For Admins
-- Full system overview dashboard
-- User and session management
-- Platform analytics and activity monitoring
+### 👨‍🏫 If you are a Mentor
 
-### ⚙️ Platform
-- 🔔 Real-time notifications with persistent Zustand store (survives refresh)
-- 💬 Live bidirectional chat via Socket.io
-- 📹 Video calls via Jitsi Meet (no billing, fully open-source)
-- 🔐 JWT authentication with OTP email verification
-- 📱 Fully responsive — works on mobile and desktop
-- 🎨 Premium dark glassmorphic UI with Framer Motion animations
+```
+1. Sign up → Complete a skill assessment to get certified
+         ↓
+2. Receive real-time notifications when students post doubts
+   in your area of expertise
+         ↓
+3. Review the doubt details and submit a competitive bid offer
+   (set your own price and availability)
+         ↓
+4. If student accepts → Chat room opens and session begins
+         ↓
+5. Conduct the session via live chat + Jitsi video call
+         ↓
+6. Session completed → Earnings recorded ✅
+```
+
+> 💰 **Mentors earn by solving real problems.** The more sessions, the more income — all based on their own skills and effort.
 
 ---
+
+## ✨ Platform Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔔 Real-time Notifications | Instant doubt alerts and offer updates via Socket.io |
+| 💬 Live Chat Workspace | Private bidirectional chat room per session |
+| 📹 Video Sessions | Jitsi Meet integration — no billing, no limits |
+| 🏆 Mentor Assessment | Skill-based certification before a mentor can bid |
+| 🔐 Secure Auth | JWT + OTP email verification |
+| 📱 Responsive UI | Works on mobile, tablet, and desktop |
+| 🎨 Premium Design | Dark glassmorphic UI with Framer Motion animations |
+| ♻️ Persistent State | Notifications survive page refresh via Zustand + localStorage |
+
+---
+
+
 
 ## 🛠️ Tech Stack
 
