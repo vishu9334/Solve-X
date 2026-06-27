@@ -27,7 +27,7 @@ const baseUserSchema = new Schema(
       type: String,
       enum: ["admin", "mentor", "student"],
       default: "student",
-    },
+    }
   },
   {
     discriminatorKey: "authType",  // ← sirf field ka NAAM, value nahi

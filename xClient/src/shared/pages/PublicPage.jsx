@@ -1,15 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import useAuthStore from '../../features/auth/store/auth.store';
-import { motion } from 'framer-motion';
+import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ReactLenis, useLenis } from 'lenis/react';
 import CustomCursor from '../components/CustomCursor';
 import CharacterSection from '../components/CharacterSection';
 import Preloader from '../components/Preloader';
-
-gsap.registerPlugin(ScrollTrigger);
+import { useCurrentUser } from '../../features/auth/hooks/useCurrentUser.js';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -24,211 +22,316 @@ const itemVariants = {
     show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 90 } }
 };
 
+const heroContainerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15,
+            delayChildren: 0.2
+        }
+    }
+};
+
+const heroItemVariants = {
+    hidden: { opacity: 0, y: 40 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.25, 1, 0.5, 1] } }
+};
+
+const navContainerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.08,
+            delayChildren: 0.3
+        }
+    }
+};
+
+const navItemVariants = {
+    hidden: { opacity: 0, y: -15 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1] } }
+};
+
+const cardsContainerVariants = {
+    hidden: {},
+    show: {
+        transition: {
+            staggerChildren: 0.12
+        }
+    }
+};
+
+const cardVariants = {
+    hidden: { opacity: 0, y: 60 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.25, 1, 0.5, 1] } }
+};
+
+const mentorContainerVariants = {
+    hidden: {},
+    show: {
+        transition: {
+            staggerChildren: 0.1
+        }
+    }
+};
+
+const mentorItemVariants = {
+    hidden: { opacity: 0, y: 50 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 1, 0.5, 1] } }
+};
+
 const PublicPage = () => {
     const { user } = useAuthStore();
     const [isPastHero, setIsPastHero] = useState(false);
     const [preloaderComplete, setPreloaderComplete] = useState(() => window.__solveXPreloaderRun === true);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const { scrollY } = useScroll();
 
-    // GSAP refs
+    const lenis = useLenis();
+
+    // ── Lock body scroll and Lenis during preloader ──
+    useEffect(() => {
+        if (!preloaderComplete) {
+            document.body.style.overflow = 'hidden';
+            if (lenis) lenis.stop();
+        } else {
+            document.body.style.overflow = '';
+            if (lenis) {
+                lenis.start();
+                lenis.scrollTo(0, { immediate: true });
+            } else {
+                window.scrollTo(0, 0);
+            }
+        }
+        return () => {
+            document.body.style.overflow = '';
+            if (lenis) lenis.start();
+        };
+    }, [preloaderComplete, lenis]);
+
+    const handleScrollTo = (e, targetId) => {
+        e.preventDefault();
+        if (lenis) {
+            lenis.scrollTo(targetId, { offset: -88, duration: 1.2 });
+        } else {
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    };
+
+    // refs
     const pageRef = useRef(null);
     const heroRef = useRef(null);
     const howItWorksRef = useRef(null);
     const mentorSectionRef = useRef(null);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsPastHero(window.scrollY > window.innerHeight - 100);
-        };
-        window.addEventListener('scroll', handleScroll);
-        handleScroll();
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    useMotionValueEvent(scrollY, 'change', (latestScrollY) => {
+        const nextIsPastHero = latestScrollY > window.innerHeight - 100;
+        setIsPastHero((currentValue) => (
+            currentValue === nextIsPastHero ? currentValue : nextIsPastHero
+        ));
+    });
 
-    // ── GSAP Animations ──
-    useEffect(() => {
-        if (!preloaderComplete) return;
-        const ctx = gsap.context(() => {
+    const { data: currentUser, isPending } = useCurrentUser();
 
-            // Hero text stagger entrance
-            gsap.from('.hero-stagger', {
-                y: 40,
-                opacity: 0,
-                duration: 0.9,
-                stagger: 0.15,
-                ease: 'power3.out',
-                delay: 0.2,
-            });
+    if (isPending) {
+        return null;
+    }
 
-            // Nav links stagger
-            gsap.from('.nav-link-stagger', {
-                y: -15,
-                opacity: 0,
-                duration: 0.5,
-                stagger: 0.08,
-                ease: 'power2.out',
-                delay: 0.4,
-            });
-
-            // GSAP Button hover/click animations
-            const buttons = document.querySelectorAll('.gsap-btn');
-            buttons.forEach((btn) => {
-                btn.addEventListener('mouseenter', () => {
-                    gsap.to(btn, {
-                        scale: 1.04,
-                        boxShadow: '0 8px 30px rgba(62,62,244,0.2)',
-                        duration: 0.3,
-                        ease: 'power2.out',
-                    });
-                });
-                btn.addEventListener('mouseleave', () => {
-                    gsap.to(btn, {
-                        scale: 1,
-                        boxShadow: '0 0 0 rgba(0,0,0,0)',
-                        duration: 0.3,
-                        ease: 'power2.out',
-                    });
-                });
-                btn.addEventListener('mousedown', () => {
-                    gsap.to(btn, { scale: 0.96, duration: 0.1, ease: 'power2.in' });
-                });
-                btn.addEventListener('mouseup', () => {
-                    gsap.to(btn, { scale: 1.04, duration: 0.15, ease: 'back.out(2)' });
-                });
-            });
-
-            // Scroll reveal for "How it Works" section
-            if (howItWorksRef.current) {
-                gsap.from(howItWorksRef.current.querySelectorAll('.reveal-card'), {
-                    y: 60,
-                    opacity: 0,
-                    duration: 0.7,
-                    stagger: 0.12,
-                    ease: 'power3.out',
-                    scrollTrigger: {
-                        trigger: howItWorksRef.current,
-                        start: 'top 72%',
-                        toggleActions: 'play none none none',
-                    },
-                });
-            }
-
-            // Scroll reveal for Mentor section
-            if (mentorSectionRef.current) {
-                gsap.from(mentorSectionRef.current.querySelectorAll('.reveal-mentor'), {
-                    y: 50,
-                    opacity: 0,
-                    duration: 0.8,
-                    stagger: 0.1,
-                    ease: 'power3.out',
-                    scrollTrigger: {
-                        trigger: mentorSectionRef.current,
-                        start: 'top 75%',
-                        toggleActions: 'play none none none',
-                    },
-                });
-            }
-
-        }, pageRef);
-
-        return () => ctx.revert();
-    }, []);
-
-    if (user) {
-        if (user.role === 'admin') return <Navigate to="/dashboard/admin" replace />;
-        if (user.role === 'mentor') return <Navigate to="/dashboard/mentor" replace />;
-        return <Navigate to="/dashboard/student" replace />;
+    if (currentUser) {
+        if (currentUser.role === 'admin') return <Navigate to="/admin-landing" replace />;
+        if (currentUser.role === 'mentor') return <Navigate to="/mentor-landing" replace />;
+        return <Navigate to="/student-landing" replace />;
     }
 
     if (!preloaderComplete) {
         return (
-            <Preloader 
+            <Preloader
                 onComplete={() => {
                     window.__solveXPreloaderRun = true;
                     setPreloaderComplete(true);
-                }} 
+                }}
             />
         );
     }
 
     return (
-        <div ref={pageRef} className="min-h-screen flex flex-col bg-[#f4f4f4] overflow-x-hidden custom-cursor-active">
+        <div ref={pageRef} className="public-page min-h-screen flex flex-col bg-[#f4f4f4] overflow-x-clip custom-cursor-active">
 
             {/* Custom Cursor */}
             <CustomCursor />
 
             {/* ── Floating Pill Navbar ── */}
-            <header
-                className={`fixed top-4 left-1/2 -translate-x-1/2 w-[92%] max-w-[1200px] z-50 flex justify-between items-center py-[14px] border backdrop-blur-[20px] px-6 rounded-full transition-all duration-300 ${
-                    isPastHero
-                        ? 'bg-white/90 border-black/10 shadow-[0_8px_32px_rgba(0,0,0,0.08)]'
-                        : 'bg-black/15 border-white/20 shadow-[inset_-0.5px_-0.5px_0px_rgba(255,255,255,0.7),inset_0.5px_0.5px_0px_rgba(255,255,255,0.7)]'
-                }`}
+            <motion.header
+                initial={false}
+                animate={{
+                    backgroundColor: isPastHero ? 'rgba(255, 255, 255, 0.95)' : 'rgba(17, 17, 27, 0.90)',
+                    borderColor: isPastHero ? 'rgba(0, 0, 0, 0.10)' : 'rgba(255, 255, 255, 0.15)',
+                    boxShadow: isPastHero
+                        ? '0 8px 24px rgba(31, 38, 135, 0.08)'
+                        : '0 8px 24px rgba(0, 0, 0, 0.24)',
+                }}
+                transition={{ type: 'spring', stiffness: 150, damping: 24, mass: 0.8 }}
+                className="fixed top-4 left-1/2 -translate-x-1/2 transform-gpu w-[92%] max-w-[1200px] z-50 flex justify-between items-center py-[14px] border px-6 rounded-full"
             >
                 {/* Logo */}
-                <div className="flex items-center gap-2.5">
+                <a
+                    href="#hero"
+                    onClick={(e) => handleScrollTo(e, '#hero')}
+                    className="flex items-center gap-2.5 cursor-pointer"
+                >
                     <img src="/logo.png" alt="Solve-X" className="w-7 h-7 object-contain" />
                     <span className={`text-sm font-semibold tracking-[0.15em] uppercase transition-colors duration-300 ${isPastHero ? 'text-black' : 'text-white'}`}>
                         SOLVE-X
                     </span>
-                </div>
+                </a>
 
                 {/* Nav Links */}
-                <nav className="hidden md:flex items-center gap-6">
+                <motion.nav
+                    variants={navContainerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="hidden xl:flex items-center gap-6"
+                >
                     {[
-                        { label: 'Home', to: '/hero' },
-                        { label: 'MentorDocs', to: '/mentor-doc' },
-                        { label: 'StudentDocs', to: '/student-doc' },
+                        { label: 'Home', to: '#hero', isAnchor: true },
+                        { label: 'How It Works', to: '#how-it-works', isAnchor: true },
+                        { label: 'Mentor', to: '#mentor', isAnchor: true },
+                        { label: 'MentorDocs', to: '/mentor-doc', isAnchor: false },
+                        { label: 'StudentDocs', to: '/student-doc', isAnchor: false },
                     ].map((item, i, arr) => (
-                        <span key={item.to} className="nav-link-stagger flex items-center gap-6">
-                            <Link
-                                to={item.to}
-                                className={`text-sm transition-colors duration-300 tracking-[-0.01em] ${isPastHero ? 'text-slate-700 hover:text-black' : 'text-white/85 hover:text-white'}`}
-                            >
-                                {item.label}
-                            </Link>
+                        <motion.span key={item.to} variants={navItemVariants} className="flex items-center gap-6">
+                            {item.isAnchor ? (
+                                <a
+                                    href={item.to}
+                                    onClick={(e) => handleScrollTo(e, item.to)}
+                                    className={`text-sm transition-colors duration-300 tracking-[-0.01em] ${isPastHero ? 'text-slate-700 hover:text-black' : 'text-white/85 hover:text-white'}`}
+                                >
+                                    {item.label}
+                                </a>
+                            ) : (
+                                <Link
+                                    to={item.to}
+                                    className={`text-sm transition-colors duration-300 tracking-[-0.01em] ${isPastHero ? 'text-slate-700 hover:text-black' : 'text-white/85 hover:text-white'}`}
+                                >
+                                    {item.label}
+                                </Link>
+                            )}
                             {i < arr.length - 1 && (
                                 <span className={`w-px h-[22px] shrink-0 ${isPastHero ? 'bg-slate-200' : 'bg-white/30'}`} />
                             )}
-                        </span>
+                        </motion.span>
                     ))}
-                </nav>
+                </motion.nav>
 
                 {/* Auth Buttons */}
                 <div className="flex items-center gap-2.5">
-                    <Link
-                        to="/login"
-                        className={`gsap-btn hidden sm:inline-flex h-[42px] w-[100px] items-center justify-center rounded-full border text-sm font-medium tracking-[-0.03em] transition-colors duration-200 ${
-                            isPastHero
-                                ? 'bg-gradient-to-b from-white to-[#e2e2e2] border-black/12 text-black'
-                                : 'bg-gradient-to-b from-white to-[#e2e2e2] border-white/20 text-black'
-                        }`}
+                    <motion.div
+                        whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(62,62,244,0.2)' }}
+                        whileTap={{ scale: 0.96 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                        className="hidden sm:inline-block"
                     >
-                        Log In
-                    </Link>
-                    <Link
-                        to="/register"
-                        className="gsap-btn inline-flex items-center gap-2 h-[42px] rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-5 text-sm font-medium tracking-[-0.03em] text-white transition-colors duration-300 hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer"
+                        <Link
+                            to="/login"
+                            className={`inline-flex h-[42px] w-[100px] items-center justify-center rounded-full border text-sm font-medium tracking-[-0.03em] transition-colors duration-200 ${isPastHero
+                                    ? 'bg-gradient-to-b from-white to-[#e2e2e2] border-black/12 text-black'
+                                    : 'bg-gradient-to-b from-white to-[#e2e2e2] border-white/20 text-black'
+                                }`}
+                        >
+                            Log In
+                        </Link>
+                    </motion.div>
+                    <motion.div
+                        whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(255,255,255,0.15)' }}
+                        whileTap={{ scale: 0.96 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                        className="hidden sm:inline-block"
                     >
-                        Get Started
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m9 18 6-6-6-6" />
-                        </svg>
-                    </Link>
+                        <Link
+                            to="/register"
+                            className="inline-flex items-center gap-2 h-[42px] rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-5 text-sm font-semibold tracking-[-0.03em] text-white transition-all duration-300 hover:bg-white/20 cursor-pointer"
+                        >
+                            Get Started
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="m9 18 6-6-6-6" />
+                            </svg>
+                        </Link>
+                    </motion.div>
+
+                    {/* Mobile Hamburger menu */}
+                    <button
+                        onClick={() => setMenuOpen(!menuOpen)}
+                        className={`flex xl:hidden items-center justify-center p-1 bg-transparent border-none focus:outline-none cursor-pointer ${isPastHero ? 'text-black' : 'text-white'}`}
+                    >
+                        <span className="material-symbols-outlined text-2xl select-none">
+                            {menuOpen ? 'close' : 'menu'}
+                        </span>
+                    </button>
                 </div>
-            </header>
+
+                {/* Mobile Dropdown Panel */}
+                {menuOpen && (
+                    <div className="absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border border-blue-500/25 bg-blue-950/45 px-6 py-5 shadow-[0_20px_50px_rgba(30,58,138,0.25)] backdrop-blur-xl xl:hidden text-white">
+                        {[
+                            { label: 'Home', to: '#hero', isAnchor: true },
+                            { label: 'How It Works', to: '#how-it-works', isAnchor: true },
+                            { label: 'Mentor', to: '#mentor', isAnchor: true },
+                            { label: 'MentorDocs', to: '/mentor-doc', isAnchor: false },
+                            { label: 'StudentDocs', to: '/student-doc', isAnchor: false },
+                        ].map((item) => (
+                            item.isAnchor ? (
+                                <a
+                                    key={item.to}
+                                    href={item.to}
+                                    onClick={(e) => {
+                                        setMenuOpen(false);
+                                        handleScrollTo(e, item.to);
+                                    }}
+                                    className="text-sm py-2.5 border-b font-semibold transition-colors text-white/80 hover:text-white border-white/10"
+                                >
+                                    {item.label}
+                                </a>
+                            ) : (
+                                <Link
+                                    key={item.to}
+                                    to={item.to}
+                                    className="text-sm py-2.5 border-b font-semibold transition-colors text-white/80 hover:text-white border-white/10"
+                                    onClick={() => setMenuOpen(false)}
+                                >
+                                    {item.label}
+                                </Link>
+                            )
+                        ))}
+                        <div className="flex flex-col gap-2 pt-2">
+                            <Link
+                                to="/login"
+                                className="w-full h-[42px] flex items-center justify-center rounded-full border border-white/15 bg-white/5 text-white text-sm font-medium hover:bg-white/10 transition-colors cursor-pointer"
+                                onClick={() => setMenuOpen(false)}
+                            >
+                                Log In
+                            </Link>
+                            <Link
+                                to="/register"
+                                className="w-full h-[42px] flex items-center justify-center rounded-full border border-white/20 bg-white/15 text-white text-sm font-semibold hover:bg-white/25 transition-all cursor-pointer"
+                                onClick={() => setMenuOpen(false)}
+                            >
+                                Get Started
+                            </Link>
+                        </div>
+                    </div>
+                )}
+            </motion.header>
 
             {/* ── Hero Section ── */}
             <section
                 ref={heroRef}
                 id="hero"
-                className="relative w-full min-h-screen flex items-center justify-center px-4 pt-32 pb-32 text-white overflow-hidden"
-                style={{
-                    background:
-                        'radial-gradient(circle at 82% 6%, rgba(255,217,110,0.42), transparent 28%),' +
-                        'radial-gradient(circle at 76% 18%, rgba(62,62,244,0.55), transparent 34%),' +
-                        'radial-gradient(circle at 28% 90%, rgba(255,217,110,0.30), transparent 28%),' +
-                        'linear-gradient(180deg, #050509 0%, #060612 58%, #15131a 100%)',
-                }}
+                className="relative w-full min-h-screen flex items-center justify-center px-4 pt-32 pb-32 text-white overflow-hidden bg-[radial-gradient(circle_at_90%_0%,rgba(25,109,300,0.50),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_8%_90%,rgba(9,12,179,0.70),transparent_48%),linear-gradient(360deg,#050509_0%,#060612_58%,#15131a_100%)]"
             >
                 {/* Bottom fade to #f4f4f4 */}
                 <div
@@ -240,42 +343,61 @@ const PublicPage = () => {
                 />
 
                 {/* Hero Content */}
-                <div className="relative z-10 flex w-full max-w-[1100px] flex-col items-center gap-7 text-center">
+                <motion.div
+                    variants={heroContainerVariants}
+                    initial="hidden"
+                    animate="show"
+                    className="flex w-full max-w-[1100px] flex-col items-center gap-7 text-center"
+                >
 
                     {/* Badge */}
-                    <div className="hero-stagger inline-flex items-center gap-2 rounded-full bg-black/10 border border-white/12 py-2 px-4 backdrop-blur-sm">
+                    <motion.div
+                        variants={heroItemVariants}
+                        className="inline-flex items-center gap-2 rounded-full bg-black/10 border border-white/12 py-2 px-4 backdrop-blur-sm"
+                    >
                         <span className="text-[13px] text-white/90 leading-5">
                             ⚡ Real-Time Mentor Matching Platform
                         </span>
-                    </div>
+                    </motion.div>
 
                     {/* Headline */}
-                    <h1
-                        className="hero-stagger mx-auto max-w-[1000px] font-raleway font-normal leading-[0.9] text-white text-balance"
+                    <motion.h1
+                        variants={heroItemVariants}
+                        className="mx-auto max-w-[1000px] font-raleway font-normal leading-[0.9] text-white text-balance"
                         style={{ fontSize: 'clamp(2.6rem, 6.5vw, 72px)' }}
                     >
                         Real Doubts. Real Mentors.{' '}
                         <em className="font-serif font-normal italic text-white">Real Answers.</em>
-                    </h1>
+                    </motion.h1>
 
                     {/* Subtext */}
-                    <p className="hero-stagger mx-auto max-w-[680px] text-base font-light leading-7 text-white/70 md:text-lg text-balance">
+                    <motion.p
+                        variants={heroItemVariants}
+                        className="mx-auto max-w-[680px] text-base font-light leading-7 text-white/70 md:text-lg text-balance"
+                    >
                         Solve-X connects students with industry-expert mentors in real-time. Post your doubts,
                         receive competitive bids from verified mentors within minutes, and resolve issues via
                         interactive 1-on-1 sessions.
-                    </p>
+                    </motion.p>
 
                     {/* CTA Buttons */}
-                    <div className="hero-stagger flex flex-col items-center gap-2.5">
-                        <Link
-                            to="/register"
-                            className="gsap-btn inline-flex items-center justify-center rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-8 py-3.5 text-base font-medium tracking-[-0.03em] text-white transition-colors hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer"
+                    <motion.div variants={heroItemVariants} className="flex flex-col items-center gap-2.5">
+                        <motion.div
+                            whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(62,62,244,0.2)' }}
+                            whileTap={{ scale: 0.96 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                            className="inline-block"
                         >
-                            Create an Account — It's Free
-                        </Link>
+                            <Link
+                                to="/register"
+                                className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 backdrop-blur-md px-8 py-3.5 text-base font-bold text-amber-300 transition-all hover:bg-amber-300/20 hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] cursor-pointer"
+                            >
+                                Create an Account — It's Free
+                            </Link>
+                        </motion.div>
                         <p className="text-sm font-light text-white/50">No credit card required. Get started in seconds.</p>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </section>
 
             {/* ── How It Works — 3 White Cards ── */}
@@ -294,16 +416,29 @@ const PublicPage = () => {
                         <p className="max-w-[560px] text-base leading-[1.7] text-black/55 md:text-lg font-light">
                             No complicated process. Connect with verified expert mentors and get answers in minutes.
                         </p>
-                        <Link
-                            to="/register"
-                            className="gsap-btn inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-5 py-2.5 text-sm font-medium tracking-[-0.03em] text-white transition hover:-translate-y-0.5 hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer mt-1"
+                        <motion.div
+                            whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(62,62,244,0.2)' }}
+                            whileTap={{ scale: 0.96 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                            className="inline-block mt-1"
                         >
-                            Try Now
-                        </Link>
+                            <Link
+                                to="/register"
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-300/40 bg-amber-300/10 backdrop-blur-md px-5 py-2.5 text-sm font-bold text-amber-300 transition hover:bg-amber-300/20 hover:shadow-[0_0_15px_rgba(251,191,36,0.25)] cursor-pointer"
+                            >
+                                Try Now
+                            </Link>
+                        </motion.div>
                     </div>
 
                     {/* 3 Step Cards */}
-                    <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6 lg:gap-8">
+                    <motion.div
+                        variants={cardsContainerVariants}
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true, amount: 0.2 }}
+                        className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-6 lg:gap-8"
+                    >
                         {[
                             {
                                 step: '1',
@@ -321,8 +456,9 @@ const PublicPage = () => {
                                 desc: 'Join a 1-on-1 interactive session. Get your doubt resolved live, with screen sharing and real-time collaboration tools.',
                             },
                         ].map(({ step, title, desc }) => (
-                            <div
+                            <motion.div
                                 key={step}
+                                variants={cardVariants}
                                 className="reveal-card group flex flex-col overflow-hidden rounded-[18px] border-[10px] border-white bg-white shadow-[0_18px_60px_rgba(15,23,42,0.04)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(62,62,244,0.12)]"
                             >
                                 {/* Icon area */}
@@ -337,9 +473,9 @@ const PublicPage = () => {
                                     <h3 className="text-[17px] font-semibold leading-tight tracking-tight text-black mb-2">{title}</h3>
                                     <p className="text-sm leading-relaxed text-black/50 font-light">{desc}</p>
                                 </div>
-                            </div>
+                            </motion.div>
                         ))}
-                    </div>
+                    </motion.div>
                 </div>
             </section>
 
@@ -349,20 +485,29 @@ const PublicPage = () => {
             {/* ── Mentor Onboarding Section ── */}
             <section ref={mentorSectionRef} id="mentor" className="bg-[#f4f4f4] py-12 md:py-20 px-4">
                 <div className="mx-auto w-full max-w-[1200px]">
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10 items-center">
+                    <motion.div
+                        variants={mentorContainerVariants}
+                        initial="hidden"
+                        whileInView="show"
+                        viewport={{ once: true, amount: 0.25 }}
+                        className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-10 items-center"
+                    >
 
                         {/* Lottie Panel */}
-                        <div className="reveal-mentor relative flex items-center justify-center rounded-[20px] bg-white border border-black/[0.06] p-6 overflow-hidden shadow-[0_18px_60px_rgba(15,23,42,0.06)] min-h-[320px]">
+                        <motion.div
+                            variants={mentorItemVariants}
+                            className="reveal-mentor relative flex items-center justify-center rounded-[20px] bg-white border border-black/[0.06] p-6 overflow-hidden shadow-[0_18px_60px_rgba(15,23,42,0.06)] min-h-[320px]"
+                        >
                             <div className="absolute inset-x-12 top-1/4 h-32 rounded-full bg-[#3e3ef4]/6 blur-3xl pointer-events-none" />
                             <DotLottieReact
                                 src="https://lottie.host/00c04ca9-f35b-4a9a-9462-7b5e99bbf417/6tf7Zeop3V.lottie"
                                 loop
                                 autoplay
                             />
-                        </div>
+                        </motion.div>
 
                         {/* Mentor Info */}
-                        <div className="reveal-mentor flex flex-col gap-5">
+                        <motion.div variants={mentorItemVariants} className="reveal-mentor flex flex-col gap-5">
                             {/* Headline with animated underline */}
                             <div className="relative pb-5">
                                 <h2
@@ -455,24 +600,38 @@ const PublicPage = () => {
 
                             {/* CTA Buttons */}
                             <div className="flex items-center gap-3 pt-2">
-                                <Link
-                                    to="/register?role=mentor"
-                                    className="gsap-btn inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-6 py-3 text-sm font-medium tracking-[-0.03em] text-white transition-colors hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer"
+                                <motion.div
+                                    whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(52,211,153,0.3)' }}
+                                    whileTap={{ scale: 0.96 }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                                    className="inline-block"
                                 >
-                                    Join as Mentor
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="m9 18 6-6-6-6" />
-                                    </svg>
-                                </Link>
-                                <Link
-                                    to="/mentor-doc"
-                                    className="gsap-btn inline-flex items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-6 py-3 text-sm font-medium tracking-[-0.03em] text-black transition-colors hover:bg-neutral-50 cursor-pointer shadow-sm"
+                                    <Link
+                                        to="/register?role=mentor"
+                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-400/10 backdrop-blur-md px-6 py-3 text-sm font-bold text-emerald-300 transition-all hover:bg-emerald-400/20 hover:shadow-[0_0_15px_rgba(52,211,153,0.25)] cursor-pointer"
+                                    >
+                                        Join as Mentor
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="m9 18 6-6-6-6" />
+                                        </svg>
+                                    </Link>
+                                </motion.div>
+                                <motion.div
+                                    whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}
+                                    whileTap={{ scale: 0.96 }}
+                                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                                    className="inline-block"
                                 >
-                                    Read Docs
-                                </Link>
+                                    <Link
+                                        to="/mentor-doc"
+                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300/35 bg-slate-500/10 backdrop-blur-md px-6 py-3 text-sm font-semibold text-slate-650 transition-colors hover:bg-slate-500/25 cursor-pointer shadow-sm"
+                                    >
+                                        Read Docs
+                                    </Link>
+                                </motion.div>
                             </div>
-                        </div>
-                    </div>
+                        </motion.div>
+                    </motion.div>
                 </div>
             </section>
 

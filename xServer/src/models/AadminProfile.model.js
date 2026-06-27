@@ -1,14 +1,27 @@
-import mongoose, { Schema } from 'mongoose'
+import mongoose, { Schema } from "mongoose";
+import { socialMediaLinkSchema } from "./socialMediaBase.model.js";
 
-const adminProfileSchema = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    required: true,
-    ref: "CommonUser",
-  },
-  bio: {
-    type: String
-  },
-}, { timestamps: true });
+const adminProfileSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      unique: true,
+      ref: "CommonUser",
+    },
 
-export const adminProfile = mongoose.model("adminProfile", adminProfileSchema);
+    bio: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    socialLinks: {
+      type: [socialMediaLinkSchema],
+      default: [],
+    },
+  },
+  { timestamps: true }
+);
+
+export const AdminProfile = mongoose.model("AdminProfile", adminProfileSchema);

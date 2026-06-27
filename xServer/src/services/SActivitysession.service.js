@@ -2,8 +2,6 @@ import { ApiError } from "../utils/ApiError.js";
 import activitySessionRepository from "../repositorys/implimentations/mongo.activitySession.repository.js";
 import ActivitySession from "../domain/DActivitysession.domain.js";
 import mongoose from "mongoose";
-import { Skill } from "../models/skill.model.js";
-import { MentorProfile } from "../models/AmentorProfile.model.js";
 
 class ActivitySessionService {
   constructor() {
@@ -17,24 +15,22 @@ class ActivitySessionService {
       throw new ApiError(400, "userId and category are required");
     }
 
-    // Resolve assessmentId from Skill category (could be ID, name, or slug)
-    let skill = null;
+    // Resolve assessmentId from specialized category (could be ID, name, or slug)
+    let specialized = null;
     if (mongoose.Types.ObjectId.isValid(category)) {
-      skill = await Skill.findById(category);
+      specialized = await this.activitySessionRepository.findSpecializedById(category);
     } else {
-      skill = await Skill.findOne({
-        $or: [{ name: category }, { slug: category.toLowerCase() }]
-      });
+      specialized = await this.activitySessionRepository.findSpecializedByNameOrSlug(category);
     }
 
-    if (!skill) {
-      const profile = await MentorProfile.findOne({ userId });
-      if (profile && profile.skillCategory) {
-        skill = await Skill.findById(profile.skillCategory);
+    if (!specialized) {
+      const profile = await this.activitySessionRepository.findMentorProfileByUserId(userId);
+      if (profile && profile.specializedCategory) {
+        specialized = await this.activitySessionRepository.findSpecializedById(profile.specializedCategory);
       }
     }
 
-    if (!skill || !skill.assessmentId) {
+    if (!specialized || !specialized.assessmentId) {
       throw new ApiError(400, "No active assessment linked to this category.");
     }
 
@@ -43,7 +39,7 @@ class ActivitySessionService {
     const sessionDoc = await this.activitySessionRepository.createSession({
       userId,
       category,
-      assessmentId: skill.assessmentId,
+      assessmentId: specialized.assessmentId,
       startedAt,
       totalEvents: 1,
       events: [
@@ -73,8 +69,7 @@ class ActivitySessionService {
     if (session.isEnded()) throw new ApiError(400, "Activity session is already ended.");
 
     // Enforce time limit check
-    const { AssessmentStore } = await import("../models/assessmentDataStore.model.js");
-    const assessment = await AssessmentStore.findById(doc.assessmentId);
+    const assessment = await this.activitySessionRepository.findAssessmentStoreById(doc.assessmentId);
     const limitMinutes = assessment?.durationMinutes || 15;
     const elapsedMs = new Date() - new Date(doc.startedAt);
     const elapsedMinutes = elapsedMs / (1000 * 60);

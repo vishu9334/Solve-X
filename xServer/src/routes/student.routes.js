@@ -20,6 +20,7 @@ router.get("/student/dashboard/:userId", verifyAccessToken, studentController.st
 
 // Student updates bio and/or name
 router.patch("/student/profile", verifyAccessToken, studentController.updateStudentProfile);
+router.get("/student/profile", verifyAccessToken, studentController.getStudentProfile);
 
 // Student gets active doubt session
 router.get("/student/active-session", verifyAccessToken, studentController.getActiveSession);
@@ -29,5 +30,12 @@ router.get("/student/doubt-sessions/:doubtSessionId/offers", verifyAccessToken, 
 
 // Student gets details of a specific doubt session
 router.get("/student/doubt-sessions/:doubtSessionId", verifyAccessToken, studentController.getDoubtSessionDetails);
+
+// Student browses all specialist mentors (grouped by specialization)
+// Optional query: ?specializationName=DSA to filter by category
+router.get("/student/mentors", verifyAccessToken, studentController.listMentorsForStudent);
+
+// Student gets list of verified mentors for a specific specialization
+router.get("/student/specializations/:specializationId/mentors", verifyAccessToken, studentController.getMentorsForSpecialization);
 
 export default router;

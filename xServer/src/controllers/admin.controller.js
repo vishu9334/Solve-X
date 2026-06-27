@@ -1,6 +1,5 @@
 import { ApiResponse } from "../utils/ApiResponseHandler.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { ApiError } from "../utils/ApiError.js";
 import adminService from "../services/admin.service.js";
 
 /**
@@ -24,13 +23,12 @@ export const getAdminProfile = asyncHandler(async (req, res) => {
  */
 export const updateAdminProfile = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
-    const { bio } = req.body;
-
-    if (!bio) throw new ApiError(400, "bio is required");
+    const { bio, socialLinks } = req.body;
 
     const updated = await adminService.updateAdminProfile({
         userId,
-        updateData: { bio }
+        bio,
+        socialLinks
     });
 
     return res.status(200).json(

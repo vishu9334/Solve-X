@@ -5,10 +5,11 @@ import {logger} from '../src/utils/logger.js'
 import mentorRoutes from './routes/mentor.routes.js';
 import activitySessionRoutes from './routes/activitySession.routes.js';
 import authRoutes from './routes/auth.routes.js';
-import skillRoutes from './routes/skill.routes.js';
+import specializationRoutes from './routes/specialization.routes.js';
 import studentRoutes from './routes/student.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import dailyRoutes from './routes/daily.routes.js';
 const app = express();
 
 const morganMiddleware = morgan(
@@ -36,7 +37,7 @@ app.get("/health", (req, res) => {
 });
 
 
-app.use("/api/v1", mentorRoutes, activitySessionRoutes, authRoutes, skillRoutes, studentRoutes, dashboardRoutes, adminRoutes);
+app.use("/api/v1", mentorRoutes, activitySessionRoutes, authRoutes, specializationRoutes, studentRoutes, dashboardRoutes, adminRoutes, dailyRoutes);
 
 app.use((req, res, next) => {
   const err = new Error(`Route ${req.originalUrl} not found`);

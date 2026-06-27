@@ -1,6 +1,6 @@
 import IMentorRepository from "../contracts/IMentor.contract.js";
 import { MentorProfile } from "../../models/AmentorProfile.model.js";
-import { Skill } from "../../models/skill.model.js";
+import { Specialization } from "../../models/specialization.model.js";
 import { Attempt } from "../../models/assessmentAttempt.model.js";
 import { AssessmentStore } from "../../models/assessmentDataStore.model.js";
 import { CommonUser } from "../../models/AbaseUser.model.js";
@@ -11,22 +11,22 @@ class MongoMentorRepository extends IMentorRepository {
         return MentorProfile.findOne({ userId });
     }
 
-    async updateMentorSkill(userId, skillId) {
+    async updateMentorSkill(userId, specializedId) {
         return MentorProfile.findOneAndUpdate(
             { userId },
-            { skillCategory: skillId },
+            { specializedCategory: specializedId },
             { new: true }
         );
     }
 
-    async findSkillById(skillId) {
-        return Skill.findOne({ _id: skillId, isActive: true });
+    async findSpecializedById(specializedId) {
+        return Specialization.findOne({ _id: specializedId, isActive: true });
     }
 
     // Case-insensitive name and slug search to prevent duplicates
-    async findSkillByName(name) {
+    async findSpecializedByName(name) {
         const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-        return Skill.findOne({
+        return Specialization.findOne({
             $or: [
                 { name: { $regex: new RegExp(`^${name.trim()}$`, "i") } },
                 { slug }
@@ -35,62 +35,62 @@ class MongoMentorRepository extends IMentorRepository {
     }
 
     // Create new skill + its AssessmentStore in one go
-    async createSkillWithAssessment({ name, createdBy, source = "mentor" }) {
+    async createSpecializedWithAssessment({ name, createdBy, source = "mentor" }) {
         // 1. Generate ObjectIds first to prevent Mongoose validation constraints from failing
         const assessmentId = new mongoose.Types.ObjectId();
-        const skillId = new mongoose.Types.ObjectId();
+        const specializedId = new mongoose.Types.ObjectId();
 
         // 2. Create AssessmentStore with valid skillId as category
         const assessment = await AssessmentStore.create({
             _id: assessmentId,
             createdBy,
             title: `${name} Assessment`,
-            category: skillId,
+            category: specializedId,
             durationMinutes: 0, // AI will calculate dynamically
             totalQuestions: 0,
             passingPercentage: 60,
         });
 
         // 3. Create Skill
-        const skill = new Skill({
-            _id: skillId,
+        const specialization = new Specialization({
+            _id: specializedId,
             name,
             createdBy,
             source,
             assessmentId: assessment._id,
             mentorCount: 0,
         });
-        await skill.save();
+        await specialization.save();
 
-        return skill;
+        return specialization;
     }
 
-    async incrementMentorCount(skillId) {
-        return Skill.findByIdAndUpdate(
-            skillId,
+    async incrementMentorCount(specializedId) {
+        return Specialization.findByIdAndUpdate(
+            specializedId,
             { $inc: { mentorCount: 1 } },
             { new: true }
         );
     }
 
     // Decrement count, auto-delete mentor-created skills if count hits 0
-    async decrementAndCleanup(skillId) {
-        const skill = await Skill.findByIdAndUpdate(
-            skillId,
+    async decrementAndCleanup(specializedId) {
+        const specialization = await Specialization.findByIdAndUpdate(
+            specializedId,
             { $inc: { mentorCount: -1 } },
             { new: true }
         );
 
-        if (skill && skill.mentorCount <= 0 && skill.source === "mentor") {
-            // Auto-delete: mentor-created skill with 0 mentors
-            if (skill.assessmentId) {
-                await AssessmentStore.findByIdAndDelete(skill.assessmentId);
+        if (specialization && specialization.mentorCount <= 0 && specialization.source === "mentor") {
+            // Auto-delete: mentor-created specialization with 0 mentors
+            if (specialization.assessmentId) {
+                await AssessmentStore.findByIdAndDelete(specialization.assessmentId);
             }
-            await Skill.findByIdAndDelete(skill._id);
-            return null; // skill deleted
+            await Specialization.findByIdAndDelete(specialization._id);
+            return null; // specialization deleted
         }
 
-        return skill;
+        return specialization;
     }
 
     async createAttempt(userId, assessmentId) {
@@ -98,6 +98,15 @@ class MongoMentorRepository extends IMentorRepository {
             userId,
             assessmentId,
             status: "pending",
+        });
+    }
+
+    async createAttemptWithMax(userId, assessmentId, maxAttempts) {
+        return Attempt.create({
+            userId,
+            assessmentId,
+            status: "pending",
+            maxAttempts,
         });
     }
 
@@ -130,21 +139,32 @@ class MongoMentorRepository extends IMentorRepository {
                     username: 1,
                     isVerifiedMentor: "$result.isVerifiedMentor",
                     verificationStatus: "$result.verificationStatus",
-                    skillCategory: "$result.skillCategory",
-                    verifiedAt: "$result.verifiedAt"
+                    specializedCategory: "$result.specializedCategory",
+                    verifiedAt: "$result.verifiedAt",
+                    socialLinks: "$result.socialLinks",
+                    jobTitle: "$result.jobTitle",
+                    company: "$result.company",
+                    experienceYears: "$result.experienceYears",
+                    education: "$result.education",
+                    certifications: "$result.certifications",
+                    rating: "$result.rating",
+                    ratingCount: "$result.ratingCount",
+                    timezone: "$result.timezone",
+                    preferredLanguage: "$result.preferredLanguage",
+                    payoutDetails: "$result.payoutDetails"
                 }
             },
             {
                 $lookup: {
-                    from: "skills",
-                    localField: "skillCategory",
+                    from: "specializations",
+                    localField: "specializedCategory",
                     foreignField: "_id",
-                    as: "skillCategoryData"
+                    as: "specializedCategoryData"
                 }
             },
             {
                 $set: {
-                    skillCategoryData: { $first: "$skillCategoryData" }
+                    specializedCategoryData: { $first: "$specializedCategoryData" }
                 }
             },
             {
@@ -158,14 +178,37 @@ class MongoMentorRepository extends IMentorRepository {
                     username: 1,
                     isVerifiedMentor: 1,
                     verificationStatus: 1,
+                    socialLinks: 1,
+                    jobTitle: 1,
+                    company: 1,
+                    experienceYears: 1,
+                    education: 1,
+                    certifications: 1,
+                    rating: 1,
+                    ratingCount: 1,
+                    timezone: 1,
+                    preferredLanguage: 1,
+                    payoutDetails: 1,
+                    specialization: {
+                        $cond: [
+                            { $ifNull: ["$specializedCategoryData", false] },
+                            {
+                                name: "$specializedCategoryData.name",
+                                description: "$specializedCategoryData.description",
+                                isActive: "$specializedCategoryData.isActive",
+                                mentorCount: "$specializedCategoryData.mentorCount"
+                            },
+                            null
+                        ]
+                    },
                     skill: {
                         $cond: [
-                            { $ifNull: ["$skillCategoryData", false] },
+                            { $ifNull: ["$specializedCategoryData", false] },
                             {
-                                name: "$skillCategoryData.name",
-                                description: "$skillCategoryData.description",
-                                isActive: "$skillCategoryData.isActive",
-                                mentorCount: "$skillCategoryData.mentorCount"
+                                name: "$specializedCategoryData.name",
+                                description: "$specializedCategoryData.description",
+                                isActive: "$specializedCategoryData.isActive",
+                                mentorCount: "$specializedCategoryData.mentorCount"
                             },
                             null
                         ]
@@ -203,24 +246,37 @@ class MongoMentorRepository extends IMentorRepository {
                     isVerified: 1,
                     role: 1,
                     username: 1,
-                    skillCategory: "$profileDoc.skillCategory",
+                    specializedCategory: "$profileDoc.specializedCategory",
                     isVerifiedMentor: "$profileDoc.isVerifiedMentor",
                     verificationStatus: "$profileDoc.verificationStatus",
                     rejectionReason: "$profileDoc.rejectionReason",
-                    verifiedAt: "$profileDoc.verifiedAt"
+                    verifiedAt: "$profileDoc.verifiedAt",
+                    rejectedAt: "$profileDoc.rejectedAt",
+                    cooldownUntil: "$profileDoc.cooldownUntil",
+                    socialLinks: "$profileDoc.socialLinks",
+                    jobTitle: "$profileDoc.jobTitle",
+                    company: "$profileDoc.company",
+                    experienceYears: "$profileDoc.experienceYears",
+                    education: "$profileDoc.education",
+                    certifications: "$profileDoc.certifications",
+                    rating: "$profileDoc.rating",
+                    ratingCount: "$profileDoc.ratingCount",
+                    timezone: "$profileDoc.timezone",
+                    preferredLanguage: "$profileDoc.preferredLanguage",
+                    payoutDetails: "$profileDoc.payoutDetails"
                 }
             },
             {
                 $lookup: {
-                    from: "skills",
-                    localField: "skillCategory",
+                    from: "specializations",
+                    localField: "specializedCategory",
                     foreignField: "_id",
-                    as: "skillCategoryData"
+                    as: "specializedCategoryData"
                 }
             },
             {
                 $set: {
-                    skillCategoryData: { $first: "$skillCategoryData" }
+                    specializedCategoryData: { $first: "$specializedCategoryData" }
                 }
             },
             {
@@ -346,13 +402,13 @@ class MongoMentorRepository extends IMentorRepository {
             {
                 $lookup: {
                     from: "doubtsessions",
-                    let: { skillId: "$skillCategory", mentorId: "$_id" },
+                    let: { specializedId: "$specializedCategory", mentorId: "$_id" },
                     pipeline: [
                         {
                             $match: {
                                 $expr: {
                                     $and: [
-                                        { $eq: ["$skillId", "$$skillId"] },
+                                        { $eq: ["$specializedId", "$$specializedId"] },
                                         { $eq: ["$status", "open"] },
                                         { $not: { $in: ["$$mentorId", { $ifNull: ["$mentorOffers.mentorId", []] }] } }
                                     ]
@@ -391,12 +447,39 @@ class MongoMentorRepository extends IMentorRepository {
                         avatar: "$avatar",
                         isVerifiedMentor: { $ifNull: ["$isVerifiedMentor", false] },
                         verificationStatus: { $ifNull: ["$verificationStatus", "pending"] },
+                        socialLinks: { $ifNull: ["$socialLinks", []] },
+                        jobTitle: { $ifNull: ["$jobTitle", ""] },
+                        company: { $ifNull: ["$company", ""] },
+                        experienceYears: { $ifNull: ["$experienceYears", 0] },
+                        education: { $ifNull: ["$education", ""] },
+                        certifications: { $ifNull: ["$certifications", []] },
+                        rating: { $ifNull: ["$rating", 5.0] },
+                        ratingCount: { $ifNull: ["$ratingCount", 0] },
+                        timezone: { $ifNull: ["$timezone", ""] },
+                        preferredLanguage: { $ifNull: ["$preferredLanguage", ""] },
+                        payoutDetails: {
+                            upiId: { $ifNull: ["$payoutDetails.upiId", ""] },
+                            bankName: { $ifNull: ["$payoutDetails.bankName", ""] },
+                            accountNumber: { $ifNull: ["$payoutDetails.accountNumber", ""] },
+                            ifscCode: { $ifNull: ["$payoutDetails.ifscCode", ""] }
+                        },
+                        specialization: {
+                            $cond: [
+                                { $ifNull: ["$specializedCategoryData", false] },
+                                {
+                                    name: "$specializedCategoryData.name",
+                                    slug: "$specializedCategoryData.slug"
+                                },
+                                null
+                            ]
+                        },
                         skill: {
                             $cond: [
-                                { $ifNull: ["$skillCategoryData", false] },
+                                { $ifNull: ["$specializedCategoryData", false] },
                                 {
-                                    name: "$skillCategoryData.name",
-                                    slug: "$skillCategoryData.slug"
+                                    name: "$specializedCategoryData.name",
+                                    slug: "$specializedCategoryData.slug",
+                                    description: "$specializedCategoryData.description"
                                 },
                                 null
                             ]
@@ -414,13 +497,7 @@ class MongoMentorRepository extends IMentorRepository {
                             null
                         ]
                     },
-                    activeSession: {
-                        $cond: [
-                            { $eq: ["$isVerifiedMentor", true] },
-                            "$activeSession",
-                            null
-                        ]
-                    },
+                    activeSession: "$activeSession",
                     recentSessions: {
                         $cond: [
                             { $eq: ["$isVerifiedMentor", true] },
@@ -442,13 +519,166 @@ class MongoMentorRepository extends IMentorRepository {
         return result[0] || null;
     }
 
+    async updateMentorProfile(userId, updateData) {
+        return await MentorProfile.findOneAndUpdate(
+            { userId },
+            { $set: updateData },
+            { new: true, upsert: true }
+        );
+    }
+
     async updateMentorDescription(userId, description) {
         const mentorProfile = await MentorProfile.findOne({ userId });
-        if (!mentorProfile?.skillCategory) return null;
-        return Skill.findByIdAndUpdate(
-            mentorProfile.skillCategory,
+        if (!mentorProfile?.specializedCategory) return null;
+        return Specialization.findByIdAndUpdate(
+            mentorProfile.specializedCategory,
             { description },
             { new: true }
+        );
+    }
+
+    async findAttemptWithAssessment(attemptId, userId) {
+        const { Attempt } = await import("../../models/assessmentAttempt.model.js");
+        return await Attempt.findOne({ _id: attemptId, userId }).populate("assessmentId");
+    }
+
+    async findUserById(userId) {
+        return await CommonUser.findById(userId);
+    }
+
+    async findAttemptByAssessment(userId, assessmentId) {
+        const { Attempt } = await import("../../models/assessmentAttempt.model.js");
+        return await Attempt.findOne({ userId, assessmentId });
+    }
+
+    async findAssessmentStoreById(assessmentId) {
+        const { AssessmentStore } = await import("../../models/assessmentDataStore.model.js");
+        return await AssessmentStore.findById(assessmentId);
+    }
+
+    async updateAssessmentStore(assessmentId, updateData) {
+        const { AssessmentStore } = await import("../../models/assessmentDataStore.model.js");
+        return await AssessmentStore.findByIdAndUpdate(assessmentId, updateData, { new: true });
+    }
+
+    async findLatestActivitySession(userId, assessmentId) {
+        const { AssessmentActivitySession } = await import("../../models/assessmentActivityDataStore.model.js");
+        return await AssessmentActivitySession.findOne({ userId, assessmentId }).sort({ createdAt: -1 });
+    }
+
+    async saveAnswers(attemptId, answersToInsert) {
+        const { Answer } = await import("../../models/Answer.model.js");
+        await Answer.deleteMany({ attemptId });
+        return await Answer.insertMany(answersToInsert);
+    }
+
+    async saveAttempt(attempt) {
+        return await attempt.save();
+    }
+
+    async findSpecializedByAssessmentId(assessmentId) {
+        return await Specialization.findOne({ assessmentId });
+    }
+
+    async saveMentorProfile(mentorProfile) {
+        return await mentorProfile.save();
+    }
+
+    async findActiveSessionForMentor(userId) {
+        const { DoubtSession } = await import("../../models/doubtSession.model.js");
+        return await DoubtSession.findOne({ selectedMentorId: userId, status: "in_session" });
+    }
+
+    async findOpenDoubtSession(doubtSessionId) {
+        const { DoubtSession } = await import("../../models/doubtSession.model.js");
+        return await DoubtSession.findOne({ _id: doubtSessionId, status: "open" });
+    }
+
+    async saveDoubtSession(doubtSession) {
+        return await doubtSession.save();
+    }
+
+    async countActiveBids(userId) {
+        const { DoubtSession } = await import("../../models/doubtSession.model.js");
+        return await DoubtSession.countDocuments({ status: "open", "mentorOffers.mentorId": userId });
+    }
+    async specializationOfRepository(specializationId, specializationName) {
+        const { default: SpecializationCatalog } = await import("../../models/specializationCatalogs.model.js");
+        return await SpecializationCatalog.findOne({
+            $or: [
+                { "specializationCatalogs.name": specializationName },
+                { "specializationCatalogs.specializationIds": specializationId }
+            ]
+        })
+    }
+    async specializationOfRepositoryUpdate(specializationId, specializationName) {
+        const { default: SpecializationCatalog } = await import("../../models/specializationCatalogs.model.js");
+        return SpecializationCatalog.updateOne(
+            { "specializationCatalogs.name": specializationName },
+            {
+                $addToSet: {
+                    "specializationCatalogs.$.specializationIds": specializationId
+                }
+            }
+        );
+
+    }
+    async specializationOfNewCreateOne({ specializationName, specializationId }) {
+        const { default: SpecializationCatalog } = await import("../../models/specializationCatalogs.model.js");
+
+        const result = await SpecializationCatalog.updateOne(
+            {},
+            {
+                $push: {
+                    specializationCatalogs: {
+                        name: specializationName,
+                        specializationIds: [specializationId],
+                    },
+                },
+            },
+            { upsert: true }
+        );
+
+        return result;
+    }
+
+    async createAssessmentForSpecialization(specializedId, createdBy, name) {
+        const assessmentId = new mongoose.Types.ObjectId();
+        const assessment = await AssessmentStore.create({
+            _id: assessmentId,
+            createdBy,
+            title: `${name} Assessment`,
+            category: specializedId,
+            durationMinutes: 0,
+            totalQuestions: 0,
+            passingPercentage: 60,
+        });
+
+        await Specialization.findByIdAndUpdate(
+            specializedId,
+            { assessmentId: assessment._id }
+        );
+        return assessment;
+    }
+
+    async getAllSpecializationsAndCatalogs() {
+        const { default: SpecializationCatalog } = await import("../../models/specializationCatalogs.model.js");
+        const specializations = await Specialization.find({ isActive: true }).select("name _id assessmentId");
+        const catalogDoc = await SpecializationCatalog.findOne({});
+        return {
+            specializations,
+            catalogs: catalogDoc ? catalogDoc.specializationCatalogs : []
+        };
+    }
+
+    async findCatalogByName(name) {
+        const { default: SpecializationCatalog } = await import("../../models/specializationCatalogs.model.js");
+        const catalogDoc = await SpecializationCatalog.findOne({
+            "specializationCatalogs.name": { $regex: new RegExp(`^${name.trim()}$`, "i") }
+        });
+        if (!catalogDoc) return null;
+        return catalogDoc.specializationCatalogs.find(
+            cat => cat.name.toLowerCase() === name.trim().toLowerCase()
         );
     }
 }

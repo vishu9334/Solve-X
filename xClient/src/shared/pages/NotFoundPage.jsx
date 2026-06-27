@@ -17,7 +17,7 @@ const NotFoundPage = () => {
 
             {/* Top Bar */}
             <div className="w-full max-w-6xl flex justify-between items-center opacity-50 text-[10px] tracking-[0.3em] font-mono mt-2 text-slate-500">
-                <Link to="/public" className="flex items-center space-x-2 hover:opacity-85 transition-opacity">
+                <Link to="/" className="flex items-center space-x-2 hover:opacity-85 transition-opacity">
                     <img src="/logo.png" alt="Solve-X Logo" className="w-6 h-6 object-contain" />
                     <span>SOLVE-X</span>
                 </Link>
@@ -58,7 +58,7 @@ const NotFoundPage = () => {
                 {/* CTA Button */}
                 <div className="mt-8 w-full flex justify-center">
                     <Link
-                        to="/public"
+                        to="/"
                         className="inline-flex items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-8 py-3.5 text-sm font-semibold tracking-[-0.01em] text-slate-800 transition-all hover:bg-neutral-50 shadow-sm active:scale-95 duration-200"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mr-1">

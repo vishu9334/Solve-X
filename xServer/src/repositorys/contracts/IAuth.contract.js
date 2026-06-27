@@ -34,6 +34,18 @@ class IAuthRepository {
     async updatePasswordByEmail(email, passwordHash) {
       throw new Error("Method 'updatePasswordByEmail' must be implemented.");
     }
+
+    async createMentorProfile(userId) {
+      throw new Error("Method 'createMentorProfile' must be implemented.");
+    }
+
+    async createAdminProfile(userId) {
+      throw new Error("Method 'createAdminProfile' must be implemented.");
+    }
+
+    async findMentorProfileByUserId(userId) {
+      throw new Error("Method 'findMentorProfileByUserId' must be implemented.");
+    }
   }
   
   export default IAuthRepository;

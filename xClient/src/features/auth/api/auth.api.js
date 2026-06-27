@@ -87,6 +87,30 @@ export const logoutApi = async () => {
   }
 };
 
+export const forgetPasswordApi = async (email) => {
+  try {
+    const apiResponse = await api.post("/forgot-password", { email });
+    return {
+      ...apiResponse.data?.data,
+      message: getMessage(apiResponse.data),
+    };
+  } catch (error) {
+    throw error?.response?.data || error;
+  }
+};
+
+export const resetPasswordApi = async ({ email, otp, password }) => {
+  try {
+    const apiResponse = await api.post("/reset-password", { email, otp, password });
+    return {
+      ...apiResponse.data?.data,
+      message: getMessage(apiResponse.data),
+    };
+  } catch (error) {
+    throw error?.response?.data || error;
+  }
+};
+
 export const getCurrentUserApi = async () => {
   try {
     const apiResponse = await api.get("/me");

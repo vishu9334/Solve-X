@@ -50,7 +50,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="h-screen flex bg-white py-3 pl-4 items-center justify-center relative">
+        <div className="min-h-screen md:h-screen flex flex-col md:flex-row bg-white py-3 pl-4 items-center justify-center relative">
             <LoadingOverlay isLoading={isPending} message="Creating your account..." />
             {/* Back Button */}
             <button 
@@ -63,7 +63,7 @@ const RegisterPage = () => {
                 </svg>
             </button>
             {/* Left Side - Brand Box */}
-             <div className="w-1/2 h-full flex justify-center items-center rounded-3xl bg-gradient-to-b from-[#3D3B93] via-[#ECD7AD] to-[#FFFFFE]">
+             <div className="hidden md:flex w-1/2 h-full justify-center items-center rounded-3xl bg-gradient-to-b from-[#3D3B93] via-[#ECD7AD] to-[#FFFFFE]">
                 <div className="w-[90%] h-full flex items-center justify-between flex-col pt-15">
                     <div className="flex flex-col items-center space-y-2">
                         <img src="/logo.png" alt="Solve-X Logo" className="w-20 h-20 object-contain transition-transform duration-300 hover:scale-110" />
@@ -103,7 +103,7 @@ const RegisterPage = () => {
             </div>
 
             {/* Right Side - Register Form */}
-            <div className="w-1/2 h-full pr-3 flex items-center justify-center overflow-y-auto">
+            <div className="w-full md:w-1/2 h-full md:pr-3 flex items-center justify-center overflow-y-auto px-4 py-8" data-lenis-prevent>
                 <div className="w-full max-w-md p-8 flex flex-col space-y-6">
                     
                     {/* Header */}

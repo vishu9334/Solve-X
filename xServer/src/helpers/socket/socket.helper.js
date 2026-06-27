@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import { DoubtSession } from "../../models/doubtSession.model.js";
+import redis from "../../configs/redis.config.js";
 
 let io = null;
 const onlineUsers = new Map();       // Key: userId, Value: socketId
@@ -17,10 +18,28 @@ export const initSocket = (server) => {
         console.log(`User connected: ${socket.id}`);
 
         // ─── Register user (Student or Mentor) ───────────────────
-        socket.on("register_user", (userId) => {
-            if (userId) {
-                onlineUsers.set(userId.toString(), socket.id);
-                console.log(`User ${userId} registered with socket ${socket.id}`);
+        socket.on("register_user", async (userId) => {
+            if (!userId) return;
+            onlineUsers.set(userId.toString(), socket.id);
+            console.log(`User ${userId} registered with socket ${socket.id}`);
+
+            // ── Deliver any pending (offline) notifications ───────
+            try {
+                const pendingKey = `notif:pending:${userId}`;
+                const pendingRaw = await redis.lrange(pendingKey, 0, -1);
+                if (pendingRaw.length > 0) {
+                    // Deliver oldest first (list is newest-first due to lpush)
+                    for (const raw of [...pendingRaw].reverse()) {
+                        try {
+                            const notif = JSON.parse(raw);
+                            socket.emit(notif.eventName, { ...notif.payload, _offline: true });
+                        } catch (_) { /* skip malformed */ }
+                    }
+                    await redis.del(pendingKey);
+                    console.log(`Delivered ${pendingRaw.length} pending notification(s) to user ${userId}`);
+                }
+            } catch (err) {
+                console.error("Failed to deliver pending notifications:", err.message);
             }
         });
 
@@ -83,25 +102,42 @@ export const initSocket = (server) => {
     return io;
 };
 
+// ─── Helper: Get all currently online user IDs ───────────────────────────────
+export const getOnlineUsers = () => {
+    return Array.from(onlineUsers.keys());
+};
+
 // ─── Helper: Send notification to a single user ──────────────────────────────
-export const sendNotificationToUser = (userId, eventName, payload) => {
+// If online → direct socket.emit
+// If offline → push to Redis pending list (delivered on next login)
+export const sendNotificationToUser = async (userId, eventName, payload) => {
     if (!io || !userId) return;
     const socketId = onlineUsers.get(userId.toString());
+
     if (socketId) {
+        // User is online — deliver directly
         io.to(socketId).emit(eventName, payload);
+    } else {
+        // User is offline — store in Redis for delivery on next login
+        try {
+            const pendingKey = `notif:pending:${userId}`;
+            const notif = { eventName, payload, createdAt: new Date().toISOString() };
+            await redis.lpush(pendingKey, JSON.stringify(notif));
+            await redis.ltrim(pendingKey, 0, 49);        // max 50 pending per user
+            await redis.expire(pendingKey, 7 * 24 * 60 * 60); // 7 days TTL
+            console.log(`Notification stored for offline user ${userId}: ${eventName}`);
+        } catch (err) {
+            console.error("Failed to store offline notification:", err.message);
+        }
     }
 };
 
 // ─── Helper: Send notification to multiple users ─────────────────────────────
-export const sendNotificationToMultipleUsers = (userIds, eventName, payload) => {
+export const sendNotificationToMultipleUsers = async (userIds, eventName, payload) => {
     if (!io || !userIds || !Array.isArray(userIds)) return;
-
-    userIds.forEach((id) => {
-        const socketId = onlineUsers.get(id.toString());
-        if (socketId) {
-            io.to(socketId).emit(eventName, payload);
-        }
-    });
+    for (const id of userIds) {
+        await sendNotificationToUser(id, eventName, payload);
+    }
 };
 
 // ─── Helper: Create a chat room with auto-expire timer ───────────────────────
@@ -179,3 +215,4 @@ export const destroyChatRoom = async (chatRoomId) => {
 
     console.log(`Chat room ${chatRoomId} manually destroyed.`);
 };
+

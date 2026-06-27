@@ -197,16 +197,15 @@ async function runTests() {
       mentorEvents.push({ event: "session_ended", payload });
     });
 
-    // --- STEP 6: Mentor Selects Skill & Generates MCQ ---
     console.log("\n🔹 Step 6: Mentor selecting skill 'Mern Stack'...");
-    const selectSkillRes = await fetch(`${BASE_URL}/mentor/select-skill`, {
+    const selectSkillRes = await fetch(`${BASE_URL}/mentor/select-specialization`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${mentorToken}`,
       },
       body: JSON.stringify({
-        skillName: "Mern Stack",
+        specializationName: "Mern Stack",
       }),
     });
     const selectSkillData = await selectSkillRes.json();
@@ -290,14 +289,14 @@ async function runTests() {
 
     await sleep(2000); // Allow email queues to clean up
 
-    // Fetch skill from database to get its ObjectId
-    const mernSkill = await mongoose.model("Skill").findOne({ name: "Mern Stack" });
-    const mernSkillId = mernSkill ? mernSkill._id.toString() : "";
-    console.log(`Resolved Mern Stack Skill ID: ${mernSkillId}`);
+    // Fetch specialization from database to get its ObjectId
+    const mernSpec = await mongoose.model("Specialization").findOne({ name: "Mern Stack" });
+    const mernSpecId = mernSpec ? mernSpec._id.toString() : "";
+    console.log(`Resolved Mern Stack Specialization ID: ${mernSpecId}`);
 
     // --- STEP 10: Student Asks a Doubt ---
     console.log("\n🔹 Step 10: Student asking Mern Stack doubt (optional userId in route tested)...");
-    const askDoubtRes = await fetch(`${BASE_URL}/student/ask-doubt?skillIdentifier=${mernSkillId}&selectSessionTime=10`, {
+    const askDoubtRes = await fetch(`${BASE_URL}/student/ask-doubt?specializationIdentifier=${mernSpecId}&selectSessionTime=10`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -435,7 +434,7 @@ async function runTests() {
     const student2Token = student2TokenHeader ? student2TokenHeader.replace("Bearer ", "") : null;
 
     // Second student asks doubt in Mern Stack
-    const askDoubt2Res = await fetch(`${BASE_URL}/student/ask-doubt?skillIdentifier=${mernSkillId}&selectSessionTime=10`, {
+    const askDoubt2Res = await fetch(`${BASE_URL}/student/ask-doubt?specializationIdentifier=${mernSpecId}&selectSessionTime=10`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

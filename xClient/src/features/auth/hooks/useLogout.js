@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 
 import { logoutApi } from "../api/auth.api.js";
 import useAuthStore from "../store/auth.store.js";
+import useNotificationStore from "../../notifications/store/notification.store.js";
 
 export const useLogout = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export const useLogout = () => {
 
     onSuccess: () => {
       logout(); // accessToken + user clear
+      useNotificationStore.getState().clearAll(); // clear notifications store
       queryClient.clear(); // tanstack cache clear
 
       toast.success("Logout successful");

@@ -25,6 +25,22 @@ class IActivitySessionRepository {
   async saveSession(session) {
     throw new Error("Method not implemented");
   }
+
+  async findSkillById(skillId) {
+    throw new Error("Method not implemented");
+  }
+
+  async findSkillByNameOrSlug(nameOrSlug) {
+    throw new Error("Method not implemented");
+  }
+
+  async findMentorProfileByUserId(userId) {
+    throw new Error("Method not implemented");
+  }
+
+  async findAssessmentStoreById(assessmentId) {
+    throw new Error("Method not implemented");
+  }
 }
 
 export default IActivitySessionRepository;

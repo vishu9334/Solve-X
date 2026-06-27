@@ -1,28 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import useAuthStore from '../../features/auth/store/auth.store';
+
+const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes
 
 const AuthLayout = () => {
     const { user } = useAuthStore();
     const [shouldRedirectToPublic, setShouldRedirectToPublic] = useState(false);
 
-    // Redirect to public page after 5 minutes if user does not log in
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setShouldRedirectToPublic(true);
-        }, 300000); // 5 minutes
-
-        return () => clearTimeout(timer);
+    const resetTimer = useCallback(() => {
+        setShouldRedirectToPublic(false);
     }, []);
 
+    // Only run inactivity timer when user is NOT logged in (on auth pages)
+    useEffect(() => {
+        if (user) return; // Logged-in users are never redirected by this timer
+
+        let timer = setTimeout(() => {
+            setShouldRedirectToPublic(true);
+        }, INACTIVITY_LIMIT);
+
+        const events = ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll'];
+
+        const handleActivity = () => {
+            clearTimeout(timer);
+            setShouldRedirectToPublic(false);
+            timer = setTimeout(() => setShouldRedirectToPublic(true), INACTIVITY_LIMIT);
+        };
+
+        events.forEach((e) => window.addEventListener(e, handleActivity));
+
+        return () => {
+            clearTimeout(timer);
+            events.forEach((e) => window.removeEventListener(e, handleActivity));
+        };
+    }, [user]);
+
     if (shouldRedirectToPublic) {
-        return <Navigate to="/public" replace />;
+        return <Navigate to="/" replace />;
     }
 
     if (user) {
-        if (user.role === 'admin') return <Navigate to="/dashboard/admin" replace />;
-        if (user.role === 'mentor') return <Navigate to="/dashboard/mentor" replace />;
-        return <Navigate to="/dashboard/student" replace />;
+        if (user.role === 'admin') return <Navigate to="/admin-landing" replace />;
+        if (user.role === 'mentor') return <Navigate to="/mentor-landing" replace />;
+        return <Navigate to="/student-landing" replace />;
     }
 
     return (

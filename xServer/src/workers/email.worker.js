@@ -32,6 +32,17 @@ const emailWorker = new Worker(
       };
     }
 
+    if (job.name === "send-mentor-warning") {
+      const { email, subject, body } = job.data;
+
+      await mailService.sendResultEmail(email, subject, body);
+
+      return {
+        success: true,
+        email,
+      };
+    }
+
     throw new Error(`Unknown email job: ${job.name}`);
   },
 
