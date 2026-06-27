@@ -247,14 +247,14 @@ const PublicPage = () => {
                         </Link>
                     </motion.div>
                     <motion.div
-                        whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(62,62,244,0.2)' }}
+                        whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(251,191,36,0.3)' }}
                         whileTap={{ scale: 0.96 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                        className="inline-block"
+                        className="hidden sm:inline-block"
                     >
                         <Link
                             to="/register"
-                            className="inline-flex items-center gap-2 h-[42px] rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-5 text-sm font-medium tracking-[-0.03em] text-white transition-colors duration-300 hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer"
+                            className="inline-flex items-center gap-2 h-[42px] rounded-full border border-amber-300/30 bg-gradient-to-r from-amber-300 to-amber-400 px-5 text-sm font-bold tracking-[-0.03em] text-slate-950 transition-all duration-300 hover:brightness-110 shadow-[0_4px_15px_rgba(251,191,36,0.2)] cursor-pointer"
                         >
                             Get Started
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -317,7 +317,7 @@ const PublicPage = () => {
                             </Link>
                             <Link
                                 to="/register"
-                                className="w-full h-[40px] flex items-center justify-center rounded-full bg-black text-white text-sm font-semibold hover:bg-neutral-900 transition-colors"
+                                className="w-full h-[42px] flex items-center justify-center rounded-full bg-gradient-to-r from-amber-300 to-amber-400 text-slate-950 text-sm font-bold shadow-[0_4px_15px_rgba(251,191,36,0.3)] border border-amber-300/30 hover:brightness-105 transition-all duration-200 cursor-pointer"
                                 onClick={() => setMenuOpen(false)}
                             >
                                 Get Started
