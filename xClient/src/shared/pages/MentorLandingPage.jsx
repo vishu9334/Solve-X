@@ -318,8 +318,8 @@ const MentorLandingPage = () => {
                     <span className="text-xs font-bold uppercase tracking-[0.22em]">Solve-X</span>
                 </Link>
 
-                {/* Desktop menu links - visible on lg and above */}
-                <div className="hidden lg:flex items-center gap-5">
+                {/* Desktop menu links - visible on xl and above */}
+                <div className="hidden xl:flex items-center gap-5">
                     <Link to="/dashboard/mentor" className="text-xs font-semibold text-white/70 hover:text-white transition-colors">
                         Dashboard
                     </Link>
@@ -332,7 +332,7 @@ const MentorLandingPage = () => {
                             {isLoggingOut ? 'Logging out...' : 'Logout'}
                         </button>
                     )}
-                    <Link to="/dashboard/mentor" className="rounded-full border border-emerald-400/40 bg-emerald-400/10 backdrop-blur-md px-5 py-2 text-xs font-bold text-emerald-300 transition-all hover:bg-emerald-400/20 hover:shadow-[0_0_15px_rgba(52,211,153,0.25)]">
+                    <Link to="/dashboard/mentor" className="rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-5 py-2 text-xs font-bold text-white transition-all hover:bg-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)]">
                         Become a Mentor
                     </Link>
                 </div>
@@ -340,7 +340,7 @@ const MentorLandingPage = () => {
                 {/* Mobile/Tablet Hamburger Icon */}
                 <button
                     onClick={() => setMenuOpen(!menuOpen)}
-                    className="flex lg:hidden items-center justify-center p-1 bg-transparent border-none text-white focus:outline-none cursor-pointer"
+                    className="flex xl:hidden items-center justify-center p-1 bg-transparent border-none text-white focus:outline-none cursor-pointer"
                 >
                     <span className="material-symbols-outlined text-2xl select-none">
                         {menuOpen ? 'close' : 'menu'}
@@ -349,7 +349,7 @@ const MentorLandingPage = () => {
 
                 {/* Mobile Dropdown Panel */}
                 {menuOpen && (
-                    <div className="absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border border-white/15 bg-[#0c0b11]/95 px-6 py-5 shadow-xl backdrop-blur-md lg:hidden">
+                    <div className="absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border border-blue-500/25 bg-blue-950/45 px-6 py-5 shadow-[0_20px_50px_rgba(30,58,138,0.25)] backdrop-blur-xl xl:hidden">
                         <Link
                             to="/dashboard/mentor"
                             className="text-white/70 hover:text-white no-underline transition-colors py-2.5 border-b border-white/5 font-semibold text-xs tracking-wider"
@@ -371,7 +371,7 @@ const MentorLandingPage = () => {
                         )}
                         <Link
                             to="/dashboard/mentor"
-                            className="mt-2 w-full h-[42px] flex items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-400/10 backdrop-blur-md text-emerald-300 text-xs font-bold hover:bg-emerald-400/20 transition-all cursor-pointer"
+                            className="mt-2 w-full h-[42px] flex items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-white text-xs font-bold hover:bg-white/20 transition-all cursor-pointer"
                             onClick={() => setMenuOpen(false)}
                         >
                             Become a Mentor

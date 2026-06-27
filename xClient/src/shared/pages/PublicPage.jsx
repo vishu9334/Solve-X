@@ -195,7 +195,7 @@ const PublicPage = () => {
                     variants={navContainerVariants}
                     initial="hidden"
                     animate="show"
-                    className="hidden lg:flex items-center gap-6"
+                    className="hidden xl:flex items-center gap-6"
                 >
                     {[
                         { label: 'Home', to: '#hero', isAnchor: true },
@@ -247,14 +247,14 @@ const PublicPage = () => {
                         </Link>
                     </motion.div>
                     <motion.div
-                        whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(251,191,36,0.3)' }}
+                        whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(255,255,255,0.15)' }}
                         whileTap={{ scale: 0.96 }}
                         transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                         className="hidden sm:inline-block"
                     >
                         <Link
                             to="/register"
-                            className="inline-flex items-center gap-2 h-[42px] rounded-full border border-amber-300/30 bg-gradient-to-r from-amber-300 to-amber-400 px-5 text-sm font-bold tracking-[-0.03em] text-slate-950 transition-all duration-300 hover:brightness-110 shadow-[0_4px_15px_rgba(251,191,36,0.2)] cursor-pointer"
+                            className="inline-flex items-center gap-2 h-[42px] rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-5 text-sm font-semibold tracking-[-0.03em] text-white transition-all duration-300 hover:bg-white/20 cursor-pointer"
                         >
                             Get Started
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -266,7 +266,7 @@ const PublicPage = () => {
                     {/* Mobile Hamburger menu */}
                     <button
                         onClick={() => setMenuOpen(!menuOpen)}
-                        className={`flex lg:hidden items-center justify-center p-1 bg-transparent border-none focus:outline-none cursor-pointer ${isPastHero ? 'text-black' : 'text-white'}`}
+                        className={`flex xl:hidden items-center justify-center p-1 bg-transparent border-none focus:outline-none cursor-pointer ${isPastHero ? 'text-black' : 'text-white'}`}
                     >
                         <span className="material-symbols-outlined text-2xl select-none">
                             {menuOpen ? 'close' : 'menu'}
@@ -276,7 +276,7 @@ const PublicPage = () => {
 
                 {/* Mobile Dropdown Panel */}
                 {menuOpen && (
-                    <div className={`absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border px-6 py-5 shadow-xl backdrop-blur-md lg:hidden ${isPastHero ? 'bg-white/95 text-black border-black/10' : 'bg-[#0c0b11]/95 text-white border-white/15'}`}>
+                    <div className="absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border border-blue-500/25 bg-blue-950/45 px-6 py-5 shadow-[0_20px_50px_rgba(30,58,138,0.25)] backdrop-blur-xl xl:hidden text-white">
                         {[
                             { label: 'Home', to: '#hero', isAnchor: true },
                             { label: 'How It Works', to: '#how-it-works', isAnchor: true },
@@ -292,7 +292,7 @@ const PublicPage = () => {
                                         setMenuOpen(false);
                                         handleScrollTo(e, item.to);
                                     }}
-                                    className={`text-sm py-2.5 border-b font-semibold transition-colors ${isPastHero ? 'text-slate-800 hover:text-black border-black/5' : 'text-white/80 hover:text-white border-white/5'}`}
+                                    className="text-sm py-2.5 border-b font-semibold transition-colors text-white/80 hover:text-white border-white/10"
                                 >
                                     {item.label}
                                 </a>
@@ -300,7 +300,7 @@ const PublicPage = () => {
                                 <Link
                                     key={item.to}
                                     to={item.to}
-                                    className={`text-sm py-2.5 border-b font-semibold transition-colors ${isPastHero ? 'text-slate-800 hover:text-black border-black/5' : 'text-white/80 hover:text-white border-white/5'}`}
+                                    className="text-sm py-2.5 border-b font-semibold transition-colors text-white/80 hover:text-white border-white/10"
                                     onClick={() => setMenuOpen(false)}
                                 >
                                     {item.label}
@@ -310,14 +310,14 @@ const PublicPage = () => {
                         <div className="flex flex-col gap-2 pt-2">
                             <Link
                                 to="/login"
-                                className={`w-full h-[40px] flex items-center justify-center rounded-full border text-sm font-semibold transition-colors ${isPastHero ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-black' : 'bg-white/5 hover:bg-white/10 border-white/20 text-white'}`}
+                                className="w-full h-[42px] flex items-center justify-center rounded-full border border-white/15 bg-white/5 text-white text-sm font-medium hover:bg-white/10 transition-colors cursor-pointer"
                                 onClick={() => setMenuOpen(false)}
                             >
                                 Log In
                             </Link>
                             <Link
                                 to="/register"
-                                className="w-full h-[42px] flex items-center justify-center rounded-full bg-gradient-to-r from-amber-300 to-amber-400 text-slate-950 text-sm font-bold shadow-[0_4px_15px_rgba(251,191,36,0.3)] border border-amber-300/30 hover:brightness-105 transition-all duration-200 cursor-pointer"
+                                className="w-full h-[42px] flex items-center justify-center rounded-full border border-white/20 bg-white/15 text-white text-sm font-semibold hover:bg-white/25 transition-all cursor-pointer"
                                 onClick={() => setMenuOpen(false)}
                             >
                                 Get Started
