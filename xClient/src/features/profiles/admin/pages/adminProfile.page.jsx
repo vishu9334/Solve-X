@@ -186,12 +186,12 @@ const AdminProfile = () => {
       <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-6">
 
       {/* Header Glass Navbar */}
-      <nav className="relative z-20 mx-auto flex w-full items-center justify-between rounded-full border border-white/10 bg-black/25 px-5 py-3 backdrop-blur-md">
-          <Link to="/admin-landing" className="flex items-center gap-3 text-white no-underline">
+      <nav className="relative z-20 mx-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-3xl sm:rounded-full border border-white/10 bg-black/25 px-5 py-3 backdrop-blur-md w-full box-border">
+          <Link to="/admin-landing" className="flex items-center justify-center sm:justify-start gap-3 text-white no-underline">
               <img src="/logo.png" alt="Solve-X" className="h-6 w-6 object-contain" />
               <span className="text-[10px] font-bold uppercase tracking-[0.22em]">Solve-X</span>
           </Link>
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-5">
               <Link to="/admin-landing" className="text-xs font-semibold text-white/70 hover:text-white transition-colors no-underline">
                   Landing Page
               </Link>
@@ -205,13 +205,7 @@ const AdminProfile = () => {
       </nav>
 
       {/* Title & Header Block */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-        paddingBottom: "16px"
-      }}>
+      <div className="flex flex-col gap-4 border-b border-white/10 pb-4 sm:flex-row sm:justify-between sm:items-center w-full">
         <div>
           <span style={{
             fontFamily: "'Josefin Sans', sans-serif",

@@ -160,7 +160,7 @@ const MentorProfile = () => {
 
       <main className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-3 pb-4">
         {/* TOP SECTION - Pill Navbar (matches PublicPage style) */}
-        <div className="sticky top-4 z-50 shrink-0 flex justify-between items-center px-6 py-3.5 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-[20px] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_32px_rgba(0,0,0,0.37)]">
+        <div className="sticky top-4 z-50 shrink-0 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center px-4 py-3 sm:px-6 sm:py-3.5 rounded-3xl sm:rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-[20px] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_32px_rgba(0,0,0,0.37)]">
           {/* Left: Logo + Profile Name */}
           <div className="flex items-center gap-2.5">
             <img src="/logo.png" alt="Solve-X" className="w-6 h-6 object-contain" />
@@ -170,19 +170,19 @@ const MentorProfile = () => {
           </div>
 
           {/* Right: Nav Actions */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4">
             <Link
               to="/dashboard/mentor"
               className="text-[13px] text-white/80 no-underline hover:text-white transition-colors duration-200 tracking-[-0.01em]"
             >
               Back to Dashboard
             </Link>
-            <span className="w-px h-[22px] bg-white/25 shrink-0" />
+            <span className="w-px h-[22px] bg-white/25 shrink-0 hidden xs:inline" />
             <div className="flex items-center gap-1.5">
               <span className="live-ping w-2 h-2 rounded-full bg-emerald-500 inline-flex"></span>
               <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-[0.05em]">ACTIVE</span>
             </div>
-            <span className="w-px h-[22px] bg-white/25 shrink-0" />
+            <span className="w-px h-[22px] bg-white/25 shrink-0 hidden xs:inline" />
             {isEditing ? (
               <>
                 <button
@@ -238,7 +238,7 @@ const MentorProfile = () => {
         </div>
 
         {/* Main Layout Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 sm:pt-10">
           
           {/* LEFT COLUMN: Identity Details & Professional info */}
           <div className="w-full h-fit bg-blue-500/15 border border-white/25 rounded-[24px] p-8 flex flex-col gap-4 box-border">

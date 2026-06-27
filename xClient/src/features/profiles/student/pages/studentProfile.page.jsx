@@ -194,14 +194,7 @@ const StudentProfile = () => {
 
       <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-6">
         
-        {/* Title & Navigation Row */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-          paddingBottom: "16px"
-        }}>
+        <div className="flex flex-col gap-4 border-b border-white/10 pb-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
             <span style={{
               fontFamily: "monospace",
