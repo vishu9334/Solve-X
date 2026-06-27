@@ -17,6 +17,7 @@ class redisWhereHouse {
   async verifyOtpAndCleanupUser(email, userOtp) {
     try {
       const key = `user:${email}`;
+      const userData = await redis.hgetall(key);
 
       if (Object.keys(userData).length === 0) {
         throw new ApiError(400, "User data not found or OTP expired.");
