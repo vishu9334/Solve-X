@@ -195,7 +195,7 @@ const PublicPage = () => {
                     variants={navContainerVariants}
                     initial="hidden"
                     animate="show"
-                    className="hidden md:flex items-center gap-6"
+                    className="hidden lg:flex items-center gap-6"
                 >
                     {[
                         { label: 'Home', to: '#hero', isAnchor: true },
@@ -266,7 +266,7 @@ const PublicPage = () => {
                     {/* Mobile Hamburger menu */}
                     <button
                         onClick={() => setMenuOpen(!menuOpen)}
-                        className={`flex md:hidden items-center justify-center p-1 bg-transparent border-none focus:outline-none cursor-pointer ${isPastHero ? 'text-black' : 'text-white'}`}
+                        className={`flex lg:hidden items-center justify-center p-1 bg-transparent border-none focus:outline-none cursor-pointer ${isPastHero ? 'text-black' : 'text-white'}`}
                     >
                         <span className="material-symbols-outlined text-2xl select-none">
                             {menuOpen ? 'close' : 'menu'}
@@ -276,7 +276,7 @@ const PublicPage = () => {
 
                 {/* Mobile Dropdown Panel */}
                 {menuOpen && (
-                    <div className={`absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border px-6 py-5 shadow-xl backdrop-blur-md md:hidden ${isPastHero ? 'bg-white/95 text-black border-black/10' : 'bg-[#0c0b11]/95 text-white border-white/15'}`}>
+                    <div className={`absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border px-6 py-5 shadow-xl backdrop-blur-md lg:hidden ${isPastHero ? 'bg-white/95 text-black border-black/10' : 'bg-[#0c0b11]/95 text-white border-white/15'}`}>
                         {[
                             { label: 'Home', to: '#hero', isAnchor: true },
                             { label: 'How It Works', to: '#how-it-works', isAnchor: true },
@@ -390,7 +390,7 @@ const PublicPage = () => {
                         >
                             <Link
                                 to="/register"
-                                className="inline-flex items-center justify-center rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-8 py-3.5 text-base font-medium tracking-[-0.03em] text-white transition-colors hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer"
+                                className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 backdrop-blur-md px-8 py-3.5 text-base font-bold text-amber-300 transition-all hover:bg-amber-300/20 hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] cursor-pointer"
                             >
                                 Create an Account — It's Free
                             </Link>
@@ -424,7 +424,7 @@ const PublicPage = () => {
                         >
                             <Link
                                 to="/register"
-                                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-5 py-2.5 text-sm font-medium tracking-[-0.03em] text-white transition hover:-translate-y-0.5 hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer"
+                                className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-300/40 bg-amber-300/10 backdrop-blur-md px-5 py-2.5 text-sm font-bold text-amber-300 transition hover:bg-amber-300/20 hover:shadow-[0_0_15px_rgba(251,191,36,0.25)] cursor-pointer"
                             >
                                 Try Now
                             </Link>
@@ -601,14 +601,14 @@ const PublicPage = () => {
                             {/* CTA Buttons */}
                             <div className="flex items-center gap-3 pt-2">
                                 <motion.div
-                                    whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(62,62,244,0.2)' }}
+                                    whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(52,211,153,0.3)' }}
                                     whileTap={{ scale: 0.96 }}
                                     transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                                     className="inline-block"
                                 >
                                     <Link
                                         to="/register?role=mentor"
-                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-6 py-3 text-sm font-medium tracking-[-0.03em] text-white transition-colors hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer"
+                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-400/10 backdrop-blur-md px-6 py-3 text-sm font-bold text-emerald-300 transition-all hover:bg-emerald-400/20 hover:shadow-[0_0_15px_rgba(52,211,153,0.25)] cursor-pointer"
                                     >
                                         Join as Mentor
                                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -617,14 +617,14 @@ const PublicPage = () => {
                                     </Link>
                                 </motion.div>
                                 <motion.div
-                                    whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(62,62,244,0.2)' }}
+                                    whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}
                                     whileTap={{ scale: 0.96 }}
                                     transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                                     className="inline-block"
                                 >
                                     <Link
                                         to="/mentor-doc"
-                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-6 py-3 text-sm font-medium tracking-[-0.03em] text-black transition-colors hover:bg-neutral-50 cursor-pointer shadow-sm"
+                                        className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300/35 bg-slate-500/10 backdrop-blur-md px-6 py-3 text-sm font-semibold text-slate-650 transition-colors hover:bg-slate-500/25 cursor-pointer shadow-sm"
                                     >
                                         Read Docs
                                     </Link>

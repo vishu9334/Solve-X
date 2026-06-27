@@ -77,8 +77,8 @@ const StudentLandingPage = () => {
                     <span className="text-xs font-bold uppercase tracking-[0.22em]">Solve-X</span>
                 </Link>
 
-                {/* Desktop menu links - visible on md and above */}
-                <div className="hidden md:flex items-center gap-5">
+                {/* Desktop menu links - visible on lg and above */}
+                <div className="hidden lg:flex items-center gap-5">
                     <Link to="/dashboard/student" className="text-xs font-semibold text-white/70 hover:text-white transition-colors">
                         Dashboard
                     </Link>
@@ -94,7 +94,7 @@ const StudentLandingPage = () => {
                             {isLoggingOut ? 'Logging out...' : 'Logout'}
                         </button>
                     )}
-                    <Link to="/student/ask-doubt" className="rounded-full border border-white/15 bg-white px-5 py-2 text-xs font-bold text-black transition-transform hover:scale-105">
+                    <Link to="/student/ask-doubt" className="rounded-full border border-amber-300/40 bg-amber-300/10 backdrop-blur-md px-5 py-2 text-xs font-bold text-amber-300 transition-all hover:bg-amber-300/20 hover:shadow-[0_0_15px_rgba(251,191,36,0.25)]">
                         Ask a Doubt
                     </Link>
                 </div>
@@ -102,7 +102,7 @@ const StudentLandingPage = () => {
                 {/* Mobile/Tablet Hamburger Icon */}
                 <button
                     onClick={() => setMenuOpen(!menuOpen)}
-                    className="flex md:hidden items-center justify-center p-1 bg-transparent border-none text-white focus:outline-none cursor-pointer"
+                    className="flex lg:hidden items-center justify-center p-1 bg-transparent border-none text-white focus:outline-none cursor-pointer"
                 >
                     <span className="material-symbols-outlined text-2xl select-none">
                         {menuOpen ? 'close' : 'menu'}
@@ -111,7 +111,7 @@ const StudentLandingPage = () => {
 
                 {/* Mobile Dropdown Panel */}
                 {menuOpen && (
-                    <div className="absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border border-white/15 bg-[#0c0b11]/95 px-6 py-5 shadow-xl backdrop-blur-md md:hidden">
+                    <div className="absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border border-white/15 bg-[#0c0b11]/95 px-6 py-5 shadow-xl backdrop-blur-md lg:hidden">
                         <Link
                             to="/dashboard/student"
                             className="text-white/70 hover:text-white no-underline transition-colors py-2.5 border-b border-white/5 font-semibold text-xs tracking-wider"
@@ -140,7 +140,7 @@ const StudentLandingPage = () => {
                         )}
                         <Link
                             to="/student/ask-doubt"
-                            className="mt-2 w-full h-[40px] flex items-center justify-center rounded-full bg-white text-black text-xs font-bold hover:bg-neutral-200 transition-colors"
+                            className="mt-2 w-full h-[42px] flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 backdrop-blur-md text-amber-300 text-xs font-bold hover:bg-amber-300/20 transition-all cursor-pointer"
                             onClick={() => setMenuOpen(false)}
                         >
                             Ask a Doubt

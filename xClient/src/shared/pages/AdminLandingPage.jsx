@@ -51,7 +51,7 @@ const AdminLandingPage = () => {
                     >
                         {isLoggingOut ? 'Logging out...' : 'Logout'}
                     </button>
-                    <Link to="/admin/profile" className="rounded-full bg-white px-5 py-2 text-xs font-bold text-black transition-transform hover:scale-105">
+                    <Link to="/admin/profile" className="rounded-full border border-indigo-400/40 bg-indigo-400/10 backdrop-blur-md px-5 py-2 text-xs font-bold text-indigo-300 transition-all hover:bg-indigo-400/20 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)]">
                         Admin Profile
                     </Link>
                 </div>
@@ -72,7 +72,7 @@ const AdminLandingPage = () => {
                             Access the dashboard metrics, verify pending mentor applications, check system flags, and review real-time session logs to ensure maximum safety and user retention.
                         </motion.p>
                         <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }} className="mt-8 flex flex-wrap gap-3">
-                            <Link to="/dashboard/admin" className="rounded-full bg-white px-7 py-3 text-sm font-bold text-black transition-transform hover:scale-105">
+                            <Link to="/dashboard/admin" className="rounded-full border border-indigo-400/40 bg-indigo-400/10 backdrop-blur-md px-7 py-3 text-sm font-bold text-indigo-300 transition-all hover:bg-indigo-400/20 hover:shadow-[0_0_20px_rgba(99,102,241,0.25)]">
                                 Enter Dashboard
                             </Link>
                             <Link to="/admin-doc" className="rounded-full border border-blue-400/30 bg-blue-500/10 px-7 py-3 text-sm font-semibold text-blue-300 transition-colors hover:bg-blue-500/20">
