@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { toTitleCase } from "../utils/toTitleCase.util.js";
 
-const skillSchema = new Schema(
+const specializationSchema = new Schema(
   {
     name: {
       type: String,
@@ -27,7 +27,7 @@ const skillSchema = new Schema(
     isActive: {
       type: Boolean,
       default: true,
-      index: true,
+      index: false,
     },
 
     mentorCount: {
@@ -51,14 +51,14 @@ const skillSchema = new Schema(
     assessmentId: {
       type: Schema.Types.ObjectId,
       ref: "AssessmentStore",
-      default: null, // is skill ka assessment kaun sa hai
+      default: null, // is specialization ka assessment kaun sa hai
     },
   },
   { timestamps: true }
 );
 
 // Auto Title Case name + generate slug before save
-skillSchema.pre("save", function () {
+specializationSchema.pre("save", function () {
   if (this.isModified("name")) {
     this.name = toTitleCase(this.name);
     this.slug = this.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -66,9 +66,9 @@ skillSchema.pre("save", function () {
 });
 
 // Case-insensitive collation index on name for duplicate checks
-skillSchema.index(
+specializationSchema.index(
   { name: 1 },
   { unique: true, collation: { locale: "en", strength: 2 } }
 );
 
-export const Skill = mongoose.model("Skill", skillSchema);
+export const Specialization = mongoose.model("Specialization", specializationSchema);

@@ -32,7 +32,7 @@ const AdminLandingPage = () => {
     }
 
     return (
-        <main className="w-full min-h-screen flex flex-col px-4 pb-32 pt-8 text-white overflow-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] sm:px-6 lg:px-8">
+        <main className="w-full min-h-screen flex flex-col px-4 pb-32 pt-8 text-white overflow-x-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] sm:px-6 lg:px-8">
             <CustomCursor />
 
             <nav className="mx-auto flex w-full max-w-7xl items-center justify-between rounded-full border border-white/10 bg-black/25 px-5 py-3 backdrop-blur-md">
@@ -74,6 +74,9 @@ const AdminLandingPage = () => {
                         <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }} className="mt-8 flex flex-wrap gap-3">
                             <Link to="/dashboard/admin" className="rounded-full bg-white px-7 py-3 text-sm font-bold text-black transition-transform hover:scale-105">
                                 Enter Dashboard
+                            </Link>
+                            <Link to="/admin-doc" className="rounded-full border border-blue-400/30 bg-blue-500/10 px-7 py-3 text-sm font-semibold text-blue-300 transition-colors hover:bg-blue-500/20">
+                                📑 Jitsi HLD & LLD Docs
                             </Link>
                             <Link to="/admin/profile" className="rounded-full border border-white/15 bg-white/5 px-7 py-3 text-sm font-semibold text-white/75 transition-colors hover:bg-white/10">
                                 View Profile

@@ -16,7 +16,7 @@ const assessmentStoreSchema = new Schema(
 
     category: {
       type: Schema.Types.ObjectId,
-      ref: "Skill",
+      ref: "Specialization",
       required: true,
       index: true,
     },

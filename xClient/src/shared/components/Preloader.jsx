@@ -109,7 +109,7 @@ class SoundSynth {
 
         const now = this.ctx.currentTime;
         const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99]; // C4, E4, G4, C5, E5, G5 arpeggio
-        
+
         notes.forEach((freq, idx) => {
             const delay = idx * 0.05;
             const osc = this.ctx.createOscillator();
@@ -143,7 +143,7 @@ export const Preloader = ({ onComplete }) => {
     const [progress, setProgress] = useState(0);
     const [isLoaded, setIsLoaded] = useState(false);
     const [isExiting, setIsExiting] = useState(false);
-    
+
     const circleRef = useRef(null);
     const containerRef = useRef(null);
 
@@ -168,7 +168,7 @@ export const Preloader = ({ onComplete }) => {
     const handleCircleMouseEnter = () => {
         if (isExiting) return;
         synth.playHover();
-        
+
         // Gentle scale up and glow animation using GSAP
         gsap.to(circleRef.current, {
             scale: 1.06,
@@ -181,7 +181,7 @@ export const Preloader = ({ onComplete }) => {
 
     const handleCircleMouseLeave = () => {
         if (isExiting) return;
-        
+
         gsap.to(circleRef.current, {
             scale: 1,
             boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
@@ -193,10 +193,10 @@ export const Preloader = ({ onComplete }) => {
 
     const handleCircleClick = () => {
         if (isExiting) return;
-        
+
         // Play click synthesized sound
         synth.playWowVocal();
-        
+
         // Squish and stretch animation on click
         const tl = gsap.timeline();
         tl.to(circleRef.current, {
@@ -205,24 +205,24 @@ export const Preloader = ({ onComplete }) => {
             duration: 0.08,
             ease: 'power1.inOut'
         })
-        .to(circleRef.current, {
-            scaleX: 0.9,
-            scaleY: 1.1,
-            duration: 0.12,
-            ease: 'power2.out'
-        })
-        .to(circleRef.current, {
-            scaleX: 1,
-            scaleY: 1,
-            duration: 0.2,
-            ease: 'elastic.out(1, 0.5)'
-        });
+            .to(circleRef.current, {
+                scaleX: 0.9,
+                scaleY: 1.1,
+                duration: 0.12,
+                ease: 'power2.out'
+            })
+            .to(circleRef.current, {
+                scaleX: 1,
+                scaleY: 1,
+                duration: 0.2,
+                ease: 'elastic.out(1, 0.5)'
+            });
 
         // Trigger loading transition once loaded
         if (isLoaded) {
             synth.playSuccessChime();
             setIsExiting(true);
-            
+
             setTimeout(() => {
                 onComplete();
             }, 800);
@@ -235,7 +235,7 @@ export const Preloader = ({ onComplete }) => {
                 <motion.div
                     ref={containerRef}
                     initial={{ opacity: 1 }}
-                    exit={{ 
+                    exit={{
                         opacity: 0,
                         scale: 0.96,
                         filter: 'blur(15px)',
@@ -247,13 +247,13 @@ export const Preloader = ({ onComplete }) => {
                     }}
                 >
                     {/* Background floating glass-morphic accent color circles (Blue and Orange and Grey) */}
-                    <div 
-                        className="absolute top-[20%] left-[15%] w-[380px] h-[380px] rounded-full bg-amber-400/12 blur-[90px] pointer-events-none animate-pulse" 
-                        style={{ animationDuration: '7s' }} 
+                    <div
+                        className="absolute top-[20%] left-[15%] w-[380px] h-[380px] rounded-full bg-amber-400/12 blur-[90px] pointer-events-none animate-pulse"
+                        style={{ animationDuration: '7s' }}
                     />
-                    <div 
-                        className="absolute bottom-[20%] right-[15%] w-[420px] h-[420px] rounded-full bg-blue-500/12 blur-[100px] pointer-events-none animate-pulse" 
-                        style={{ animationDuration: '9s' }} 
+                    <div
+                        className="absolute bottom-[20%] right-[15%] w-[420px] h-[420px] rounded-full bg-blue-500/12 blur-[100px] pointer-events-none animate-pulse"
+                        style={{ animationDuration: '9s' }}
                     />
 
                     {/* Header */}

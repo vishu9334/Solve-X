@@ -1,27 +1,11 @@
 import { useState, useEffect } from "react";
 import { Navigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { useGetStudentProfile, useUpdateStudentProfile } from "../hooks/studentProfile.hook";
 import CustomCursor from "../../../../shared/components/CustomCursor";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser";
 
-const platformIcons = {
-  linkedin: "https://img.icons8.com/ios-filled/50/linkedin.png",
-  instagram: "https://img.icons8.com/ios-filled/50/instagram-new--v1.png",
-  github: "https://img.icons8.com/ios-glyphs/30/github.png",
-  twitter: "https://img.icons8.com/ios-filled/50/twitterx--v1.png",
-  youtube: "https://img.icons8.com/ios-filled/50/youtube-play.png",
-  portfolio: "https://img.icons8.com/ios-filled/50/domain.png",
-  other: "https://img.icons8.com/ios-filled/50/link.png"
-};
-
-const formatExternalUrl = (url) => {
-  if (!url) return "";
-  const trimmed = url.trim();
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
-};
+import { platformIcons, formatExternalUrl } from "../../../../shared/utils/profile.utils";
 
 const StudentProfile = () => {
   const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
@@ -29,13 +13,30 @@ const StudentProfile = () => {
   const { mutate: updateProfile, isPending: isUpdating } = useUpdateStudentProfile();
 
   const [isEditing, setIsEditing] = useState(false);
+
+  const pageBackgroundStyle = {
+    background: `url("data:image/svg+xml,%30Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.055'/%3E%3C/svg%3E"), radial-gradient(circle at 100% 50%, rgba(255, 255, 255, 0.75) 0%, rgba(200, 220, 255, 0.5) 25%, transparent 60%), radial-gradient(circle at 80% 80%, #16247d 0%, #0d123d 60%, #000000 100%)`
+  };
   
-  // Local state for editing fields
-  const [bio, setBio] = useState("");
-  const [name, setName] = useState("");
-  const [education, setEducation] = useState("");
-  const [preferredLanguage, setPreferredLanguage] = useState("");
-  const [timezone, setTimezone] = useState("");
+  // useForm setup
+  const { register, handleSubmit, reset, watch } = useForm({
+    defaultValues: {
+      bio: "",
+      name: "",
+      education: "",
+      preferredLanguage: "",
+      timezone: ""
+    }
+  });
+
+  // Watch form fields for view mode rendering
+  const bio = watch("bio");
+  const name = watch("name");
+  const education = watch("education");
+  const preferredLanguage = watch("preferredLanguage");
+  const timezone = watch("timezone");
+
+  // Keep array lists as state since they are edited dynamically outside standard form inputs
   const [socialLinks, setSocialLinks] = useState([]);
   const [skills, setSkills] = useState([]);
 
@@ -49,15 +50,17 @@ const StudentProfile = () => {
   // Sync state when profile data is loaded
   useEffect(() => {
     if (profileResponse?.data) {
-      setBio(profileData.bio || "");
-      setName(profileData.name || currentUser?.name || "");
-      setEducation(profileData.education || "");
-      setPreferredLanguage(profileData.preferredLanguage || "");
-      setTimezone(profileData.timezone || "");
+      reset({
+        bio: profileData.bio || "",
+        name: profileData.name || currentUser?.name || "",
+        education: profileData.education || "",
+        preferredLanguage: profileData.preferredLanguage || "",
+        timezone: profileData.timezone || ""
+      });
       setSocialLinks(profileData.socialLinks || []);
       setSkills(profileData.skills || []);
     }
-  }, [profileResponse, currentUser]);
+  }, [profileResponse, currentUser, reset]);
 
   if (isCheckingSession) {
     return (
@@ -66,7 +69,7 @@ const StudentProfile = () => {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
-        backgroundColor: "#0c0b11",
+        ...pageBackgroundStyle,
         color: "#ffffff",
         fontFamily: "sans-serif"
       }}>
@@ -91,7 +94,7 @@ const StudentProfile = () => {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
-        backgroundColor: "#0c0b11",
+        ...pageBackgroundStyle,
         color: "#ffffff",
         fontFamily: "sans-serif"
       }}>
@@ -122,7 +125,7 @@ const StudentProfile = () => {
         alignItems: "center",
         justifyContent: "center",
         minHeight: "100vh",
-        backgroundColor: "#0c0b11",
+        ...pageBackgroundStyle,
         padding: "24px",
         fontFamily: "sans-serif"
       }}>
@@ -143,9 +146,13 @@ const StudentProfile = () => {
     );
   }
 
-  const handleSave = () => {
+  const onSubmit = (data) => {
     updateProfile(
-      { bio, name, education, preferredLanguage, timezone, socialLinks, skills },
+      {
+        ...data,
+        socialLinks,
+        skills
+      },
       {
         onSuccess: () => {
           setIsEditing(false);
@@ -177,66 +184,13 @@ const StudentProfile = () => {
   };
 
   return (
-    <div className="student-profile-page w-full min-h-screen relative px-4 py-24 sm:px-6 lg:px-8 text-white overflow-hidden bg-[#07070d]">
+    <div 
+      className="student-profile-page w-full min-h-screen relative px-4 py-24 sm:px-6 lg:px-8 text-white overflow-hidden"
+      style={pageBackgroundStyle}
+    >
       <CustomCursor />
-      
-      {/* Background Matrix/Grids */}
-      <style>{`
-        .student-profile-page::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background-image:
-            linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
-          background-size: 42px 42px;
-          mask-image: linear-gradient(to bottom, black 15%, transparent 92%);
-        }
-        .student-profile-page::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background:
-            radial-gradient(circle at 82% 8%, rgba(99, 102, 241, 0.28), transparent 28%),
-            radial-gradient(circle at 12% 72%, rgba(236, 72, 153, 0.1), transparent 25%);
-        }
-        .code-fragment {
-          position: absolute;
-          z-index: 0;
-          color: rgba(165, 180, 252, 0.12);
-          font: 500 12px/1.8 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          white-space: pre;
-          user-select: none;
-          pointer-events: none;
-        }
-        @keyframes ping-anim {
-          0% { transform: scale(1); opacity: 1; }
-          70%, 100% { transform: scale(2.2); opacity: 0; }
-        }
-        .live-ping::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          border-radius: 50%;
-          background-color: #10b981;
-          animation: ping-anim 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-        }
-        @media (max-width: 640px) {
-          .code-fragment { display: none; }
-        }
-      `}</style>
 
-      <div aria-hidden="true" className="code-fragment" style={{ top: "9%", left: "3%" }}>
-        {`const profile = await studentRepository.getStudentProfile(userId);\nif (profile) {\n  renderDashboard(profile);\n}`}
-      </div>
-      <div aria-hidden="true" className="code-fragment" style={{ right: "3%", bottom: "8%", textAlign: "left" }}>
-        {`// student workspace info\nrole: "student",\nsubscription: "${profileData.subscriptionStatus || "inactive"}"`}
-      </div>
+
 
       <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-6">
         
@@ -350,8 +304,7 @@ const StudentProfile = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    {...register("name")}
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.06)",
                       border: "1px solid rgba(255, 255, 255, 0.15)",
@@ -421,8 +374,7 @@ const StudentProfile = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={education}
-                    onChange={(e) => setEducation(e.target.value)}
+                    {...register("education")}
                     placeholder="e.g. B.Tech Computer Science"
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.06)",
@@ -451,8 +403,7 @@ const StudentProfile = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={preferredLanguage}
-                    onChange={(e) => setPreferredLanguage(e.target.value)}
+                    {...register("preferredLanguage")}
                     placeholder="e.g. Hindi, English"
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.06)",
@@ -480,8 +431,7 @@ const StudentProfile = () => {
                 </span>
                 {isEditing ? (
                   <select
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
+                    {...register("timezone")}
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.06)",
                       border: "1px solid rgba(255, 255, 255, 0.15)",
@@ -533,8 +483,7 @@ const StudentProfile = () => {
               </span>
               {isEditing ? (
                 <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
+                  {...register("bio")}
                   placeholder="Tell us about your learning journey..."
                   style={{
                     backgroundColor: "rgba(255, 255, 255, 0.06)",
@@ -832,11 +781,13 @@ const StudentProfile = () => {
               <button
                 onClick={() => {
                   setIsEditing(false);
-                  setName(profileData.name || currentUser?.name || "");
-                  setBio(profileData.bio || "");
-                  setEducation(profileData.education || "");
-                  setPreferredLanguage(profileData.preferredLanguage || "");
-                  setTimezone(profileData.timezone || "");
+                  reset({
+                    name: profileData.name || currentUser?.name || "",
+                    bio: profileData.bio || "",
+                    education: profileData.education || "",
+                    preferredLanguage: profileData.preferredLanguage || "",
+                    timezone: profileData.timezone || ""
+                  });
                   setSocialLinks(profileData.socialLinks || []);
                   setSkills(profileData.skills || []);
                 }}
@@ -857,7 +808,7 @@ const StudentProfile = () => {
                 Cancel
               </button>
               <button
-                onClick={handleSave}
+                onClick={handleSubmit(onSubmit)}
                 disabled={isUpdating}
                 style={{
                   padding: "8px 24px",

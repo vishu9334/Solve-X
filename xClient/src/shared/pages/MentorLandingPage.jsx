@@ -284,6 +284,7 @@ const MentorLandingPage = () => {
     const { data: currentUser, isPending } = useCurrentUser();
     const [assessmentPassed, setAssessmentPassed] = useState(true);
     const [activeStep, setActiveStep] = useState(0);
+    const [menuOpen, setMenuOpen] = useState(false);
     const { mutate: performLogout, isPending: isLoggingOut } = useLogout();
 
     const handleLogout = () => {
@@ -308,18 +309,17 @@ const MentorLandingPage = () => {
     }
 
     return (
-        <main className="relative min-h-screen w-full overflow-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] px-4 pb-24 pt-8 text-white sm:px-6 lg:px-8">
+        <main className="w-full min-h-screen flex flex-col px-4 pb-24 pt-8 text-white overflow-x-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] sm:px-6 lg:px-8">
             <CustomCursor />
 
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.07)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.07)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:linear-gradient(to_bottom,black,transparent_94%)]" />
-            <div aria-hidden="true" className="pointer-events-none absolute -left-32 top-[38%] h-80 w-80 rounded-full bg-fuchsia-500/10 blur-[100px]" />
-
-            <nav className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between rounded-full border border-white/10 bg-black/25 px-5 py-3 backdrop-blur-md">
+            <nav className="mx-auto flex w-full max-w-7xl items-center justify-between rounded-full border border-white/10 bg-black/25 px-5 py-3 backdrop-blur-md">
                 <Link to="/" className="flex items-center gap-3 text-white">
                     <img src="/logo.png" alt="Solve-X" className="h-8 w-8 object-contain" />
                     <span className="text-xs font-bold uppercase tracking-[0.22em]">Solve-X</span>
                 </Link>
-                <div className="flex items-center gap-5">
+
+                {/* Desktop menu links - visible on md and above */}
+                <div className="hidden md:flex items-center gap-5">
                     <Link to="/dashboard/mentor" className="text-xs font-semibold text-white/70 hover:text-white transition-colors">
                         Dashboard
                     </Link>
@@ -336,9 +336,51 @@ const MentorLandingPage = () => {
                         Become a Mentor
                     </Link>
                 </div>
+
+                {/* Mobile/Tablet Hamburger Icon */}
+                <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="flex md:hidden items-center justify-center p-1 bg-transparent border-none text-white focus:outline-none cursor-pointer"
+                >
+                    <span className="material-symbols-outlined text-2xl select-none">
+                        {menuOpen ? 'close' : 'menu'}
+                    </span>
+                </button>
+
+                {/* Mobile Dropdown Panel */}
+                {menuOpen && (
+                    <div className="absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border border-white/15 bg-[#0c0b11]/95 px-6 py-5 shadow-xl backdrop-blur-md md:hidden">
+                        <Link
+                            to="/dashboard/mentor"
+                            className="text-white/70 hover:text-white no-underline transition-colors py-2.5 border-b border-white/5 font-semibold text-xs tracking-wider"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            Dashboard
+                        </Link>
+                        {currentUser && (
+                            <button
+                                onClick={() => {
+                                    setMenuOpen(false);
+                                    handleLogout();
+                                }}
+                                disabled={isLoggingOut}
+                                className="w-full text-left bg-transparent border-none text-rose-400 py-2.5 border-b border-white/5 font-semibold text-xs tracking-wider cursor-pointer disabled:opacity-50"
+                            >
+                                {isLoggingOut ? 'Logging out...' : 'Logout'}
+                            </button>
+                        )}
+                        <Link
+                            to="/dashboard/mentor"
+                            className="mt-2 w-full h-[40px] flex items-center justify-center rounded-full bg-white text-black text-xs font-bold hover:bg-neutral-200 transition-colors"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            Become a Mentor
+                        </Link>
+                    </div>
+                )}
             </nav>
 
-            <section className="relative z-10 mx-auto w-full max-w-7xl pt-16 sm:pt-20">
+            <section className="mx-auto w-full max-w-7xl pt-16 sm:pt-20">
                 <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr]">
                     <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.12 } } }}>
                         <motion.div variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }} className="mb-5 flex w-fit items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-4 py-2 text-xs text-emerald-200">
@@ -353,21 +395,20 @@ const MentorLandingPage = () => {
                             Select your expertise, prove it through an assessment, and let AI verify your answers. Every applicant receives an email with the decision and its reason.
                         </motion.p>
                         <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }} className="mt-8 flex flex-wrap gap-3">
-                            <Link to="/register?role=mentor" className="rounded-full bg-white px-7 py-3 text-sm font-bold text-black transition-transform hover:scale-105">Start mentor journey</Link>
+                            <Link to="/mentor/assessment/select" className="rounded-full bg-white px-7 py-3 text-sm font-bold text-black transition-transform hover:scale-105">Start mentor journey</Link>
                             <Link to="/mentor-doc" className="rounded-full border border-white/15 bg-white/5 px-7 py-3 text-sm font-semibold text-white/75 transition-colors hover:bg-white/10">Read mentor guide</Link>
                         </motion.div>
                     </motion.div>
 
-                    <motion.div initial={{ opacity: 0, scale: 0.9, rotate: 2 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 0.75, ease: 'easeOut' }} className="relative mx-auto w-full max-w-lg">
-                        <div className="absolute -inset-6 rounded-full bg-indigo-500/20 blur-3xl" />
-                        <div className="relative overflow-hidden rounded-[32px] border border-white/12 bg-white/[.065] p-5 shadow-[0_30px_90px_rgba(0,0,0,.35)] backdrop-blur-xl">
+                    <motion.div initial={{ opacity: 0, scale: 0.9, rotate: 2 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: 0.75, ease: 'easeOut' }} className="mx-auto w-full max-w-lg">
+                       
                             <div className="flex items-center justify-between">
                                 <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-indigo-200/70">Mentor applicant</span>
                                 <span className="rounded-full border border-amber-200/20 bg-amber-200/10 px-3 py-1 text-[9px] uppercase tracking-wider text-amber-100">Assessment mode</span>
                             </div>
                             <div className="h-64 sm:h-80">
                                 <DotLottieReact
-                                    src="https://lottie.host/bc4a4cbd-d950-4904-b42c-6074fc072934/2AFe3ZJkQS.lottie"
+                                    src="https://lottie.host/2a388c9a-e5ae-4054-bba4-8e44ec3d2c15/EbRaALXgnI.lottie"
                                     loop
                                     autoplay
                                 />
@@ -380,7 +421,7 @@ const MentorLandingPage = () => {
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        
                     </motion.div>
                 </div>
 
@@ -510,9 +551,8 @@ const MentorLandingPage = () => {
                             </div>
 
                             {/* Right: Interactive Visual State */}
-                            <div className="relative">
-                                <div className="absolute -inset-4 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none" />
-                                <div className="relative">
+                            <div>
+                                <div>
                                     {renderTheoryVisual(activeStep, assessmentPassed, setAssessmentPassed)}
                                 </div>
                             </div>
@@ -522,7 +562,7 @@ const MentorLandingPage = () => {
 
                 <div className="mt-14 flex flex-col items-center text-center">
                     <p className="font-shantell-sans text-base text-white/55">Ready to prove what you know?</p>
-                    <Link to="/register?role=mentor" className="mt-5 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-transform hover:scale-105">Apply as a mentor →</Link>
+                    <Link to="/mentor/assessment/select" className="mt-5 rounded-full bg-white px-8 py-3.5 text-sm font-bold text-black transition-transform hover:scale-105">Apply as a mentor →</Link>
                 </div>
             </section>
         </main>

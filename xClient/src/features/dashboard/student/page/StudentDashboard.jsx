@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser.js";
@@ -30,11 +30,13 @@ const StatusBadge = ({ status }) => {
         ? "border-sky-400/25 bg-sky-400/10 text-sky-300"
         : status === "open"
           ? "border-amber-400/25 bg-amber-400/10 text-amber-300"
-          : "border-white/15 bg-white/5 text-white/50";
+          : status === "mentor_selected"
+            ? "border-indigo-400/25 bg-indigo-400/10 text-indigo-300"
+            : "border-white/15 bg-white/5 text-white/50";
 
   return (
     <span className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${style}`}>
-      {status || "unknown"}
+      {status ? status.replace("_", " ") : "unknown"}
     </span>
   );
 };
@@ -113,14 +115,14 @@ const StudentDashboard = () => {
   const { profile = {}, stats = {}, recentSessions = [] } = dashboardData;
 
   return (
-    <div className="min-h-[calc(100vh-9rem)] overflow-x-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.28),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.38),transparent_34%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] px-0 py-4 font-josefin-sans text-white sm:py-6 flex flex-col">
+    <div className="min-h-[calc(100vh-9rem)] overflow-x-hidden bg-[radial-gradient(circle_at_8%_80%,rgba(255,217,110,0.28),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.38),transparent_34%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] px-0 pt-32 pb-4 text-white sm:pt-24 sm:pb-6 flex flex-col">
       <div className="mx-auto w-[94%] max-w-[1200px] flex flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-5 md:flex-row md:items-end">
           <div>
-            <p className="m-0 text-[9px] font-bold uppercase tracking-[0.22em] text-amber-300 sm:text-[10px] sm:tracking-[0.34em]">
+            <p className="m-0 mt-4 text-[9px] font-bold uppercase tracking-[0.22em] text-indigo-700 sm:text-[10px] sm:tracking-[0.34em]">
               [ Student Dashboard ]
             </p>
-            <h1 className="m-0 mt-2 font-josefin-sans text-2xl font-semibold text-white sm:text-3xl md:text-4xl">
+            <h1 className="m-0 mt-10 text-2xl font-semibold text-blue-100 sm:text-3xl md:text-4xl">
               Welcome back, {profile.name || currentUser.name || "Student"}
             </h1>
             <p className="m-0 mt-2 max-w-2xl text-sm text-white/55">
@@ -128,16 +130,26 @@ const StudentDashboard = () => {
             </p>
           </div>
 
-          <div className="w-full rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-left sm:w-auto sm:text-right">
-            <p className="m-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
-              Subscription
-            </p>
-            <p className="m-0 mt-1 text-sm font-bold capitalize text-emerald-300">
-              {profile.subscriptionStatus || "inactive"}
-            </p>
-            <p className="m-0 text-xs text-white/45">
-              {profile.daysLeft || 0} days left
-            </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm: gap-4 w-full sm:w-auto">
+            {/* Ask Doubt Button */}
+            <Link
+              to="/student/ask-doubt"
+              className="flex items-center justify-center gap-2 rounded-2xl border border-amber-300/30 bg-amber-300/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] text-amber-300 transition-all hover:bg-amber-300 hover:text-black hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] text-center sm:py-3.5 sm:px-6 shrink-0 cursor-pointer"
+            >
+              Ask Doubt
+            </Link>
+
+            <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-left sm:text-right shrink-0 w-full sm:w-auto">
+              <p className="m-0 text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
+                Subscription
+              </p>
+              <p className="m-0 mt-1 text-sm font-bold capitalize text-emerald-300">
+                {profile.subscriptionStatus || "inactive"}
+              </p>
+              <p className="m-0 text-xs text-white/45">
+                {profile.daysLeft || 0} days left
+              </p>
+            </div>
           </div>
         </div>
 
@@ -156,7 +168,7 @@ const StudentDashboard = () => {
                 {(profile.name || "S").charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h2 className="m-0 font-josefin-sans text-2xl text-white">
+                <h2 className="m-0 text-2xl text-white">
                   {profile.name || "Student"}
                 </h2>
                 <p className="m-0 truncate text-xs text-white/45">{profile.email || "No email found"}</p>
@@ -188,7 +200,7 @@ const StudentDashboard = () => {
                 <p className="m-0 text-[10px] font-bold uppercase tracking-[0.28em] text-amber-300">
                   Recent Sessions
                 </p>
-                <h2 className="m-0 mt-2 font-josefin-sans text-2xl text-white">
+                <h2 className="m-0 mt-2 text-2xl text-white">
                   Doubt history
                 </h2>
               </div>
@@ -197,15 +209,17 @@ const StudentDashboard = () => {
               </span>
             </div>
 
-            <div className="mt-5 flex max-h-none flex-col gap-3 overflow-visible pr-0 xl:max-h-[430px] xl:overflow-y-auto xl:pr-1">
+            <div className="mt-5 flex max-h-none flex-col gap-3 overflow-visible pr-0 xl:max-h-[430px] xl:overflow-y-auto xl:pr-1 scrollbar-hide" data-lenis-prevent>
               {recentSessions.length > 0 ? (
-                recentSessions.map((session) => (
-                  <motion.article
-                    key={session._id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="rounded-2xl border border-white/10 bg-black/20 p-3 transition-colors hover:border-amber-300/25 sm:p-4"
-                  >
+                recentSessions.map((session) => {
+                  const getSessionLink = () => {
+                    if (session.status === "open") return `/student/doubt-sessions/${session._id}/offers`;
+                    if (session.status === "in_session" && session.chatRoomId) return `/chat/${session.chatRoomId}`;
+                    return null;
+                  };
+                  const sessionLink = getSessionLink();
+
+                  const CardContent = (
                     <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
                       <div>
                         <h3 className="m-0 text-sm font-semibold text-white">
@@ -220,19 +234,38 @@ const StudentDashboard = () => {
                       </div>
                       <StatusBadge status={session.status} />
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/45">
-                      <span className="rounded-full bg-white/5 px-3 py-1">
-                        Duration: {session.sessionDuration || "N/A"}
-                      </span>
-                      <span className="rounded-full bg-white/5 px-3 py-1">
-                        Created: {formatDate(session.createdAt)}
-                      </span>
-                    </div>
-                  </motion.article>
-                ))
+                  );
+
+                  return (
+                    <motion.article
+                      key={session._id}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`rounded-2xl border border-white/10 bg-black/20 p-3 transition-colors sm:p-4 ${
+                        sessionLink ? "hover:border-amber-300/40 cursor-pointer" : ""
+                      }`}
+                    >
+                      {sessionLink ? (
+                        <Link to={sessionLink} className="no-underline block text-white hover:text-white">
+                          {CardContent}
+                        </Link>
+                      ) : (
+                        CardContent
+                      )}
+                      <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/45">
+                        <span className="rounded-full bg-white/5 px-3 py-1">
+                          Duration: {session.sessionDuration || "N/A"}
+                        </span>
+                        <span className="rounded-full bg-white/5 px-3 py-1">
+                          Created: {formatDate(session.createdAt)}
+                        </span>
+                      </div>
+                    </motion.article>
+                  );
+                })
               ) : (
                 <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-8 text-center">
-                  <p className="m-0 font-josefin-sans text-xl text-white">No doubt sessions yet</p>
+                  <p className="m-0 text-xl text-white">No doubt sessions yet</p>
                   <p className="m-0 mt-2 text-sm text-white/45">
                     Jab student doubt post karega, uski history yaha show hogi.
                   </p>

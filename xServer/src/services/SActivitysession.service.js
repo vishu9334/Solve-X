@@ -15,22 +15,22 @@ class ActivitySessionService {
       throw new ApiError(400, "userId and category are required");
     }
 
-    // Resolve assessmentId from Skill category (could be ID, name, or slug)
-    let skill = null;
+    // Resolve assessmentId from specialized category (could be ID, name, or slug)
+    let specialized = null;
     if (mongoose.Types.ObjectId.isValid(category)) {
-      skill = await this.activitySessionRepository.findSkillById(category);
+      specialized = await this.activitySessionRepository.findSpecializedById(category);
     } else {
-      skill = await this.activitySessionRepository.findSkillByNameOrSlug(category);
+      specialized = await this.activitySessionRepository.findSpecializedByNameOrSlug(category);
     }
 
-    if (!skill) {
+    if (!specialized) {
       const profile = await this.activitySessionRepository.findMentorProfileByUserId(userId);
-      if (profile && profile.skillCategory) {
-        skill = await this.activitySessionRepository.findSkillById(profile.skillCategory);
+      if (profile && profile.specializedCategory) {
+        specialized = await this.activitySessionRepository.findSpecializedById(profile.specializedCategory);
       }
     }
 
-    if (!skill || !skill.assessmentId) {
+    if (!specialized || !specialized.assessmentId) {
       throw new ApiError(400, "No active assessment linked to this category.");
     }
 
@@ -39,7 +39,7 @@ class ActivitySessionService {
     const sessionDoc = await this.activitySessionRepository.createSession({
       userId,
       category,
-      assessmentId: skill.assessmentId,
+      assessmentId: specialized.assessmentId,
       startedAt,
       totalEvents: 1,
       events: [

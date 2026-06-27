@@ -3,16 +3,14 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import mentorService from "../services/mentor.service.js";
 
-export const selectSkill = asyncHandler(async (req, res) => {
+export const selectSpecialization = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
-    const { skillId, skillName } = req.body;
+    const { specializationId, specializationName } = req.body;
 
-    if (!skillId && !skillName) throw new ApiError(400, "Either skillId or skillName is required.");
-
-    const data = await mentorService.selectSkill(userId, { skillId, skillName });
+    const data = await mentorService.selectSpecialization(userId, { specializationId, specializationName });
 
     return res.status(200).json(
-        new ApiResponse(200, data, "Skill selected and assessment ready.")
+        new ApiResponse(200, data, "specialization selected and assessment ready.")
     );
 });
 
@@ -49,6 +47,12 @@ export const replyToStudentDoubt = asyncHandler(async (req, res) => {
     return res.status(200).json(
         new ApiResponse(200, data, "Offer sent to student.")
     );
+});
+
+export const getActiveAssessment = asyncHandler(async (req, res) => {
+    const userId = req.user.userId;
+    const data = await mentorService.getActiveAssessment(userId);
+    return res.status(200).json(new ApiResponse(200, data, "Active assessment fetched successfully"));
 });
 
 export const mentorProfile = asyncHandler(async (req, res) => {
@@ -94,6 +98,5 @@ export const updateMentorProfile = asyncHandler(async (req, res) => {
         payoutDetails
     });
     return res.status(200).json(new ApiResponse(200, data, "Mentor profile updated successfully"));
+
 });
-
-

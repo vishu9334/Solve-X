@@ -1,355 +1,608 @@
 import { Navigate, Link } from "react-router-dom";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser.js";
 import { useGetMentorDashboard } from "../hook/mentorDashboard.hook.js";
+import { toast } from "react-toastify";
+import api from "../../../../lib/axios.js";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+} from "recharts";
 
-const formatDate = (date) => {
-  if (!date) return "Not available";
+/* ── helpers ──────────────────────────────────────────────────────── */
+const fmt = (date) =>
+  date
+    ? new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date(date))
+    : "—";
 
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(date));
-};
-
-const StatCard = ({ label, value, tone = "text-amber-300", note, link }) => {
-  const cardBody = (
-    <motion.div
-      initial={{ opacity: 0, y: 18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45 }}
-      className={`overflow-hidden rounded-2xl border border-white/10 p-4 shadow-xl sm:rounded-3xl sm:p-5 h-full ${link ? 'hover:border-amber-300/35 transition-colors duration-300 cursor-pointer' : ''}`}
-      style={{ background: "radial-gradient(circle at 78% 22%, rgba(251,191,36,0.16), transparent 38%), linear-gradient(135deg, rgba(255,255,255,0.10), transparent 40%), rgba(255,255,255,0.045)" }}
-    >
-      <p className="m-0 text-[10px] font-bold uppercase tracking-[0.24em] text-white/45 font-inter">
-        {label}
-      </p>
-      <p className={`m-0 mt-3 text-3xl font-black sm:text-4xl font-space-grotesk ${tone}`}>{value}</p>
-      {note && <p className="m-0 mt-2 text-xs text-white/45">{note}</p>}
-    </motion.div>
-  );
-
-  if (link) {
-    return (
-      <Link to={link} className="no-underline block h-full">
-        {cardBody}
-      </Link>
-    );
-  }
-  return cardBody;
-};
-
-const StatusPill = ({ status, verified }) => {
-  const style = verified
-    ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
-    : status === "rejected"
-      ? "border-rose-400/25 bg-rose-400/10 text-rose-300"
-      : "border-amber-400/25 bg-amber-400/10 text-amber-300";
-
+const BarTip = ({ active, payload }) => {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
   return (
-    <span className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${style}`}>
-      {verified ? "Verified Mentor" : status || "Pending"}
-    </span>
+    <div className="bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-2 text-xs">
+      <p className="text-white/50 mb-0.5">{d.label}</p>
+      <p className="text-white font-semibold">{d.display}</p>
+    </div>
   );
 };
 
-const MentorDashboard = () => {
-  const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
-  const {
-    data: dashboardResponse,
-    isLoading: isDashboardLoading,
-    isError: isDashboardError,
-    error: dashboardError,
-  } = useGetMentorDashboard();
+/* ── sub-components ───────────────────────────────────────────────── */
 
-  if (isCheckingSession) {
+/** Verification status banner */
+const VerifyBanner = ({ profile }) => {
+  const s = profile.verificationStatus;
+
+  if (profile.isVerifiedMentor) return null;
+
+  if (s === "rejected") {
     return (
-      <div className="flex min-h-[420px] items-center justify-center text-white/60">
-        Checking mentor session...
+      <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-red-400 mb-1">
+            Permanently Rejected
+          </p>
+          <p className="text-white/70 text-sm">
+            {profile.rejectionReason || "All 3 attempts used. Contact support for assistance."}
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 text-xs text-red-400 border border-red-500/30 rounded-lg px-3 py-1.5 shrink-0">
+          No attempts remaining
+        </span>
       </div>
     );
   }
 
-  if (!currentUser) {
-    return <Navigate to="/" replace />;
+  if (s === "in_progress") {
+    return (
+      <div className="rounded-xl border border-amber-400/20 bg-amber-400/5 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-amber-400 mb-1">
+            Assessment Failed — Retry Available
+          </p>
+          <p className="text-white/70 text-sm">
+            Dobara assessment de sakte hain. Wohi specialization select karo.
+          </p>
+        </div>
+        <Link
+          to="/mentor/assessment/select"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-black bg-amber-400 hover:bg-amber-300 transition-colors rounded-lg px-4 py-2 shrink-0"
+        >
+          Retry Assessment
+        </Link>
+      </div>
+    );
   }
 
+  return (
+    <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-blue-400 mb-1">
+          Verification Required
+        </p>
+        <p className="text-white/70 text-sm">
+          Assessment pass karne ke baad dashboard fully active hoga.
+          Current status: <span className="text-white capitalize">{s || "pending"}</span>
+        </p>
+      </div>
+      <Link
+        to="/mentor/assessment/select"
+        className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors rounded-lg px-4 py-2 shrink-0"
+      >
+        Start Assessment
+      </Link>
+    </div>
+  );
+};
+
+/** Top stat card */
+const StatCard = ({ label, value, sub, accent, index = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: index * 0.08 }}
+    className="rounded-xl bg-white/[0.03] border border-white/[0.07] px-4 py-4 flex flex-col gap-1"
+  >
+    <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40">{label}</p>
+    <p className={`text-2xl font-bold ${accent || "text-white"}`}>{value}</p>
+    {sub && <p className="text-xs text-white/30">{sub}</p>}
+  </motion.div>
+);
+
+/** Session row */
+const SessionRow = ({ session, isOpportunity, currentUser }) => {
+  const queryClient = useQueryClient();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [price, setPrice] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  const currentUserId = currentUser?._id || currentUser?.id;
+  const hasOffered = session.mentorOffers?.some(
+    (offer) => {
+      const mId = offer.mentorId?._id || offer.mentorId;
+      return mId?.toString() === currentUserId?.toString();
+    }
+  );
+
+  const handleSubmitOffer = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const offerPrice = parseFloat(price);
+    if (!offerPrice || offerPrice <= 0 || isNaN(offerPrice)) {
+      toast.error("Please enter a valid positive price.");
+      return;
+    }
+    if (!date) {
+      toast.error("Please select a date.");
+      return;
+    }
+    if (!time) {
+      toast.error("Please select a time.");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const availableTime = `${date} at ${time}`;
+      const response = await api.post("/mentor/reply-doubt", {
+        doubtSessionId: session._id,
+        price: offerPrice,
+        availableTime,
+      });
+
+      toast.success(response.data?.message || "Offer sent successfully!");
+      setIsExpanded(false);
+      queryClient.invalidateQueries({ queryKey: ["mentorDashboard"] });
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to send offer.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-0.5 py-3 border-b border-white/[0.06] last:border-0 text-left">
+      <div className="flex justify-between items-start gap-4">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-white/80 line-clamp-1">
+            {session.question || (isOpportunity ? "Open doubt" : "Resolved doubt")}
+          </p>
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-white/35 mt-1">
+            <span>Student: {session.studentId?.name || "—"}</span>
+            {isOpportunity ? (
+              <>
+                <span>Duration: {session.sessionDuration || "?"} min</span>
+                {hasOffered && (
+                  <span className="text-emerald-400 font-bold uppercase tracking-wider text-[10px]">
+                    ✓ Bid Submitted
+                  </span>
+                )}
+              </>
+            ) : (
+              <span>Resolved: {fmt(session.sessionEndedAt || session.updatedAt)}</span>
+            )}
+            {!isOpportunity && (
+              <span className="text-blue-400/70 capitalize">{session.status || "completed"}</span>
+            )}
+          </div>
+        </div>
+
+        {isOpportunity && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (hasOffered) return;
+              setIsExpanded(!isExpanded);
+            }}
+            disabled={hasOffered}
+            className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors border shrink-0 ${
+              hasOffered
+                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 cursor-default"
+                : "border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white cursor-pointer"
+            }`}
+          >
+            {hasOffered ? "Offered" : isExpanded ? "Cancel" : "Bid Offer"}
+          </button>
+        )}
+      </div>
+
+      {isOpportunity && isExpanded && (
+        <form
+          onSubmit={handleSubmitOffer}
+          className="mt-3 flex flex-col gap-3 bg-white/[0.02] border border-white/5 rounded-xl p-3.5"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <p className="m-0 text-[10px] text-blue-400 font-bold uppercase tracking-wider">
+            Send Bid Offer
+          </p>
+          
+          <div className="flex gap-2">
+            <div className="w-1/2 flex flex-col gap-1">
+              <label className="text-[8px] text-neutral-400 font-bold uppercase">Price</label>
+              <input
+                type="number"
+                placeholder="Price ($)"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                required
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] text-white focus:outline-none focus:border-blue-500 transition-colors"
+              />
+            </div>
+            <div className="w-1/2 flex flex-col gap-1">
+              <label className="text-[8px] text-neutral-400 font-bold uppercase">Date</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                required
+                className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-[10px] text-white focus:outline-none focus:border-blue-500 transition-colors"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-1">
+            <label className="text-[8px] text-neutral-400 font-bold uppercase">Available Time</label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              required
+              className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] text-white focus:outline-none focus:border-blue-500 transition-colors"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSending}
+            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-[9px] uppercase tracking-wider py-1.5 rounded-lg cursor-pointer transition-colors border-none"
+          >
+            {isSending ? "Sending..." : "Submit Bid Offer"}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+};
+
+/* ── main ─────────────────────────────────────────────────────────── */
+const MentorDashboard = () => {
+  const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
+  const {
+    data: dashboardResponse,
+    isLoading,
+    isError,
+    error,
+  } = useGetMentorDashboard();
+
+  const [tab, setTab] = useState("opportunities"); // "opportunities" | "sessions"
+
+  /* ── guards ─────────────────────────────────────────────────────── */
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
+        <p className="text-white/40 text-sm">Checking session…</p>
+      </div>
+    );
+  }
+
+  if (!currentUser) return <Navigate to="/" replace />;
   if (currentUser.role !== "mentor") {
     if (currentUser.role === "admin") return <Navigate to="/admin-landing" replace />;
     return <Navigate to="/student-landing" replace />;
   }
 
-  if (isDashboardLoading) {
+  if (isLoading) {
     return (
-      <div className="flex min-h-[420px] flex-col items-center justify-center gap-3 text-white">
-        <div className="h-44 w-44">
-          <DotLottieReact
-            src="https://lottie.host/9afc5d4a-2c61-442d-a9bf-3d2fb40fd9e3/aqVwXNG7Kj.lottie"
-            loop
-            autoplay
-          />
-        </div>
-        <p className="m-0 text-xs font-bold uppercase tracking-[0.22em] text-white/50">
-          Loading mentor dashboard
+      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
+        <p className="text-white/40 text-sm">Loading dashboard…</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
+        <p className="text-red-400 text-sm">
+          {error?.message || "Dashboard load nahi ho paya."}
         </p>
       </div>
     );
   }
 
-  if (isDashboardError) {
-    return (
-      <div className="flex min-h-[420px] flex-col items-center justify-center gap-4 text-center">
-        <div className="h-52 w-52">
-          <DotLottieReact
-            src="https://lottie.host/8e039cbf-c1db-4ecb-85f8-37e14bbb277e/PWiyGNpCea.lottie"
-            loop
-            autoplay
-          />
-        </div>
-        <p className="m-0 max-w-md text-sm font-semibold text-red-300">
-          {dashboardError?.message || "Mentor dashboard data load nahi ho paya."}
-        </p>
-      </div>
-    );
-  }
-
-  const dashboardData = dashboardResponse?.data || {};
+  /* ── data ───────────────────────────────────────────────────────── */
   const {
     profile = {},
     stats = {},
     activeSession = null,
     recentSessions = [],
     opportunities = [],
-  } = dashboardData;
+  } = dashboardResponse?.data || {};
 
-  const isVerifiedMentor = Boolean(profile.isVerifiedMentor);
-  const rating = Number(profile.rating || 0).toFixed(1);
+  const totalResolved = stats.totalResolved || 0;
+  const totalEarnings = stats.totalEarnings || 0;
+  const activeBids = stats.activeBidsCount || 0;
+  const profileCompletion = stats.profileCompletion || 0;
+  const rating = Number(profile.rating || 0);
+  const ratingCount = profile.ratingCount || 0;
+  const isVerified = Boolean(profile.isVerifiedMentor);
+  const displayName = profile.name || currentUser.name || "Mentor";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
+  /* ── chart data ─────────────────────────────────────────────────── */
+  // Normalize all values to 0–100 scale so every bar is visible.
+  // Tooltip shows the real value — chart shows relative height only.
+  const norm = (val, max) => Math.max(8, Math.round((val / (max || 1)) * 100));
+  const chartData = [
+    { label: "Sessions",      display: String(totalResolved),                                           value: norm(totalResolved, 50),      color: "#3b82f6" },
+    { label: "Earnings",      display: totalEarnings >= 1000 ? `₹${(totalEarnings/1000).toFixed(1)}k` : `₹${totalEarnings}`, value: norm(totalEarnings, 10000), color: "#60a5fa" },
+    { label: "Bids",          display: String(activeBids),                                              value: norm(activeBids, 20),         color: "#93c5fd" },
+    { label: "Rating",        display: `${rating.toFixed(1)} ★`,                                       value: norm(rating, 5),              color: "#bfdbfe" },
+    { label: "Profile",       display: `${profileCompletion}%`,                                        value: profileCompletion,            color: "#dbeafe" },
+    { label: "Opportunities", display: String(opportunities.length),                                   value: norm(opportunities.length, 20), color: "#e0f2fe" },
+  ];
+
+  /* ── render ─────────────────────────────────────────────────────── */
   return (
-    <div
-      className="min-h-[calc(100vh-9rem)] overflow-x-hidden px-6 py-4 font-inter text-white sm:px-10 sm:py-6"
-      style={{
-        background: `
-          linear-gradient(90deg, transparent 0 8%, rgba(251,191,36,0.08) 8% 8.4%, transparent 8.4% 18%, rgba(99,102,241,0.06) 18% 18.25%, transparent 18.25%) 0 0 / 280px 100%,
-          linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px) 0 0 / 42px 42px,
-          linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px) 0 0 / 42px 42px,
-          radial-gradient(circle at 82% 6%, rgba(255,217,110,0.30), transparent 28%),
-          radial-gradient(circle at 76% 18%, rgba(62,62,244,0.40), transparent 34%),
-          radial-gradient(circle at 22% 88%, rgba(16,185,129,0.20), transparent 34%),
-          linear-gradient(180deg, #050509 0%, #060612 58%, #15131a 100%)
-        `
-      }}
-    >
-      <div className="flex flex-col gap-6">
-        <header className="flex flex-col justify-between gap-5 border-b border-white/10 pb-5 lg:flex-row lg:items-end">
+    <div className="w-full min-h-screen flex flex-col px-4 pb-24 pt-32 sm:pt-24 text-white overflow-x-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
+
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
+        >
           <div>
-            <p className="m-0 text-[9px] font-bold uppercase tracking-[0.22em] text-amber-300 sm:text-[10px] sm:tracking-[0.34em]">
-              [ Mentor Dashboard ]
-            </p>
-            <h1 className="m-0 mt-2 text-2xl font-semibold text-white sm:text-3xl md:text-4xl font-space-grotesk">
-              Welcome back, {profile.name || currentUser.name || "Mentor"}
+            <h1 className="text-xl font-bold text-white">
+              Welcome back, {displayName}
             </h1>
-            <p className="m-0 mt-2 max-w-2xl text-sm text-white/55">
-              Track your verification, live session, doubt opportunities, earnings and resolved sessions.
+            <p className="text-sm text-white/40 mt-0.5">
+              Track sessions, earnings, doubts, and bids.
             </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <StatusPill status={profile.verificationStatus} verified={isVerifiedMentor} />
-            <div className="rounded-full border border-white/10 bg-black/25 px-4 py-2 text-xs text-white/60">
-              Skill: <span className="font-bold text-amber-200">{profile.skill?.name || "Not selected"}</span>
-            </div>
-          </div>
-        </header>
-
-        {!isVerifiedMentor && (
-          <section className="rounded-2xl border border-amber-300/20 bg-amber-300/[0.06] p-4 shadow-2xl sm:rounded-3xl sm:p-5">
-            <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-              <div>
-                <p className="m-0 text-[10px] font-bold uppercase tracking-[0.28em] text-amber-200">
-                  Verification required
-                </p>
-                <h2 className="m-0 mt-2 text-2xl font-semibold text-white font-space-grotesk">
-                  Assessment pass karne ke baad dashboard full active hoga.
-                </h2>
-                {profile.rejectionReason && (
-                  <p className="m-0 mt-2 text-sm text-rose-200">
-                    Reason: {profile.rejectionReason}
-                  </p>
-                )}
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white/60">
-                Current status:{" "}
-                <span className="font-bold capitalize text-amber-200">
-                  {profile.verificationStatus || "pending"}
-                </span>
-              </div>
-            </div>
-          </section>
-        )}
-
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
-          <StatCard label="Resolved" value={stats?.totalResolved || 0} tone="text-emerald-300" />
-          <StatCard label="Earnings" value={`₹${stats?.totalEarnings || 0}`} tone="text-amber-300" />
-          <StatCard label="Active Bids" value={stats?.activeBidsCount || 0} tone="text-sky-300" />
-          <StatCard label="Rating" value={rating} tone="text-pink-300" note={`${profile.ratingCount || 0} reviews`} />
-          <StatCard label="Profile" value={`${stats?.profileCompletion || 0}%`} tone="text-indigo-300" link="/mentor/profile" />
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[0.85fr_1.15fr]">
-          <section className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl sm:rounded-3xl sm:p-6">
-            <div className="flex min-w-0 items-center justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-4">
-                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-amber-300 text-2xl font-black text-black sm:h-16 sm:w-16">
-                  {profile.avatar ? (
-                    <img src={profile.avatar} alt={profile.name || "Mentor"} className="h-full w-full object-cover" />
-                  ) : (
-                    (profile.name || "M").charAt(0).toUpperCase()
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <h2 className="m-0 text-2xl text-white font-space-grotesk">{profile.name || "Mentor"}</h2>
-                  <p className="m-0 truncate text-xs text-white/45">{profile.email || "No email found"}</p>
-                </div>
-              </div>
-              <Link
-                to="/mentor/profile"
-                className="shrink-0 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white/70 hover:border-amber-300 hover:text-white transition-all no-underline"
-              >
-                Edit
-              </Link>
-            </div>
-
-            <div className="mt-6 grid gap-3">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="m-0 text-[10px] font-bold uppercase tracking-[0.24em] text-amber-300">
-                  Professional identity
-                </p>
-                <p className="m-0 mt-2 text-sm leading-6 text-white/65">
-                  {profile.jobTitle || "Job title not added"}
-                  {profile.company ? ` at ${profile.company}` : ""}
-                </p>
-                <p className="m-0 mt-1 text-xs text-white/45">
-                  Experience: {profile.experienceYears || 0} years
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="m-0 text-[10px] font-bold uppercase tracking-[0.24em] text-amber-300">
-                  Active session
-                </p>
-                {activeSession ? (
-                  <div className="mt-2">
-                    <p className="m-0 text-sm font-semibold text-white">
-                      {activeSession.question || "Live doubt session"}
-                    </p>
-                    <p className="m-0 mt-1 text-xs text-white/45">
-                      Student: {activeSession.studentId?.name || "Student"} · Duration:{" "}
-                      {activeSession.sessionDuration || "N/A"}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="m-0 mt-2 text-sm text-white/50">No active live session right now.</p>
-                )}
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl sm:rounded-3xl sm:p-6">
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <div>
-                <p className="m-0 text-[10px] font-bold uppercase tracking-[0.28em] text-amber-300">
-                  Open Opportunities
-                </p>
-                <h2 className="m-0 mt-2 text-2xl text-white font-space-grotesk">Doubts matching your skill</h2>
-              </div>
-              <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-sky-300">
-                {opportunities.length} available
-              </span>
-            </div>
-
-            <div className="mt-5 flex max-h-none flex-col gap-3 overflow-visible pr-0 xl:max-h-[430px] xl:overflow-y-auto xl:pr-1">
-              {opportunities.length > 0 ? (
-                opportunities.map((session) => (
-                  <motion.article
-                    key={session._id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="rounded-2xl border border-white/10 bg-black/20 p-3 transition-colors hover:border-amber-300/25 sm:p-4"
-                  >
-                    <h3 className="m-0 text-sm font-semibold text-white font-space-grotesk">
-                      {session.question || "No question found"}
-                    </h3>
-                    <p className="m-0 mt-2 text-xs text-white/45">
-                      Student: <span className="text-white/70">{session.studentId?.name || "Student"}</span>
-                    </p>
-                    <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/45">
-                      <span className="rounded-full bg-white/5 px-3 py-1">
-                        Duration: {session.sessionDuration || "N/A"}
-                      </span>
-                      <span className="rounded-full bg-white/5 px-3 py-1">
-                        Posted: {formatDate(session.createdAt)}
-                      </span>
-                    </div>
-                  </motion.article>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-8 text-center">
-                  <p className="m-0 text-xl text-white">No matching doubts right now</p>
-                  <p className="m-0 mt-2 text-sm text-white/45">
-                    Student jab aapke selected skill me doubt post karega, yaha show hoga.
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
-
-        <section className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 shadow-2xl sm:rounded-3xl sm:p-6">
-          <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-            <div>
-              <p className="m-0 text-[10px] font-bold uppercase tracking-[0.28em] text-amber-300">
-                Recent Resolved Sessions
-              </p>
-              <h2 className="m-0 mt-2 text-2xl text-white font-space-grotesk">Your latest mentoring work</h2>
-            </div>
-            <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-300">
-              Real data
+          <div className="flex items-center gap-2 shrink-0">
+            <span className={`text-[11px] font-semibold px-3 py-1 rounded-full border ${
+              isVerified
+                ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
+                : "border-white/10 text-white/40 bg-white/5"
+            }`}>
+              {isVerified ? "Verified Mentor" : (profile.verificationStatus || "Pending")}
+            </span>
+            <span className="text-[11px] px-3 py-1 rounded-full border border-blue-500/20 text-blue-300/70 bg-blue-500/5">
+              {profile.specialization?.name || profile.skill?.name || "No skill"}
             </span>
           </div>
+        </motion.div>
 
-          <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2">
-            {recentSessions.length > 0 ? (
-              recentSessions.map((session) => (
-                <article key={session._id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <h3 className="m-0 text-sm font-semibold text-white font-space-grotesk">
-                    {session.question || "Resolved doubt"}
-                  </h3>
-                  <p className="m-0 mt-2 text-xs text-white/45">
-                    Student: <span className="text-white/70">{session.studentId?.name || "Student"}</span>
-                  </p>
-                  <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/45">
-                    <span className="rounded-full bg-white/5 px-3 py-1">
-                      Completed: {formatDate(session.sessionEndedAt || session.updatedAt)}
-                    </span>
-                    <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-emerald-300">
-                      {session.status || "completed"}
-                    </span>
-                  </div>
-                </article>
-              ))
-            ) : (
-              <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-8 text-center lg:col-span-2">
-                <p className="m-0 text-xl text-white">No resolved sessions yet</p>
-                <p className="m-0 mt-2 text-sm text-white/45">
-                  Aap mentor session complete karoge to history yaha show hogi.
-                </p>
-              </div>
-            )}
+        {/* ── Verification banner ─────────────────────────────────── */}
+        <VerifyBanner profile={profile} />
+
+        {/* ── Stat cards ──────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <StatCard
+            label="Sessions"
+            value={totalResolved}
+            sub={`${ratingCount} reviews`}
+            accent="text-blue-400"
+            index={0}
+          />
+          <StatCard
+            label="Rating"
+            value={`${rating.toFixed(1)} ★`}
+            sub={`${ratingCount} reviews`}
+            accent="text-white"
+            index={1}
+          />
+          <StatCard
+            label="Earnings"
+            value={totalEarnings >= 1000 ? `₹${(totalEarnings / 1000).toFixed(1)}k` : `₹${totalEarnings}`}
+            sub="Lifetime"
+            accent="text-white"
+            index={2}
+          />
+          <StatCard
+            label="Active Bids"
+            value={activeBids}
+            sub="Pending offers"
+            accent="text-white"
+            index={3}
+          />
+          <div className="col-span-2 sm:col-span-1">
+            <StatCard
+              label="Open Doubts"
+              value={opportunities.length}
+              sub="Matching skill"
+              accent="text-white"
+              index={4}
+            />
           </div>
-        </section>
+        </div>
+
+        {/* ── Main grid ───────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Left col — Profile + Active Session ────────────────── */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex flex-col gap-4"
+          >
+
+            {/* Profile card */}
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                  {profile.avatar
+                    ? <img src={profile.avatar} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                    : initials
+                  }
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                  <p className="text-xs text-white/40 truncate">{profile.email || "—"}</p>
+                </div>
+                <Link
+                  to="/mentor/profile"
+                  className="text-[11px] text-blue-400 hover:text-blue-300 border border-blue-500/20 rounded-lg px-2.5 py-1 transition-colors shrink-0"
+                >
+                  Edit
+                </Link>
+              </div>
+
+              <div className="space-y-3 border-t border-white/[0.06] pt-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-white/30 mb-0.5">Title</p>
+                  <p className="text-xs text-white/70">
+                    {profile.jobTitle || "Not set"}
+                    {profile.company ? ` @ ${profile.company}` : ""}
+                    {profile.experienceYears ? ` · ${profile.experienceYears}y exp` : ""}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-white/30 mb-0.5">Specialization</p>
+                  <p className="text-xs text-white/70">
+                    {profile.specialization?.name || profile.skill?.name || "Not selected"}
+                  </p>
+                </div>
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <p className="text-[10px] uppercase tracking-widest text-white/30">Profile Completion</p>
+                    <p className="text-[11px] text-blue-400 font-semibold">{profileCompletion}%</p>
+                  </div>
+                  <div className="h-1 rounded-full bg-white/[0.08] overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-blue-500 transition-all"
+                      style={{ width: `${profileCompletion}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Session card */}
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-5">
+              <p className="text-[10px] uppercase tracking-widest text-white/30 mb-3">Active Session</p>
+              {activeSession ? (
+                <div className="space-y-2">
+                  <p className="text-sm text-white/80 line-clamp-2">
+                    {activeSession.question || "Live doubt session"}
+                  </p>
+                  <p className="text-xs text-white/40">
+                    Student: <span className="text-white/60">{activeSession.studentId?.name || "—"}</span>
+                    {" · "}{activeSession.sessionDuration || "?"} min
+                  </p>
+                  {activeSession.chatRoomId && (
+                    <Link
+                      to={`/chat/${activeSession.chatRoomId}`}
+                      className="mt-3 flex items-center gap-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors rounded-lg px-3 py-2"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      Join Chat Room
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-white/30">No active session right now.</p>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Right col — Chart + Tabs ────────────────────────────── */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="lg:col-span-2 flex flex-col gap-4"
+          >
+
+            {/* Bar chart */}
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-5">
+              <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">Performance</p>
+              <p className="text-sm font-semibold text-white mb-4">All Stats at a Glance</p>
+
+              <div className="h-36 sm:h-44">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+                    <XAxis
+                      dataKey="label"
+                      stroke="transparent"
+                      tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis hide />
+                    <Tooltip content={<BarTip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={32}>
+                      {chartData.map((d) => (
+                        <Cell key={d.label} fill={d.color} fillOpacity={0.85} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Tabbed list — Opportunities / Recent Sessions */}
+            <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-5 flex-1">
+              {/* Tab switcher */}
+              <div className="flex gap-1 mb-4 bg-white/[0.04] rounded-lg p-1 w-full sm:w-fit">
+                {[
+                  { key: "opportunities", label: `Opportunities (${opportunities.length})` },
+                  { key: "sessions",      label: `Recent Sessions (${recentSessions.length})` },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setTab(key)}
+                    className={`flex-1 sm:flex-none text-xs font-semibold px-3 py-1.5 rounded-md transition-colors ${
+                      tab === key
+                        ? "bg-blue-600 text-white"
+                        : "text-white/40 hover:text-white/70"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              {/* List */}
+              <div className="space-y-0 max-h-72 overflow-y-auto pr-1 scrollbar-hide" data-lenis-prevent>
+                {tab === "opportunities" ? (
+                  opportunities.length > 0 ? (
+                    opportunities.map((s) => (
+                      <SessionRow key={s._id} session={s} isOpportunity currentUser={currentUser} />
+                    ))
+                  ) : (
+                    <p className="text-xs text-white/30 py-6 text-center">No matching doubts right now.</p>
+                  )
+                ) : (
+                  recentSessions.length > 0 ? (
+                    recentSessions.map((s) => (
+                      <SessionRow key={s._id} session={s} currentUser={currentUser} />
+                    ))
+                  ) : (
+                    <p className="text-xs text-white/30 py-6 text-center">No resolved sessions yet.</p>
+                  )
+                )}
+              </div>
+            </div>
+
+          </motion.div>
+        </div>
       </div>
     </div>
   );

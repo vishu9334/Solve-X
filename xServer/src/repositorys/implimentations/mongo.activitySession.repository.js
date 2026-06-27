@@ -1,6 +1,6 @@
 import IActivitySessionRepository from "../contracts/IActivitySession.contract.js";
 import { AssessmentActivitySession } from "../../models/assessmentActivityDataStore.model.js";
-import { Skill } from "../../models/skill.model.js";
+import { Specialization } from "../../models/specialization.model.js";
 import { MentorProfile } from "../../models/AmentorProfile.model.js";
 import { AssessmentStore } from "../../models/assessmentDataStore.model.js";
 
@@ -30,9 +30,9 @@ class MongoActivitySessionRepository extends IActivitySessionRepository {
       .lean();
   }
   async findSessionByIdAndUser(sessionId, userId) {
-    return AssessmentActivitySession.findOne({ 
-        _id: sessionId, 
-        userId  
+    return AssessmentActivitySession.findOne({
+      _id: sessionId,
+      userId
     });
   }
 
@@ -40,12 +40,12 @@ class MongoActivitySessionRepository extends IActivitySessionRepository {
     return session.save();
   }
 
-  async findSkillById(skillId) {
-    return Skill.findById(skillId);
+  async findSpecializedById(skillId) {
+    return Specialization.findById(skillId);
   }
 
-  async findSkillByNameOrSlug(nameOrSlug) {
-    return Skill.findOne({
+  async findSpecializedByNameOrSlug(nameOrSlug) {
+    return Specialization.findOne({
       $or: [{ name: nameOrSlug }, { slug: nameOrSlug.toLowerCase() }]
     });
   }

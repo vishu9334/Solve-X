@@ -13,7 +13,9 @@ class AssessmentEvaluator {
   }
 
   isActivityClean(activityDecision) {
-    return activityDecision === "clean";
+    // "clean" = fully clean, "suspicious" = minor warnings (still allowed to pass)
+    // Only "rejected" means serious cheating and blocks passing
+    return activityDecision === "clean" || activityDecision === "suspicious";
   }
 
   async evaluate(attempt, activitySession) {
@@ -22,7 +24,7 @@ class AssessmentEvaluator {
       assessment = await AssessmentStore.findById(assessment);
     }
 
-    const totalQuestions = assessment?.totalQuestions || 5;
+    const totalQuestions = assessment?.totalQuestions || 0;
     const passingPercentage = assessment?.passingPercentage || 70;
 
     const correctCount = await Answer.countDocuments({
@@ -30,7 +32,15 @@ class AssessmentEvaluator {
       isCorrect: true
     });
 
-    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+    // Count actual total answers submitted for this attempt (more accurate than stored totalQuestions)
+    const actualTotalAnswered = await Answer.countDocuments({
+      attemptId: attempt._id
+    });
+
+    // Use the larger of stored totalQuestions vs actual answers to avoid inflated scores
+    const effectiveTotal = Math.max(totalQuestions, actualTotalAnswered);
+
+    const score = effectiveTotal > 0 ? Math.round((correctCount / effectiveTotal) * 100) : 0;
 
     const isScorePassed = this.isPassed(score, passingPercentage);
     const isClean = this.isActivityClean(activitySession.activityDecision);

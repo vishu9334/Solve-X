@@ -9,12 +9,12 @@ class studentController {
      */
     studentReaseQuestion = asyncHandler(async (req, res) => {
         const userId = req.user?._id || req.user?.userId || req.params.userId;
-        const { skillIdentifier, selectSessionTime } = req.query
+        const { specializationIdentifier, selectSessionTime } = req.query
         const { typeWriteQuestion } = req.body
 
-        const response = await studentService.skillMatchingByStudent(
+        const response = await studentService.specializationMatchingByStudent(
             userId,
-            skillIdentifier,
+            specializationIdentifier,
             selectSessionTime,
             typeWriteQuestion
         );
@@ -85,6 +85,26 @@ class studentController {
         const userId = req.user?._id || req.user?.userId;
         const response = await studentService.getStudentProfile({ userId });
         return res.status(200).json(new ApiResponse(200, response, "Student profile fetched successfully."));
+    })
+
+    /**
+     * Student gets list of specialist mentors (grouped by specialization category)
+     * Optional query: ?specializationName=DSA to filter by specific category
+     */
+    listMentorsForStudent = asyncHandler(async (req, res) => {
+        const userId = req.user?._id || req.user?.userId;
+        const { specializationName } = req.query;
+        const response = await studentService.listMentorforStudent({ userId, specializationName });
+        return res.status(200).json(new ApiResponse(200, response, "Specialist mentors fetched successfully."));
+    })
+
+    /**
+     * Student gets list of verified mentors for a specific specialization
+     */
+    getMentorsForSpecialization = asyncHandler(async (req, res) => {
+        const { specializationId } = req.params;
+        const response = await studentService.getMentorsForSpecialization(specializationId);
+        return res.status(200).json(new ApiResponse(200, response, "Verified mentors fetched successfully."));
     })
 }
 

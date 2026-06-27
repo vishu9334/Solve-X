@@ -19,15 +19,15 @@ export const submitAssessmentValidator = {
   }),
 };
 
-export const selectSkillValidator = {
+export const selectSpecializationValidator = {
   body: z
     .object({
-      skillId: objectIdSchema.optional(),
-      skillName: z.string().trim().min(1, "skillName cannot be empty").optional(),
+      specializationId: objectIdSchema.optional(),
+      specializationName: z.string().trim().min(1, "specializationName cannot be empty").optional(),
     })
     .refine(
-      (data) => data.skillId || data.skillName,
-      { message: "Either skillId or skillName is required" }
+      (data) => data.specializationId || data.specializationName,
+      { message: "Either specializationId or specializationName is required" }
     ),
 };
 
@@ -39,7 +39,7 @@ export const replyToDoubtValidator = {
   }),
 };
 
-export const updateSkillDescriptionValidator = {
+export const updateSpecializationDescriptionValidator = {
   body: z.object({
     description: z.string().trim().min(1, "description is required"),
   }),

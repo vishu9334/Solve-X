@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { CommonUser } from "./src/models/AbaseUser.model.js";
 import { SimpleUserAuth } from "./src/models/AuserAuth.model.js";
 import { MentorProfile } from "./src/models/AmentorProfile.model.js";
-import { Skill } from "./src/models/skill.model.js";
+import { Specialization } from "./src/models/specialization.model.js";
 import { AssessmentStore } from "./src/models/assessmentDataStore.model.js";
 import { Attempt } from "./src/models/assessmentAttempt.model.js";
 import { Answer } from "./src/models/Answer.model.js";
@@ -39,7 +39,7 @@ async function seed() {
     console.log("🧹 Clearing existing collections...");
     await CommonUser.deleteMany({});
     await MentorProfile.deleteMany({});
-    await Skill.deleteMany({});
+    await Specialization.deleteMany({});
     await AssessmentStore.deleteMany({});
     await Attempt.deleteMany({});
     await Answer.deleteMany({});
@@ -115,7 +115,7 @@ async function seed() {
         updatedAt: new Date()
       };
 
-      const result = await Skill.collection.insertOne(skillDoc);
+      const result = await Specialization.collection.insertOne(skillDoc);
       const skillId = result.insertedId;
 
       // Link AssessmentStore back to the created Skill

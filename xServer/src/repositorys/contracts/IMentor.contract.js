@@ -3,31 +3,35 @@ class IMentorRepository {
         throw new Error("Method not implemented");
     }
 
-    async updateMentorSkill(userId, skillId) {
+    async updateMentorSkill(userId, specializedId) {
         throw new Error("Method not implemented");
     }
 
-    async findSkillById(skillId) {
+    async findSpecializedById(specializedId) {
         throw new Error("Method not implemented");
     }
 
-    async findSkillByName(name) {
+    async findSpecializedByName(name) {
         throw new Error("Method not implemented");
     }
 
-    async createSkillWithAssessment({ name, createdBy, source }) {
+    async createSpecializedWithAssessment({ name, createdBy, source }) {
         throw new Error("Method not implemented");
     }
 
-    async incrementMentorCount(skillId) {
+    async incrementMentorCount(specializedId) {
         throw new Error("Method not implemented");
     }
 
-    async decrementAndCleanup(skillId) {
+    async decrementAndCleanup(specializedId) {
         throw new Error("Method not implemented");
     }
 
     async createAttempt(userId, assessmentId) {
+        throw new Error("Method not implemented");
+    }
+
+    async createAttemptWithMax(userId, assessmentId, maxAttempts) {
         throw new Error("Method not implemented");
     }
 
@@ -79,7 +83,7 @@ class IMentorRepository {
         throw new Error("Method not implemented");
     }
 
-    async findSkillByAssessmentId(assessmentId) {
+    async findSpecializedByAssessmentId(assessmentId) {
         throw new Error("Method not implemented");
     }
 
@@ -100,6 +104,30 @@ class IMentorRepository {
     }
 
     async countActiveBids(userId) {
+        throw new Error("Method not implemented");
+    }
+
+    async specializationOfRepository(specializationId, specializationName) {
+        throw new Error("Method not implemented");
+    }
+
+    async specializationOfRepositoryUpdate(specializationId, specializationName) {
+        throw new Error("Method not implemented");
+    }
+
+    async specializationOfNewCreateOne({ specializationId, specializationName }) {
+        throw new Error("Method not implemented");
+    }
+
+    async createAssessmentForSpecialization(specializedId, createdBy, name) {
+        throw new Error("Method not implemented");
+    }
+
+    async getAllSpecializationsAndCatalogs() {
+        throw new Error("Method not implemented");
+    }
+
+    async findCatalogByName(name) {
         throw new Error("Method not implemented");
     }
 }

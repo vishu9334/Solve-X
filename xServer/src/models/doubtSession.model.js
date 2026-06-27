@@ -50,9 +50,9 @@ const doubtSessionSchema = new Schema({
         index: true,
     },
 
-    skillId: {
+    specializedId: {
         type: Schema.Types.ObjectId,
-        ref: "Skill",
+        ref: "Specialization",
         required: true,
     },
 
@@ -86,6 +86,16 @@ const doubtSessionSchema = new Schema({
     },
 
     chatRoomId: {
+        type: String,
+        default: null,
+    },
+
+    videoRoomUrl: {
+        type: String,
+        default: null,
+    },
+
+    videoRoomName: {
         type: String,
         default: null,
     },

@@ -1,18 +1,22 @@
 import { ApiError } from "../utils/ApiError.js"
 import mongoose from "mongoose"
+import redis from "../configs/redis.config.js"
 import studentRepository from '../repositorys/implimentations/mongo.student.repository.js'
 import { sendNotificationToMultipleUsers, sendNotificationToUser, createChatRoom, destroyChatRoom } from "../helpers/socket/socket.helper.js"
+import { MentorProfile } from "../models/AmentorProfile.model.js"
+import { triggerMentorIgnoreWarning } from "../helpers/mentorWarning.helper.js"
+import { cleanExpiredSessions } from "../helpers/sessionCleanup.helper.js"
 
 class studentService {
 
     /**
      * Student posts a doubt — creates DoubtSession + notifies all verified mentors of that skill
      */
-    skillMatchingByStudent = async (userId, skillIdentifier, selectSessionTime, typeWriteQuestion) => {
+    specializationMatchingByStudent = async (userId, specializationIdentifier, selectSessionTime, typeWriteQuestion) => {
         if (!mongoose.Types.ObjectId.isValid(userId))
             throw new ApiError(401, "Student id's not valid")
-        if (!mongoose.Types.ObjectId.isValid(skillIdentifier))
-            throw new ApiError(401, "Skill id's not valid")
+        if (!mongoose.Types.ObjectId.isValid(specializationIdentifier))
+            throw new ApiError(401, "Specialization id's not valid")
 
         const isExisted = await studentRepository.findStudentId(userId)
         if (!isExisted) throw new ApiError(404, "Unauthorized student!")
@@ -20,8 +24,11 @@ class studentService {
             throw new ApiError(403, "Access denied. Only students can post doubts.");
         }
 
-        if (!skillIdentifier || !selectSessionTime || !typeWriteQuestion)
+        if (!specializationIdentifier || !selectSessionTime || !typeWriteQuestion)
             throw new ApiError(400, "These all are required fields.");
+
+        // Clean up any expired active sessions first
+        await cleanExpiredSessions();
 
         // Check if student already has an active doubt session
         const activeSession = await studentRepository.findActiveSessionForStudent(userId);
@@ -29,18 +36,18 @@ class studentService {
             throw new ApiError(400, "You already have an active doubt session. Please complete or cancel it first.");
         }
 
-        const isSkillExisted = await studentRepository.findSkillandSlug(skillIdentifier);
-        if (!isSkillExisted) throw new ApiError(404, "This skill is not available currently.");
+        const isSpecializationExisted = await studentRepository.findSpecializationIdentifier(specializationIdentifier);
+        if (!isSpecializationExisted) throw new ApiError(404, "This specialization is not available currently.");
 
-        const mentors = await studentRepository.findMentorBySkill(isSkillExisted._id);
+        const mentors = await studentRepository.findMentorBySpecialization(isSpecializationExisted._id);
         if (!mentors || mentors.length === 0) {
-            throw new ApiError(404, "No mentors are currently available for this skill.");
+            throw new ApiError(404, "No mentors are currently available for this specialization.");
         }
 
         // Create DoubtSession in DB (status: open)
         const doubtSession = await studentRepository.createDoubtSession({
             studentId: userId,
-            skillId: isSkillExisted._id,
+            specializedId: isSpecializationExisted._id,
             question: typeWriteQuestion,
             sessionDuration: selectSessionTime,
             status: "open"
@@ -51,7 +58,7 @@ class studentService {
             doubtSessionId: doubtSession._id,
             studentName: isExisted.name,
             question: typeWriteQuestion,
-            skillName: isSkillExisted.name,
+            specializationName: isSpecializationExisted.name,
             sessionDuration: selectSessionTime
         };
 
@@ -70,11 +77,40 @@ class studentService {
             if (session && session.status === "open") {
                 session.status = "expired";
                 await studentRepository.saveDoubtSession(session);
+
                 // Notify student that no mentor responded in time
-                sendNotificationToUser(userId, "doubt_expired", {
+                await sendNotificationToUser(userId, "doubt_expired", {
                     doubtSessionId: doubtSession._id,
                     message: "No mentor responded within 10 minutes. Please try again."
                 });
+
+                // ── Track mentor ignore counts ────────────────────────────────
+                // Find which mentors received the notification but did NOT offer
+                const respondedMentorIds = session.mentorOffers.map(o => o.mentorId.toString());
+                const ignoredMentorIds = mentorUserIds.filter(
+                    id => !respondedMentorIds.includes(id.toString())
+                );
+
+                const monthKey = new Date().toISOString().slice(0, 7); // e.g. "2026-06"
+                for (const mentorId of ignoredMentorIds) {
+                    try {
+                        const redisKey = `notif:ignored:${mentorId}:${monthKey}`;
+                        const ignoreCount = await redis.incr(redisKey);
+                        // Set 35-day TTL on first increment so key auto-expires after the month
+                        if (ignoreCount === 1) {
+                            await redis.expire(redisKey, 35 * 24 * 60 * 60);
+                        }
+                        // Trigger warning at 7 ignores (and every 7 after that)
+                        if (ignoreCount >= 7 && ignoreCount % 7 === 0) {
+                            await triggerMentorIgnoreWarning(mentorId, ignoreCount);
+                        }
+                    } catch (err) {
+                        console.error(`[studentService] Failed to track ignore for mentor ${mentorId}:`, err.message);
+                    }
+                }
+
+                // Cleanup any doubt-specific Redis cache
+                await redis.del(`doubt:${doubtSession._id}`).catch(() => {});
             }
         }, 10 * 60 * 1000); // 10 minutes
 
@@ -215,6 +251,9 @@ class studentService {
         if (!userId || !mongoose.Types.ObjectId.isValid(userId))
             throw new ApiError(400, "Valid userId is required");
 
+        // Clean up any expired active sessions first
+        await cleanExpiredSessions();
+
         const data = await studentRepository.studentDashboard(userId);
         if (!data) throw new ApiError(404, "Student not found");
 
@@ -246,7 +285,7 @@ class studentService {
 
         const totalAsked = await studentRepository.countDoubtSessions(userId);
         const openAsked = await studentRepository.countDoubtSessions(userId, "open");
-        const activeAsked = await studentRepository.countDoubtSessions(userId, "in_session");
+        const activeAsked = await studentRepository.countDoubtSessions(userId, ["in_session", "mentor_selected"]);
         const completedAsked = await studentRepository.countDoubtSessions(userId, "completed");
 
         // Calculate total spent on completed sessions
@@ -330,7 +369,13 @@ class studentService {
         if (!userId || !mongoose.Types.ObjectId.isValid(userId))
             throw new ApiError(400, "Valid userId is required");
 
-        const session = await studentRepository.findActiveSessionForStudentPopulated(userId);
+        // Clean up any expired active sessions first
+        await cleanExpiredSessions();
+
+        let session = await studentRepository.findActiveSessionForStudentPopulated(userId);
+        if (!session) {
+            session = await studentRepository.findActiveSessionForMentor(userId);
+        }
 
         return session;
     }
@@ -345,7 +390,35 @@ class studentService {
 
         if (!session) throw new ApiError(404, "Doubt session not found or unauthorized");
 
-        return session.mentorOffers;
+        const offers = session.mentorOffers || [];
+        if (offers.length === 0) return [];
+
+        const mentorUserIds = offers.map(o => o.mentorId._id || o.mentorId);
+        const profiles = await MentorProfile.find({ userId: { $in: mentorUserIds } })
+            .select("userId jobTitle company experienceYears rating ratingCount preferredLanguage");
+
+        const profileMap = new Map(profiles.map(p => [p.userId.toString(), p]));
+
+
+        const detailedOffers = offers.map(offer => {
+            const offerObj = offer.toObject ? offer.toObject() : offer;
+            const mentorIdStr = (offer.mentorId._id || offer.mentorId).toString();
+            const profile = profileMap.get(mentorIdStr);
+
+            return {
+                ...offerObj,
+                mentorProfile: profile ? {
+                    jobTitle: profile.jobTitle || "",
+                    company: profile.company || "",
+                    experienceYears: profile.experienceYears || 0,
+                    rating: profile.rating || 5,
+                    ratingCount: profile.ratingCount || 0,
+                    preferredLanguage: profile.preferredLanguage || ""
+                } : null
+            };
+        });
+
+        return detailedOffers;
     }
 
     getDoubtSessionDetails = async (userId, doubtSessionId) => {
@@ -369,6 +442,24 @@ class studentService {
         if (!data) throw new ApiError(404, "Student profile not found");
 
         return data;
+    }
+    listMentorforStudent = async ({ userId, specializationName }) => {
+        if (!userId || !mongoose.Types.ObjectId.isValid(userId))
+            throw new ApiError(400, "Valid userId is required");
+
+        const findStudent = await studentRepository.findStudentProfile(userId);
+        if (!findStudent) throw new ApiError(401, "Unauthorized userId");
+
+        const result = await studentRepository.getListOfMentorForStudent(specializationName);
+        return result;
+    }
+
+    getMentorsForSpecialization = async (specializationId) => {
+        if (!specializationId || !mongoose.Types.ObjectId.isValid(specializationId))
+            throw new ApiError(400, "Valid specializationId is required");
+
+        const mentors = await studentRepository.findMentorsWithProfileBySpecialization(specializationId);
+        return mentors;
     }
 }
 

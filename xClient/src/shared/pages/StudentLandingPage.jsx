@@ -41,6 +41,7 @@ const StepBadge = ({ number, label }) => (
 const StudentLandingPage = () => {
     const { data: currentUser, isPending } = useCurrentUser();
     const [selectedMentorId, setSelectedMentorId] = useState(1);
+    const [menuOpen, setMenuOpen] = useState(false);
     const selectedMentor = mentors.find((mentor) => mentor.id === selectedMentorId);
     const { mutate: performLogout, isPending: isLoggingOut } = useLogout();
 
@@ -66,17 +67,18 @@ const StudentLandingPage = () => {
     }
 
     return (
-        <main className="relative min-h-screen w-full overflow-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] px-4 pb-24 pt-8 text-white sm:px-6 lg:px-8">
+        <main className="relative min-h-screen w-full overflow-x-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] px-4 pb-24 pt-8 text-white sm:px-6 lg:px-8">
             <CustomCursor />
 
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:linear-gradient(to_bottom,black,transparent_92%)]" />
 
             <nav className="relative z-20 mx-auto flex w-full max-w-7xl items-center justify-between rounded-full border border-white/10 bg-black/20 px-5 py-3 backdrop-blur-md">
                 <Link to="/" className="flex items-center gap-3 text-white">
                     <img src="/logo.png" alt="Solve-X" className="h-8 w-8 object-contain" />
                     <span className="text-xs font-bold uppercase tracking-[0.22em]">Solve-X</span>
                 </Link>
-                <div className="flex items-center gap-5">
+
+                {/* Desktop menu links - visible on md and above */}
+                <div className="hidden md:flex items-center gap-5">
                     <Link to="/dashboard/student" className="text-xs font-semibold text-white/70 hover:text-white transition-colors">
                         Dashboard
                     </Link>
@@ -92,10 +94,59 @@ const StudentLandingPage = () => {
                             {isLoggingOut ? 'Logging out...' : 'Logout'}
                         </button>
                     )}
-                    <Link to="/dashboard/student" className="rounded-full border border-white/15 bg-white px-5 py-2 text-xs font-bold text-black transition-transform hover:scale-105">
+                    <Link to="/student/ask-doubt" className="rounded-full border border-white/15 bg-white px-5 py-2 text-xs font-bold text-black transition-transform hover:scale-105">
                         Ask a Doubt
                     </Link>
                 </div>
+
+                {/* Mobile/Tablet Hamburger Icon */}
+                <button
+                    onClick={() => setMenuOpen(!menuOpen)}
+                    className="flex md:hidden items-center justify-center p-1 bg-transparent border-none text-white focus:outline-none cursor-pointer"
+                >
+                    <span className="material-symbols-outlined text-2xl select-none">
+                        {menuOpen ? 'close' : 'menu'}
+                    </span>
+                </button>
+
+                {/* Mobile Dropdown Panel */}
+                {menuOpen && (
+                    <div className="absolute top-[110%] left-0 right-0 z-[1000] flex flex-col gap-3 rounded-3xl border border-white/15 bg-[#0c0b11]/95 px-6 py-5 shadow-xl backdrop-blur-md md:hidden">
+                        <Link
+                            to="/dashboard/student"
+                            className="text-white/70 hover:text-white no-underline transition-colors py-2.5 border-b border-white/5 font-semibold text-xs tracking-wider"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            Dashboard
+                        </Link>
+                        <Link
+                            to="/student/profile"
+                            className="text-white/70 hover:text-white no-underline transition-colors py-2.5 border-b border-white/5 font-semibold text-xs tracking-wider"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            Profile
+                        </Link>
+                        {currentUser && (
+                            <button
+                                onClick={() => {
+                                    setMenuOpen(false);
+                                    handleLogout();
+                                }}
+                                disabled={isLoggingOut}
+                                className="w-full text-left bg-transparent border-none text-rose-400 py-2.5 border-b border-white/5 font-semibold text-xs tracking-wider cursor-pointer disabled:opacity-50"
+                            >
+                                {isLoggingOut ? 'Logging out...' : 'Logout'}
+                            </button>
+                        )}
+                        <Link
+                            to="/student/ask-doubt"
+                            className="mt-2 w-full h-[40px] flex items-center justify-center rounded-full bg-white text-black text-xs font-bold hover:bg-neutral-200 transition-colors"
+                            onClick={() => setMenuOpen(false)}
+                        >
+                            Ask a Doubt
+                        </Link>
+                    </div>
+                )}
             </nav>
 
             <section className="relative z-10 mx-auto w-full max-w-7xl pt-20">
@@ -327,9 +378,9 @@ const StudentLandingPage = () => {
 
                 <div className="mt-12 flex flex-col items-center text-center">
                     <p className="text-sm text-white/45">One question can change the way you understand a topic.</p>
-                    <Link to="/register" className="mt-5 inline-flex items-center gap-2 rounded-full bg-white px-7 py-3 text-sm font-bold text-black transition-transform hover:scale-105">
-                        Post your first doubt <span>→</span>
-                    </Link>
+                    <span className='w-full max-h-min pt-5'>
+                        <h1 className='text-9xl font-bold text-green-600'>Solve-X</h1>
+                    </span>
                 </div>
             </section>
         </main>

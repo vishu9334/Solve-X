@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 import IstudentContract from '../contracts/IStudent.contract.js'
 import { CommonUser } from '../../models/AbaseUser.model.js'
-import { Skill } from '../../models/skill.model.js'
+import { Specialization } from '../../models/specialization.model.js'
 import { MentorProfile } from '../../models/AmentorProfile.model.js'
 import { DoubtSession } from '../../models/doubtSession.model.js'
 import { StudentProfile } from '../../models/AstudentProfile.model.js'
@@ -11,13 +11,13 @@ class MongoStudentRepository extends IstudentContract {
         return await CommonUser.findById(userId);
     }
 
-    findSkillandSlug = async (skillIdentifier) => {
-        return await Skill.findOne({ _id: skillIdentifier, isActive: true });
+    findSpecializationIdentifier = async (specializationIdentifier) => {
+        return await Specialization.findOne({ _id: specializationIdentifier, isActive: true });
     }
 
-    findMentorBySkill = async (id) => {
+    findMentorBySpecialization = async (id) => {
         return await MentorProfile.find({
-            skillCategory: id,
+            specializedCategory: id,
             isVerifiedMentor: true
         }).populate("userId", "name email avatar");
     }
@@ -186,8 +186,8 @@ class MongoStudentRepository extends IstudentContract {
                         },
                         {
                             $lookup: {
-                                from: "skills",
-                                localField: "skillId",
+                                from: "specializations",
+                                localField: "specializedId",
                                 foreignField: "_id",
                                 as: "skill"
                             }
@@ -384,18 +384,29 @@ class MongoStudentRepository extends IstudentContract {
         }).populate("mentorOffers.mentorId", "name email avatar");
     }
 
-    findDoubtSessionByIdAndStudentWithDetails = async (doubtSessionId, studentId) => {
+    findDoubtSessionByIdAndStudentWithDetails = async (doubtSessionId, userId) => {
         return await DoubtSession.findOne({
             _id: doubtSessionId,
-            studentId
+            $or: [
+                { studentId: userId },
+                { selectedMentorId: userId }
+            ]
         })
         .populate("selectedMentorId", "name email avatar")
-        .populate("skillId", "name slug");
+        .populate("studentId", "name email avatar")
+        .populate("specializedId", "name slug");
     }
+
 
     countDoubtSessions = async (studentId, status) => {
         const query = { studentId };
-        if (status) query.status = status;
+        if (status) {
+            if (Array.isArray(status)) {
+                query.status = { $in: status };
+            } else {
+                query.status = status;
+            }
+        }
         return await DoubtSession.countDocuments(query);
     }
 
@@ -466,6 +477,119 @@ class MongoStudentRepository extends IstudentContract {
 
         return result[0] || null;
     }
+    getListOfMentorForStudent = async (specializationName) => {
+        const { default: SpecializationCatalog } = await import("../../models/specializationCatalogs.model.js");
+
+        const pipeline = [
+            // 1. Unwind the specializationCatalogs array into individual docs
+            { $unwind: "$specializationCatalogs" },
+
+            // 2. Unwind the specializationIds array to process each id separately
+            { $unwind: "$specializationCatalogs.specializationIds" },
+
+            // 3. Lookup Specialization model using specializationIds
+            {
+                $lookup: {
+                    from: "specializations",
+                    localField: "specializationCatalogs.specializationIds",
+                    foreignField: "_id",
+                    as: "specializationDoc"
+                }
+            },
+
+            // 4. Unwind the looked-up specialization (filter out unmatched)
+            { $unwind: { path: "$specializationDoc", preserveNullAndEmptyArrays: false } },
+
+            // 5. Only include active specializations, and filter by specializationName if provided (matching category or specialization name)
+            {
+                $match: {
+                    "specializationDoc.isActive": true,
+                    ...(specializationName ? {
+                        $or: [
+                            {
+                                "specializationCatalogs.name": {
+                                    $regex: new RegExp(`^${specializationName}$`, "i")
+                                }
+                            },
+                            {
+                                "specializationDoc.name": {
+                                    $regex: new RegExp(`^${specializationName}$`, "i")
+                                }
+                            }
+                        ]
+                    } : {})
+                }
+            },
+
+            // 6. Lookup MentorProfile matching this specialization with isVerifiedMentor = true
+            {
+                $lookup: {
+                    from: "mentorprofiles",
+                    let: { specId: "$specializationDoc._id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$specializedCategory", "$$specId"] },
+                                        { $eq: ["$isVerifiedMentor", true] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: "mentorProfiles"
+                }
+            },
+
+            // 7. Skip specializations that have no verified mentors
+            {
+                $match: {
+                    $expr: { $gt: [{ $size: "$mentorProfiles" }, 0] }
+                }
+            },
+
+            // 8. Group back by category name
+            {
+                $group: {
+                    _id: "$specializationCatalogs.name",
+                    mentors: {
+                        $push: {
+                            specializationId: "$specializationDoc._id",
+                            specializationName: "$specializationDoc.name",
+                            specializationSlug: "$specializationDoc.slug",
+                            description: "$specializationDoc.description",
+                            mentorCount: { $size: "$mentorProfiles" }
+                        }
+                    }
+                }
+            },
+
+            // 9. Shape final output
+            {
+                $project: {
+                    _id: 0,
+                    categoryName: "$_id",
+                    mentors: 1
+                }
+            },
+
+            // 10. Sort categories alphabetically
+            { $sort: { categoryName: 1 } }
+        ];
+
+        return await SpecializationCatalog.aggregate(pipeline);
+    }
+
+    findMentorsWithProfileBySpecialization = async (specializationId) => {
+        return await MentorProfile.find({
+            specializedCategory: specializationId,
+            isVerifiedMentor: true
+        })
+        .populate("userId", "name email avatar")
+        .select("-payoutDetails -cooldownUntil -lastAssessmentAttemptId");
+    }
+
 }
 
 const studentRepository = new MongoStudentRepository()

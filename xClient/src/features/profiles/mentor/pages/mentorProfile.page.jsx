@@ -1,27 +1,11 @@
 import { useState, useEffect } from "react";
 import { Navigate, Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { useGetMentorProfile, useUpdateMentorProfile } from "../hooks/mentorProfile.hook";
 import CustomCursor from "../../../../shared/components/CustomCursor";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser";
 
-const platformIcons = {
-  linkedin: "https://img.icons8.com/ios-filled/50/linkedin.png",
-  instagram: "https://img.icons8.com/ios-filled/50/instagram-new--v1.png",
-  github: "https://img.icons8.com/ios-glyphs/30/github.png",
-  twitter: "https://img.icons8.com/ios-filled/50/twitterx--v1.png",
-  youtube: "https://img.icons8.com/ios-filled/50/youtube-play.png",
-  portfolio: "https://img.icons8.com/ios-filled/50/domain.png",
-  other: "https://img.icons8.com/ios-filled/50/link.png"
-};
-
-const formatExternalUrl = (url) => {
-  if (!url) return "";
-  const trimmed = url.trim();
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
-};
+import { platformIcons, formatExternalUrl } from "../../../../shared/utils/profile.utils";
 
 const MentorProfile = () => {
   const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
@@ -30,21 +14,36 @@ const MentorProfile = () => {
 
   const [isEditing, setIsEditing] = useState(false);
 
-  // Local state for editing fields
-  const [jobTitle, setJobTitle] = useState("");
-  const [company, setCompany] = useState("");
-  const [experienceYears, setExperienceYears] = useState(0);
-  const [education, setEducation] = useState("");
-  const [timezone, setTimezone] = useState("");
-  const [preferredLanguage, setPreferredLanguage] = useState("");
+  // useForm setup
+  const { register, handleSubmit, reset, watch } = useForm({
+    defaultValues: {
+      jobTitle: "",
+      company: "",
+      experienceYears: 0,
+      education: "",
+      timezone: "",
+      preferredLanguage: "",
+      payoutDetails: {
+        upiId: "",
+        bankName: "",
+        accountNumber: "",
+        ifscCode: ""
+      }
+    }
+  });
+
+  // Watch form fields so they can be rendered correctly in view mode
+  const jobTitle = watch("jobTitle");
+  const company = watch("company");
+  const experienceYears = watch("experienceYears");
+  const education = watch("education");
+  const timezone = watch("timezone");
+  const preferredLanguage = watch("preferredLanguage");
+  const payoutDetails = watch("payoutDetails");
+
+  // Keep array lists as state since they are edited dynamically outside standard form inputs
   const [socialLinks, setSocialLinks] = useState([]);
   const [certifications, setCertifications] = useState([]);
-  const [payoutDetails, setPayoutDetails] = useState({
-    upiId: "",
-    bankName: "",
-    accountNumber: "",
-    ifscCode: ""
-  });
 
   // Form states for adding items
   const [newPlatform, setNewPlatform] = useState("linkedin");
@@ -56,22 +55,24 @@ const MentorProfile = () => {
   // Sync state when profile data is loaded
   useEffect(() => {
     if (profileResponse?.data) {
-      setJobTitle(profileData.jobTitle || "");
-      setCompany(profileData.company || "");
-      setExperienceYears(profileData.experienceYears || 0);
-      setEducation(profileData.education || "");
-      setTimezone(profileData.timezone || "");
-      setPreferredLanguage(profileData.preferredLanguage || "");
+      reset({
+        jobTitle: profileData.jobTitle || "",
+        company: profileData.company || "",
+        experienceYears: profileData.experienceYears || 0,
+        education: profileData.education || "",
+        timezone: profileData.timezone || "",
+        preferredLanguage: profileData.preferredLanguage || "",
+        payoutDetails: {
+          upiId: profileData.payoutDetails?.upiId || "",
+          bankName: profileData.payoutDetails?.bankName || "",
+          accountNumber: profileData.payoutDetails?.accountNumber || "",
+          ifscCode: profileData.payoutDetails?.ifscCode || ""
+        }
+      });
       setSocialLinks(profileData.socialLinks || []);
       setCertifications(profileData.certifications || []);
-      setPayoutDetails({
-        upiId: profileData.payoutDetails?.upiId || "",
-        bankName: profileData.payoutDetails?.bankName || "",
-        accountNumber: profileData.payoutDetails?.accountNumber || "",
-        ifscCode: profileData.payoutDetails?.ifscCode || ""
-      });
     }
-  }, [profileResponse]);
+  }, [profileResponse, reset]);
 
   if (isCheckingSession) {
     return (
@@ -112,18 +113,13 @@ const MentorProfile = () => {
     );
   }
 
-  const handleSave = () => {
+  const onSubmit = (data) => {
     updateProfile(
       {
-        jobTitle,
-        company,
-        experienceYears: Number(experienceYears),
-        education,
-        timezone,
-        preferredLanguage,
+        ...data,
+        experienceYears: Number(data.experienceYears),
         socialLinks,
-        certifications,
-        payoutDetails
+        certifications
       },
       {
         onSuccess: () => {
@@ -159,12 +155,12 @@ const MentorProfile = () => {
   const rating = Number(profileData.rating || 5.0).toFixed(1);
 
   return (
-    <div className="h-screen flex flex-col px-6 text-white bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)]">
+    <div className="min-h-screen flex flex-col px-6 text-white bg-[radial-gradient(circle_at_82%_30%,rgba(255,255,255,0.40),transparent_30%),radial-gradient(circle_at_86%_18%,rgba(0,62,244,0.45),transparent_20%),radial-gradient(circle_at_0%_80%,rgba(20,12,220,0.50),transparent_38%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)]">
       <CustomCursor />
 
-      <main className="flex-1 min-h-0 w-full max-w-7xl mx-auto flex flex-col gap-3 pb-4">
+      <main className="flex-1 w-full max-w-7xl mx-auto flex flex-col gap-3 pb-4">
         {/* TOP SECTION - Pill Navbar (matches PublicPage style) */}
-        <div className="shrink-0 flex justify-between items-center px-6 py-3.5 rounded-full border border-white/15 bg-[rgba(12,11,17,0.85)] backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.24)]">
+        <div className="sticky top-4 z-50 shrink-0 flex justify-between items-center px-6 py-3.5 rounded-full border border-white/10 bg-white/[0.03] backdrop-blur-[20px] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_32px_rgba(0,0,0,0.37)]">
           {/* Left: Logo + Profile Name */}
           <div className="flex items-center gap-2.5">
             <img src="/logo.png" alt="Solve-X" className="w-6 h-6 object-contain" />
@@ -192,27 +188,29 @@ const MentorProfile = () => {
                 <button
                   onClick={() => {
                     setIsEditing(false);
-                    setJobTitle(profileData.jobTitle || "");
-                    setCompany(profileData.company || "");
-                    setExperienceYears(profileData.experienceYears || 0);
-                    setEducation(profileData.education || "");
-                    setTimezone(profileData.timezone || "");
-                    setPreferredLanguage(profileData.preferredLanguage || "");
+                    reset({
+                      jobTitle: profileData.jobTitle || "",
+                      company: profileData.company || "",
+                      experienceYears: profileData.experienceYears || 0,
+                      education: profileData.education || "",
+                      timezone: profileData.timezone || "",
+                      preferredLanguage: profileData.preferredLanguage || "",
+                      payoutDetails: {
+                        upiId: profileData.payoutDetails?.upiId || "",
+                        bankName: profileData.payoutDetails?.bankName || "",
+                        accountNumber: profileData.payoutDetails?.accountNumber || "",
+                        ifscCode: profileData.payoutDetails?.ifscCode || ""
+                      }
+                    });
                     setSocialLinks(profileData.socialLinks || []);
                     setCertifications(profileData.certifications || []);
-                    setPayoutDetails({
-                      upiId: profileData.payoutDetails?.upiId || "",
-                      bankName: profileData.payoutDetails?.bankName || "",
-                      accountNumber: profileData.payoutDetails?.accountNumber || "",
-                      ifscCode: profileData.payoutDetails?.ifscCode || ""
-                    });
                   }}
                   className="inline-flex h-[38px] w-[84px] items-center justify-center rounded-full border border-white/20 bg-gradient-to-b from-white to-[#e2e2e2] text-[13px] font-medium text-black cursor-pointer transition-colors duration-200 hover:from-neutral-100 hover:to-neutral-200"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleSave}
+                  onClick={handleSubmit(onSubmit)}
                   disabled={isUpdating}
                   className="inline-flex items-center gap-1.5 h-[38px] rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-5 text-[13px] font-medium text-white cursor-pointer transition-colors duration-200 hover:from-[#2e2e2e] hover:to-neutral-900 disabled:opacity-50"
                 >
@@ -239,11 +237,11 @@ const MentorProfile = () => {
           </div>
         </div>
 
-        {/* Main Layout Grid - fills remaining space */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Main Layout Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-20">
           
           {/* LEFT COLUMN: Identity Details & Professional info */}
-          <div className="h-150 bg-blue-500/10 border border-white/10 rounded-[24px] p-8 flex flex-col gap-4 box-border overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="w-full h-fit bg-blue-500/15 border border-white/25 rounded-[24px] p-8 flex flex-col gap-4 box-border">
             <div className="flex items-center gap-5">
               {/* Avatar Circle */}
               <div className="w-14 h-14 rounded-full text-[#0c0b11] flex items-center justify-center text-[20px] font-bold overflow-hidden shadow-[0_10px_20px_rgba(251,191,36,0.2)]">
@@ -275,8 +273,7 @@ const MentorProfile = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
+                    {...register("jobTitle")}
                     placeholder="e.g. Senior Software Engineer"
                     className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[13px] outline-none w-full box-border focus:border-[#fbbf24]"
                   />
@@ -295,8 +292,7 @@ const MentorProfile = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
+                    {...register("company")}
                     placeholder="e.g. Google, Meta"
                     className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[13px] outline-none w-full box-border focus:border-[#fbbf24]"
                   />
@@ -315,8 +311,7 @@ const MentorProfile = () => {
                 {isEditing ? (
                   <input
                     type="number"
-                    value={experienceYears}
-                    onChange={(e) => setExperienceYears(e.target.value)}
+                    {...register("experienceYears", { valueAsNumber: true })}
                     placeholder="e.g. 5"
                     min="0"
                     className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[13px] outline-none w-full box-border focus:border-[#fbbf24]"
@@ -336,8 +331,7 @@ const MentorProfile = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={education}
-                    onChange={(e) => setEducation(e.target.value)}
+                    {...register("education")}
                     placeholder="e.g. M.S. in Computer Science"
                     className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[13px] outline-none w-full box-border focus:border-[#fbbf24]"
                   />
@@ -356,8 +350,7 @@ const MentorProfile = () => {
                 {isEditing ? (
                   <input
                     type="text"
-                    value={preferredLanguage}
-                    onChange={(e) => setPreferredLanguage(e.target.value)}
+                    {...register("preferredLanguage")}
                     placeholder="e.g. English, Hindi"
                     className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[13px] outline-none w-full box-border focus:border-[#fbbf24]"
                   />
@@ -375,8 +368,7 @@ const MentorProfile = () => {
                 </span>
                 {isEditing ? (
                   <select
-                    value={timezone}
-                    onChange={(e) => setTimezone(e.target.value)}
+                    {...register("timezone")}
                     className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[13px] outline-none w-full box-border cursor-pointer focus:border-[#fbbf24]"
                   >
                     <option value="" className="bg-[#121116]">Select timezone</option>
@@ -396,10 +388,10 @@ const MentorProfile = () => {
           </div>
 
           {/* RIGHT COLUMN: Skill/Verification, Payouts, Certifications, Social links */}
-          <div className="flex flex-col gap-3 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex flex-col gap-3">
             
             {/* Verification & Skill Badge Card */}
-            <div className="border border-white/10 rounded-[24px] p-4 flex flex-col gap-3 box-border">
+            <div className="border border-white/30 bg-blue-600/10 rounded-[24px] p-4 flex flex-col gap-3 box-border">
               <span className="text-[11px] text-white/40 uppercase font-bold">
                 Verification & Expertise
               </span>
@@ -426,10 +418,10 @@ const MentorProfile = () => {
                   Primary Skill Focus
                 </p>
                 <p className="m-0 mt-1.5 text-[15px] font-bold">
-                  {profileData.skill?.name || "No skill selected"}
+                  {profileData.specialization?.name || profileData.skill?.name || "No skill selected"}
                 </p>
                 <p className="m-0 mt-1 text-[12px] text-white/50 leading-relaxed">
-                  {profileData.skill?.description || "Skill focus area details not provided yet."}
+                  {profileData.specialization?.description || profileData.skill?.description || "Skill focus area details not provided yet."}
                 </p>
               </div>
 
@@ -441,7 +433,7 @@ const MentorProfile = () => {
             </div>
 
             {/* Payout Details Card */}
-            <div className=" border border-white/10 rounded-[24px] p-4 flex flex-col gap-3 box-border">
+            <div className=" border border-white/30 bg-blue-600/10 rounded-[24px] p-4 flex flex-col gap-3 box-border">
               <span className="text-[11px] text-white/40 uppercase font-bold">
                 Payout Information
               </span>
@@ -453,8 +445,7 @@ const MentorProfile = () => {
                   {isEditing ? (
                     <input
                       type="text"
-                      value={payoutDetails.upiId}
-                      onChange={(e) => setPayoutDetails({ ...payoutDetails, upiId: e.target.value })}
+                      {...register("payoutDetails.upiId")}
                       placeholder="e.g. name@upi"
                       className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[12px] outline-none w-full box-border focus:border-[#fbbf24]"
                     />
@@ -471,8 +462,7 @@ const MentorProfile = () => {
                   {isEditing ? (
                     <input
                       type="text"
-                      value={payoutDetails.bankName}
-                      onChange={(e) => setPayoutDetails({ ...payoutDetails, bankName: e.target.value })}
+                      {...register("payoutDetails.bankName")}
                       placeholder="e.g. HDFC Bank"
                       className="bg-white/9 border border-white/15 text-white rounded-lg px-3 py-2 text-[12px] outline-none w-full box-border focus:border-[#fbbf24]"
                     />
@@ -490,8 +480,7 @@ const MentorProfile = () => {
                     {isEditing ? (
                       <input
                         type="text"
-                        value={payoutDetails.accountNumber}
-                        onChange={(e) => setPayoutDetails({ ...payoutDetails, accountNumber: e.target.value })}
+                        {...register("payoutDetails.accountNumber")}
                         placeholder="e.g. 501002345678"
                         className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[12px] outline-none w-full box-border focus:border-[#fbbf24]"
                       />
@@ -508,8 +497,11 @@ const MentorProfile = () => {
                     {isEditing ? (
                       <input
                         type="text"
-                        value={payoutDetails.ifscCode}
-                        onChange={(e) => setPayoutDetails({ ...payoutDetails, ifscCode: e.target.value.toUpperCase() })}
+                        {...register("payoutDetails.ifscCode", {
+                          onChange: (e) => {
+                            e.target.value = e.target.value.toUpperCase();
+                          }
+                        })}
                         placeholder="e.g. HDFC0000123"
                         className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-[12px] outline-none w-full box-border focus:border-[#fbbf24]"
                       />
@@ -524,7 +516,7 @@ const MentorProfile = () => {
             </div>
 
             {/* Certifications Card */}
-            <div className=" border border-white/10 rounded-[24px] p-4 flex flex-col gap-3 box-border">
+            <div className=" border border-white/30 bg-blue-600/10  rounded-[24px] p-4 flex flex-col gap-3 box-border">
               <span className="text-[11px] text-white/40 uppercase font-bold">
                 Certifications
               </span>
@@ -575,7 +567,7 @@ const MentorProfile = () => {
             </div>
 
             {/* Social Links Card */}
-            <div className="border border-white/10 rounded-[24px] p-4 flex flex-col gap-3 box-border">
+            <div className="border border-white/30 bg-blue-600/10 rounded-[24px] p-4 flex flex-col gap-3 box-border">
               <span className="text-[11px] text-white/40 uppercase font-bold">
                 Connected Profiles
               </span>

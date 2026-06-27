@@ -82,7 +82,7 @@ class MongoAdminRepository extends IAdminRepository {
         const { MentorProfile } = await import("../../models/AmentorProfile.model.js");
         const { StudentProfile } = await import("../../models/AstudentProfile.model.js");
         const { DoubtSession } = await import("../../models/doubtSession.model.js");
-        const { Skill } = await import("../../models/skill.model.js");
+        const { Specialization } = await import("../../models/specialization.model.js");
         const { Attempt } = await import("../../models/assessmentAttempt.model.js");
 
         // 1. User role distribution counts
@@ -114,7 +114,7 @@ class MongoAdminRepository extends IAdminRepository {
             .populate("selectedMentorId", "name email");
 
         // 7. Popular skills list
-        const popularSkills = await Skill.find({ isActive: true })
+        const popularSpecializations = await Specialization.find({ isActive: true })
             .select("name mentorCount source")
             .sort({ mentorCount: -1 })
             .limit(5);
@@ -175,7 +175,7 @@ class MongoAdminRepository extends IAdminRepository {
                 completed: completedDoubtSessions
             },
             recentSessions,
-            popularSkills
+            popularSpecializations
         };
     }
 }

@@ -8,9 +8,9 @@ const mentorProfileSchema = new Schema({
         unique: true,
     },
 
-    skillCategory: {
+    specializedCategory: {
         type: Schema.Types.ObjectId,
-        ref: "Skill",
+        ref: "Specialization",
         default: null,
     },
 
@@ -21,8 +21,15 @@ const mentorProfileSchema = new Schema({
 
     verificationStatus: {
         type: String,
-        enum: ["pending", "rejected", "approved"],
+        enum: ["pending", "in_progress", "rejected", "approved"],
         default: "pending",
+    },
+
+    cooldownUntil: {
+        type: Date,
+        default: null,
+        // Set to now + 2 days when all attempts are exhausted.
+        // Cleared when cooldown expires and mentor retries.
     },
 
     lastAssessmentAttemptId: {

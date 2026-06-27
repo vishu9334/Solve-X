@@ -1,240 +1,409 @@
-import React, { useEffect, useRef } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useGetAdminDashboard } from '../hooks/adminDashboard.hook.js';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { motion } from 'framer-motion';
+import { Navigate } from "react-router-dom";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser.js";
+import { useGetAdminDashboard } from "../hooks/adminDashboard.hook.js";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+  PieChart,
+  Pie,
+  Legend,
+} from "recharts";
 
-const StatCard = ({ label, value, accentClass }) => (
-  <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-md p-5 shadow-md box-border">
-    <p className="text-xs font-medium uppercase tracking-wider text-neutral-400 m-0">{label}</p>
-    <p className={`mt-2 text-3xl font-bold m-0 ${accentClass}`}>{value}</p>
+/* ─── helpers ────────────────────────────────────────────────────── */
+const fmt = (date) =>
+  date
+    ? new Intl.DateTimeFormat("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date(date))
+    : "—";
+
+/* ─── custom tooltips ────────────────────────────────────────────── */
+const BarTip = ({ active, payload }) => {
+  if (!active || !payload?.length) return null;
+  const d = payload[0].payload;
+  return (
+    <div className="bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-2 text-xs">
+      <p className="text-white/50 mb-0.5">{d.name || d.label}</p>
+      <p className="text-white font-semibold">{d.display ?? payload[0].value}</p>
+    </div>
+  );
+};
+
+const PieTip = ({ active, payload }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-[#0d0d14] border border-white/10 rounded-lg px-3 py-2 text-xs">
+      <p className="text-white/50 mb-0.5">{payload[0].name}</p>
+      <p className="text-white font-semibold">{payload[0].value} mentors</p>
+    </div>
+  );
+};
+
+/* ─── stat card — exact mentor pattern ───────────────────────────── */
+const StatCard = ({ label, value, sub, accent, index = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 15 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay: index * 0.07 }}
+    className="rounded-xl bg-white/[0.03] border border-white/[0.07] px-4 py-4 flex flex-col gap-1"
+  >
+    <p className="text-[11px] font-semibold uppercase tracking-widest text-white/40">{label}</p>
+    <p className={`text-2xl font-bold ${accent || "text-white"}`}>{value}</p>
+    {sub && <p className="text-xs text-white/30">{sub}</p>}
+  </motion.div>
+);
+
+/* ─── session row — exact mentor pattern ─────────────────────────── */
+const SessionRow = ({ session }) => {
+  const statusColor =
+    session.status === "completed"
+      ? "text-emerald-400/70"
+      : session.status === "in_session"
+      ? "text-sky-400/70"
+      : "text-amber-400/70";
+
+  return (
+    <div className="flex flex-col gap-0.5 py-3 border-b border-white/[0.06] last:border-0">
+      <p className="text-sm text-white/80 line-clamp-1">
+        {session.question || "No question"}
+      </p>
+      <div className="flex flex-wrap gap-3 text-[11px] text-white/35">
+        <span>Student: {session.studentId?.name || "—"}</span>
+        <span>Mentor: {session.selectedMentorId?.name || "Unassigned"}</span>
+        <span>{fmt(session.createdAt)}</span>
+        <span className={`capitalize font-medium ${statusColor}`}>
+          {session.status || "open"}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+/* ─── skill row ──────────────────────────────────────────────────── */
+const SkillRow = ({ skill, index }) => {
+  const COLORS = ["#3b82f6","#60a5fa","#93c5fd","#fbbf24","#34d399","#a78bfa"];
+  return (
+    <div className="flex items-center justify-between py-2.5 border-b border-white/[0.06] last:border-0">
+      <div className="flex items-center gap-2">
+        <span
+          className="w-2 h-2 rounded-full shrink-0"
+          style={{ background: COLORS[index % COLORS.length] }}
+        />
+        <span className="text-sm text-white/80 font-medium">{skill.name}</span>
+      </div>
+      <span
+        className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+        style={{
+          color: COLORS[index % COLORS.length],
+          background: `${COLORS[index % COLORS.length]}18`,
+          border: `1px solid ${COLORS[index % COLORS.length]}30`,
+        }}
+      >
+        {skill.mentorCount} mentors
+      </span>
+    </div>
+  );
+};
+
+/* ─── chart card wrapper — mentor card style ─────────────────────── */
+const ChartCard = ({ tag, title, children }) => (
+  <div className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-5 flex flex-col gap-3">
+    <div>
+      <p className="text-[10px] uppercase tracking-widest text-white/30 mb-0.5">{tag}</p>
+      <p className="text-sm font-semibold text-white">{title}</p>
+    </div>
+    {children}
   </div>
 );
 
+/* ═══════════════════ MAIN COMPONENT ═════════════════════════════── */
 const AdminDashboard = () => {
-    const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
-    const { data: adminResponse, isLoading: isAdminLoading, isError: isAdminError, error: adminError } = useGetAdminDashboard();
+  const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
+  const {
+    data: adminResponse,
+    isLoading,
+    isError,
+    error,
+  } = useGetAdminDashboard();
 
-    if (isCheckingSession) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-white/60 font-mono animate-pulse">Checking admin session...</div>
-            </div>
-        );
-    }
+  const [tab, setTab] = useState("sessions"); // "sessions" | "skills"
 
-    if (!currentUser) {
-        return <Navigate to="/" replace />;
-    }
-
-    if (currentUser.role !== 'admin') {
-        if (currentUser.role === 'mentor') return <Navigate to="/mentor-landing" replace />;
-        return <Navigate to="/student-landing" replace />;
-    }
-
-    if (isAdminLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="w-48 h-48">
-                    <DotLottieReact
-                        src="https://lottie.host/9afc5d4a-2c61-442d-a9bf-3d2fb40fd9e3/aqVwXNG7Kj.lottie"
-                        loop
-                        autoplay
-                    />
-                </div>
-            </div>
-        );
-    }
-
-    if (isAdminError) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
-                <div className="w-64 h-64">
-                    <DotLottieReact
-                        src="https://lottie.host/8e039cbf-c1db-4ecb-85f8-37e14bbb277e/PWiyGNpCea.lottie"
-                        loop
-                        autoplay
-                    />
-                </div>
-                <p className="text-red-500 font-semibold tracking-wider uppercase text-sm m-0">
-                    {adminError?.message || "Failed to load dashboard metrics"}
-                </p>
-            </div>
-        );
-    }
-
-    const dashboardData = adminResponse?.data || {};
-    const { users = {}, mentors = {}, subscriptions = {}, proctoringFlagStats = {}, doubtSessions = {}, recentSessions = [], popularSkills = [] } = dashboardData;
-
+  /* ── guards ──────────────────────────────────────────────────── */
+  if (isCheckingSession) {
     return (
-        <div className="font-sans p-6 text-white bg-admin-dashboard h-full flex-1 flex flex-col gap-6 box-border overflow-hidden">
-            {/* Page Header */}
-            <div className="flex justify-between items-center border-b border-white/10 pb-4">
-              <div>
-                <div className="flex justify-center items-center">
-                  <span className="text-[10px] tracking-[0.3em] text-mauve-400 uppercase">
-                    [ Solve-X Administrator ]
-                  </span>
-                </div>
-                <h1 className="text-2xl font-light m-0 mt-1 font-shantell-sans text-neutral-300">
-                  Admin{' '}
-                  <span className="relative inline-block text-cyan-500 px-2 pb-1">
-                    Overview metrics
-                    <svg
-                      className="absolute -inset-x-3 -inset-y-1 w-[calc(100%+1.5rem)] h-[calc(100%+0.5rem)] pointer-events-none overflow-visible"
-                      viewBox="0 0 200 50"
-                      preserveAspectRatio="none"
-                      fill="none"
-                      stroke="#ff7a00"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <motion.path
-                        d="M 10,25 C 10,8 50,6 100,6 C 150,6 190,8 190,25 C 190,42 150,44 100,44 C 45,44 8,40 13,20 C 16,14 40,10 70,8"
-                        initial={{ pathLength: 0, opacity: 0 }}
-                        animate={{ pathLength: 1, opacity: 1 }}
-                        transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
-                      />
-                    </svg>
-                  </span>
-                </h1>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span className="text-xs text-neutral-400 font-semibold uppercase tracking-wider">
-                  System Monitor Live
-                </span>
-              </div>
-            </div>
-
-            {/* Section 1: User Enrollment & Subscription Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              <StatCard 
-                label="Total Students" 
-                value={users.totalStudents || 0} 
-                accentClass="text-blue-400" 
-              />
-              <StatCard 
-                label="Total Mentors" 
-                value={users.totalMentors || 0} 
-                accentClass="text-amber-500" 
-              />
-              <StatCard 
-                label="Active Subscriptions" 
-                value={subscriptions.activeSubscriptions || 0} 
-                accentClass="text-emerald-400" 
-              />
-              <StatCard 
-                label="Online Users" 
-                value={(users.onlineStudents || 0) + (users.onlineMentors || 0)} 
-                accentClass="text-indigo-400" 
-              />
-            </div>
-
-            {/* Section 2: Doubt Session Metrics & Proctoring Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              <StatCard 
-                label="Open Doubts" 
-                value={doubtSessions.open || 0} 
-                accentClass="text-amber-400" 
-              />
-              <StatCard 
-                label="Live Sessions" 
-                value={doubtSessions.live || 0} 
-                accentClass="text-sky-400" 
-              />
-              <StatCard 
-                label="Completed Doubts" 
-                value={doubtSessions.completed || 0} 
-                accentClass="text-emerald-500" 
-              />
-              <StatCard 
-                label="Proctoring Warnings" 
-                value={proctoringFlagStats.totalWarnings || 0} 
-                accentClass="text-red-500" 
-              />
-            </div>
-
-            {/* Section 3: Dual Column layout for Lists */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
-              
-              {/* Recent Doubt Sessions (Feed) */}
-              <div className="lg:col-span-2 bg-white/[0.03] border border-white/[0.08] rounded-3xl p-6 flex flex-col gap-4 shadow-lg box-border overflow-hidden">
-                <h3 className="text-sm font-semibold tracking-wider text-amber-400 uppercase m-0">
-                  Recent Doubt Sessions
-                </h3>
-                <hr className="border-0 border-t border-white/10 m-0" />
-                
-                <div className="scrollbar-custom flex flex-col gap-4 flex-1 overflow-y-auto pr-2">
-                  {recentSessions.length > 0 ? (
-                    recentSessions.map((session) => (
-                      <div 
-                        key={session._id} 
-                        className="flex flex-wrap justify-between items-center p-4 bg-white/[0.03] border border-white/[0.03] rounded-2xl gap-4 transition-all duration-300 hover:border-white/15 box-border"
-                      >
-                        <div className="flex flex-col gap-1">
-                          <h4 className="text-sm font-medium text-white m-0">
-                            {session.question || "No Question"}
-                          </h4>
-                          <p className="text-xs text-white/50 m-0">
-                            Student: <span className="text-white/80">{session.studentId?.name || "N/A"}</span> | 
-                            Mentor: <span className="text-white/80">{session.selectedMentorId?.name || "Unassigned"}</span>
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-[10px] text-white/40 font-mono">
-                            {new Date(session.createdAt).toLocaleDateString()}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
-                            session.status === "completed" ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25' :
-                            session.status === "in_session" ? 'bg-sky-500/15 text-sky-400 border-sky-500/25' :
-                            'bg-amber-500/15 text-amber-400 border-amber-500/25'
-                          }`}>
-                            {session.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-white/40 italic m-0">No doubt sessions found.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Popular Skills Tag / Counts */}
-              <div className="bg-white/[0.03] border border-white/[0.08] rounded-3xl p-6 flex flex-col gap-4 shadow-lg box-border overflow-hidden">
-                <h3 className="text-sm font-semibold tracking-wider text-amber-400 uppercase m-0">
-                  Popular Skills
-                </h3>
-                <hr className="border-0 border-t border-white/10 m-0" />
-
-                <div className="scrollbar-custom flex flex-col gap-3 flex-1 overflow-y-auto pr-2">
-                  {popularSkills.length > 0 ? (
-                    popularSkills.map((skill, index) => (
-                      <div 
-                        key={skill._id || index}
-                        className="flex items-center justify-between p-3 bg-white/[0.03] border border-white/[0.03] rounded-xl text-xs box-border"
-                      >
-                        <span className="font-semibold text-white/90">{skill.name}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-bold">
-                          {skill.mentorCount} Mentors
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-white/40 italic m-0">No popular skills recorded.</p>
-                  )}
-                </div>
-              </div>
-
-            </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
+        <p className="text-white/40 text-sm">Checking admin session…</p>
+      </div>
     );
+  }
+
+  if (!currentUser) return <Navigate to="/" replace />;
+  if (currentUser.role !== "admin") {
+    if (currentUser.role === "mentor") return <Navigate to="/mentor-landing" replace />;
+    return <Navigate to="/student-landing" replace />;
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
+        <p className="text-white/40 text-sm">Loading admin dashboard…</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
+        <p className="text-red-400 text-sm">
+          {error?.message || "Dashboard load nahi ho paya."}
+        </p>
+      </div>
+    );
+  }
+
+  /* ── data ────────────────────────────────────────────────────── */
+  const {
+    users = {},
+    mentors = {},
+    subscriptions = {},
+    proctoringFlagStats = {},
+    doubtSessions = {},
+    recentSessions = [],
+    popularSkills = [],
+  } = adminResponse?.data || {};
+
+  const totalOnline = (users.onlineStudents || 0) + (users.onlineMentors || 0);
+
+  /* ── chart: doubt status bar ─────────────────────────────────── */
+  const doubtBarData = [
+    { label: "Open",      display: String(doubtSessions.open || 0),      value: doubtSessions.open || 0,      color: "#fbbf24" },
+    { label: "Live",      display: String(doubtSessions.live || 0),      value: doubtSessions.live || 0,      color: "#38bdf8" },
+    { label: "Completed", display: String(doubtSessions.completed || 0), value: doubtSessions.completed || 0, color: "#34d399" },
+  ];
+
+  /* ── chart: user engagement bar ─────────────────────────────── */
+  const userBarData = [
+    { label: "Students", display: `${users.totalStudents || 0} total`, value: users.totalStudents || 0, color: "#3b82f6" },
+    { label: "Online S",  display: `${users.onlineStudents || 0} online`, value: users.onlineStudents || 0, color: "#60a5fa" },
+    { label: "Mentors",  display: `${users.totalMentors || 0} total`, value: users.totalMentors || 0, color: "#a78bfa" },
+    { label: "Online M", display: `${users.onlineMentors || 0} online`, value: users.onlineMentors || 0, color: "#c4b5fd" },
+  ];
+
+  /* ── chart: skills donut ─────────────────────────────────────── */
+  const SKILL_COLORS = ["#3b82f6","#60a5fa","#93c5fd","#fbbf24","#34d399","#a78bfa"];
+  const skillPieData = popularSkills.slice(0, 6).map((s) => ({
+    name: s.name,
+    value: s.mentorCount || 0,
+  }));
+
+  /* ── render ──────────────────────────────────────────────────── */
+  return (
+    <div className="w-full min-h-screen flex flex-col px-4 pb-24 pt-32 sm:pt-24 text-white overflow-x-hidden bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.42),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.55),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.60),transparent_48%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4 sm:space-y-6">
+
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: -15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+          className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3"
+        >
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-white/30 mb-1">
+              Solve-X Administrator
+            </p>
+            <h1 className="text-xl font-bold text-white">
+              Admin Overview
+            </h1>
+            <p className="text-sm text-white/40 mt-0.5">
+              Platform metrics, doubt sessions, users and skills.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-white/50">
+              System Live
+            </span>
+          </div>
+        </motion.div>
+
+        {/* ── Row 1: User + Subscription stats ───────────────────── */}
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-white/20 mb-2 ml-0.5">
+            Users &amp; Subscriptions
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Total Students"        value={users.totalStudents || 0}               sub={`${users.onlineStudents || 0} online now`} accent="text-blue-400"    index={0} />
+            <StatCard label="Total Mentors"         value={users.totalMentors || 0}                sub={`${users.onlineMentors || 0} online now`}  accent="text-violet-400"  index={1} />
+            <StatCard label="Active Subscriptions"  value={subscriptions.activeSubscriptions || 0} sub="Paying students"                           accent="text-emerald-400" index={2} />
+            <StatCard label="Online Now"            value={totalOnline}                            sub="Students + mentors"                        accent="text-sky-400"     index={3} />
+          </div>
+        </div>
+
+        {/* ── Row 2: Doubt + Proctoring stats ────────────────────── */}
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-white/20 mb-2 ml-0.5">
+            Doubt Sessions &amp; Proctoring
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard label="Open Doubts"         value={doubtSessions.open || 0}                 sub="Awaiting mentor"         accent="text-amber-400"  index={4} />
+            <StatCard label="Live Sessions"       value={doubtSessions.live || 0}                 sub="In progress now"         accent="text-sky-400"    index={5} />
+            <StatCard label="Completed Doubts"    value={doubtSessions.completed || 0}            sub="Resolved total"          accent="text-emerald-400" index={6} />
+            <StatCard label="Proctoring Warnings" value={proctoringFlagStats.totalWarnings || 0}  sub="Flagged sessions"        accent="text-red-400"    index={7} />
+          </div>
+        </div>
+
+        {/* ── Charts row ─────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-4"
+        >
+          {/* Doubt status bar */}
+          <ChartCard tag="Analytics" title="Doubt Resolution Status">
+            <div className="h-40 sm:h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={doubtBarData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+                  <XAxis
+                    dataKey="label"
+                    stroke="transparent"
+                    tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis hide />
+                  <Tooltip content={<BarTip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                  <Bar dataKey="value" radius={[5, 5, 0, 0]} maxBarSize={48}>
+                    {doubtBarData.map((d) => (
+                      <Cell key={d.label} fill={d.color} fillOpacity={0.85} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartCard>
+
+          {/* Skills donut */}
+          <ChartCard tag="Analytics" title="Most In-Demand Skills">
+            {skillPieData.length > 0 ? (
+              <div className="h-40 sm:h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={skillPieData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius="45%"
+                      outerRadius="70%"
+                      paddingAngle={3}
+                    >
+                      {skillPieData.map((_, i) => (
+                        <Cell key={i} fill={SKILL_COLORS[i % SKILL_COLORS.length]} stroke="none" />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<PieTip />} />
+                    <Legend
+                      verticalAlign="bottom"
+                      iconType="circle"
+                      iconSize={7}
+                      wrapperStyle={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <p className="text-xs text-white/30 py-10 text-center">No skills data yet.</p>
+            )}
+          </ChartCard>
+
+          {/* User engagement bar */}
+          <ChartCard tag="Analytics" title="Students vs Mentors">
+            <div className="h-40 sm:h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={userBarData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }}>
+                  <XAxis
+                    dataKey="label"
+                    stroke="transparent"
+                    tick={{ fill: "rgba(255,255,255,0.3)", fontSize: 10 }}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis hide />
+                  <Tooltip content={<BarTip />} cursor={{ fill: "rgba(255,255,255,0.03)" }} />
+                  <Bar dataKey="value" radius={[5, 5, 0, 0]} maxBarSize={36}>
+                    {userBarData.map((d) => (
+                      <Cell key={d.label} fill={d.color} fillOpacity={0.85} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartCard>
+        </motion.div>
+
+        {/* ── Bottom: tabbed lists ────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
+          className="rounded-xl bg-white/[0.03] border border-white/[0.07] p-5"
+        >
+          {/* Tab switcher — exact mentor pattern */}
+          <div className="flex gap-1 mb-4 bg-white/[0.04] rounded-lg p-1 w-full sm:w-fit">
+            {[
+              { key: "sessions", label: `Recent Sessions (${recentSessions.length})` },
+              { key: "skills",   label: `Popular Skills (${popularSkills.length})` },
+            ].map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`flex-1 sm:flex-none text-xs font-semibold px-3 py-1.5 rounded-md transition-colors ${
+                  tab === key
+                    ? "bg-blue-600 text-white"
+                    : "text-white/40 hover:text-white/70"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* List content */}
+          <div className="max-h-72 overflow-y-auto pr-1 scrollbar-hide" data-lenis-prevent>
+            {tab === "sessions" ? (
+              recentSessions.length > 0 ? (
+                recentSessions.map((s) => <SessionRow key={s._id} session={s} />)
+              ) : (
+                <p className="text-xs text-white/30 py-6 text-center">No recent sessions found.</p>
+              )
+            ) : (
+              popularSkills.length > 0 ? (
+                popularSkills.map((skill, i) => (
+                  <SkillRow key={skill._id || i} skill={skill} index={i} />
+                ))
+              ) : (
+                <p className="text-xs text-white/30 py-6 text-center">No skills data yet.</p>
+              )
+            )}
+          </div>
+        </motion.div>
+
+      </div>
+    </div>
+  );
 };
 
 export default AdminDashboard;

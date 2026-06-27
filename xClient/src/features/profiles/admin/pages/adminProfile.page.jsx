@@ -4,24 +4,7 @@ import { useGetAdminProfile, useUpdateAdminProfile } from "../hooks/adminProfile
 import CustomCursor from "../../../../shared/components/CustomCursor";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser.js";
 
-const platformIcons = {
-  linkedin: "https://img.icons8.com/ios-filled/50/linkedin.png",
-  instagram: "https://img.icons8.com/ios-filled/50/instagram-new--v1.png",
-  github: "https://img.icons8.com/ios-glyphs/30/github.png",
-  twitter: "https://img.icons8.com/ios-filled/50/twitterx--v1.png",
-  youtube: "https://img.icons8.com/ios-filled/50/youtube-play.png",
-  portfolio: "https://img.icons8.com/ios-filled/50/domain.png",
-  other: "https://img.icons8.com/ios-filled/50/link.png"
-};
-
-const formatExternalUrl = (url) => {
-  if (!url) return "";
-  const trimmed = url.trim();
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
-};
+import { platformIcons, formatExternalUrl } from "../../../../shared/utils/profile.utils";
 
 const AdminProfile = () => {
   const { data: currentUser, isPending: isCheckingSession } = useCurrentUser();
@@ -154,17 +137,7 @@ const AdminProfile = () => {
     >
       <CustomCursor />
       <style>{`
-        .admin-profile-page::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background-image:
-            linear-gradient(rgba(129, 140, 248, 0.09) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(129, 140, 248, 0.09) 1px, transparent 1px);
-          background-size: 42px 42px;
-          mask-image: linear-gradient(to bottom, black 15%, transparent 92%);
-        }
+
         .admin-profile-page::after {
           content: '';
           position: absolute;

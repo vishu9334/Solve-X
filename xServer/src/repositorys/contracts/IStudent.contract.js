@@ -2,10 +2,10 @@ class IstudentContract {
     async findStudentProfile(userId) {
         throw new Error("Method not implemented");
     }
-    async findSkillIdentifier(skillIdentifier) {
+    async findSpecializationIdentifier(specializationIdentifier) {
         throw new Error("Method not implemented");
     }
-    async findMentorBySkill(skillId) {
+    async findMentorBySpecialization(specializedId) {
         throw new Error("Method not implemented");
     }
     async createDoubtSession(data) {
@@ -63,6 +63,12 @@ class IstudentContract {
         throw new Error("Method not implemented");
     }
     async findRecentDoubtSessions(studentId, limit) {
+        throw new Error("Method not implemented");
+    }
+    async getListOfMentorForStudent(specializationName) {
+        throw new Error("Method not implemented");
+    }
+    async findMentorsWithProfileBySpecialization(specializationId) {
         throw new Error("Method not implemented");
     }
 }

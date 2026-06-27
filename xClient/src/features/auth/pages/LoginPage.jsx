@@ -79,7 +79,7 @@ const LoginPage = () => {
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="w-1/2 h-full pr-3 flex items-center justify-center overflow-y-auto">
+            <div className="w-1/2 h-full pr-3 flex items-center justify-center overflow-y-auto" data-lenis-prevent>
                 <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-8 shadow-xl flex flex-col space-y-6">
                     
                     {/* Header */}

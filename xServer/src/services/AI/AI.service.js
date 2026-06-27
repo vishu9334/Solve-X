@@ -27,7 +27,7 @@ export async function generateMCQ(topic, difficulty = "Medium") {
   const systemPrompt = `
 You are an expert technical interviewer.
 
-Generate exactly ${count} MCQ questions.
+Generate exactly ${count} unique, diverse, and dynamic MCQ questions. Avoid generic or repetitive questions. Ensure coverage of different areas under this topic.
 
 Rules:
 - Return only valid JSON.
@@ -35,6 +35,7 @@ Rules:
 - No extra text.
 - Each question must have exactly 4 options.
 - correctAnswer must exactly match one value from options.
+- CRITICAL: Each question object MUST use the key "questionText" for the question text. Do NOT use the key "question".
 - Difficulty must always be "${difficulty}".
 - Topic must be "${topic}".
 - Estimate a dynamic "durationMinutes" (integer) for the entire test based on the complexity, reading difficulty, and time needed to solve the generated questions (give at least 1.5 - 2 minutes per question).
@@ -43,7 +44,7 @@ JSON structure:
 ${JSON.stringify(jsonSchemaExample)}
 `;
 
-  const userPrompt = `Generate ${count} ${difficulty} level MCQs for topic: ${topic}`;
+  const userPrompt = `Generate ${count} unique and diverse ${difficulty} level MCQs for topic: ${topic}. Make sure they cover different sub-concepts and do not repeat similar questions.`;
 
   try {
     const response = await client.chat.complete({
@@ -61,7 +62,7 @@ ${JSON.stringify(jsonSchemaExample)}
       response_format: {
         type: "json_object",
       },
-      temperature: 0.2,
+      temperature: 0.7,
     });
 
     const rawContent = response.choices?.[0]?.message?.content;
@@ -78,177 +79,38 @@ ${JSON.stringify(jsonSchemaExample)}
     if (!Array.isArray(mcqData.questions)) {
       throw new Error("Invalid MCQ response format");
     }
-    return mcqData;
-  } catch (error) {
-    console.warn(`[AI.service] AI MCQ generation failed (${error.message}). Using local fallback questions.`);
-    
-    // Determine topic-specific fallback questions
-    let questions = [];
-    const lowerTopic = topic.toLowerCase();
-    
-    if (lowerTopic.includes("mern") || lowerTopic.includes("node") || lowerTopic.includes("react")) {
-      questions = [
-        {
-          questionText: "What does MERN stand for?",
-          options: [
-            "MongoDB, Express, React, Node",
-            "MySQL, Express, Ruby, Node",
-            "MongoDB, Express, Angular, Node",
-            "MongoDB, Ember, React, Node"
-          ],
-          correctAnswer: "MongoDB, Express, React, Node",
-          explanation: "MERN is an acronym for MongoDB, Express, React, Node.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "Which database is used in the MERN stack?",
-          options: ["PostgreSQL", "MongoDB", "MySQL", "Oracle"],
-          correctAnswer: "MongoDB",
-          explanation: "MongoDB is the document database of the MERN stack.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "What is Express in the MERN stack?",
-          options: ["A database", "A backend web framework", "A frontend framework", "A programming language"],
-          correctAnswer: "A backend web framework",
-          explanation: "Express is a minimal and flexible Node.js web application framework.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "Which library is used to build user interfaces in MERN?",
-          options: ["Angular", "React", "Vue", "Ember"],
-          correctAnswer: "React",
-          explanation: "React is a JavaScript library for building user interfaces.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "What is Node.js?",
-          options: [
-            "A JavaScript library",
-            "A JavaScript runtime built on Chrome's V8 engine",
-            "A CSS framework",
-            "A relational database"
-          ],
-          correctAnswer: "A JavaScript runtime built on Chrome's V8 engine",
-          explanation: "Node.js is a JavaScript runtime built on Chrome's V8 engine.",
-          difficulty,
-          topic
-        }
-      ];
-    } else if (lowerTopic.includes("dsa") || lowerTopic.includes("data structure") || lowerTopic.includes("algorithm")) {
-      questions = [
-        {
-          questionText: "What is the worst-case time complexity of quicksort?",
-          options: ["O(n log n)", "O(n^2)", "O(n)", "O(1)"],
-          correctAnswer: "O(n^2)",
-          explanation: "Quicksort has O(n^2) worst-case time complexity when the partition process is unbalanced.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "Which data structure operates on a LIFO basis?",
-          options: ["Queue", "Stack", "Heap", "Tree"],
-          correctAnswer: "Stack",
-          explanation: "A Stack is a Last In First Out (LIFO) data structure.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "What is the time complexity of searching in a Balanced Binary Search Tree?",
-          options: ["O(n)", "O(log n)", "O(1)", "O(n log n)"],
-          correctAnswer: "O(log n)",
-          explanation: "In a balanced BST, searching takes logarithmic time.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "Which of the following is not a linear data structure?",
-          options: ["Array", "Linked List", "Graph", "Queue"],
-          correctAnswer: "Graph",
-          explanation: "A graph is a non-linear data structure.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "What is the time complexity to insert a node at the beginning of a singly linked list?",
-          options: ["O(n)", "O(1)", "O(log n)", "O(n log n)"],
-          correctAnswer: "O(1)",
-          explanation: "Inserting at the beginning only requires updating pointers, which takes O(1) time.",
-          difficulty,
-          topic
-        }
-      ];
-    } else {
-      // General/System Design fallback questions
-      questions = [
-        {
-          questionText: "Which of the following is used to distribute traffic across multiple servers?",
-          options: ["Database router", "Load Balancer", "Web Proxy", "CDN"],
-          correctAnswer: "Load Balancer",
-          explanation: "A load balancer distributes incoming network traffic across multiple servers.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "What is vertical scaling?",
-          options: [
-            "Adding more servers to the pool",
-            "Adding more power (CPU, RAM) to an existing server",
-            "Sharding the database",
-            "Caching database queries"
-          ],
-          correctAnswer: "Adding more power (CPU, RAM) to an existing server",
-          explanation: "Vertical scaling means increasing the capacity of a single server.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "Which caching strategy writes data to both cache and database simultaneously?",
-          options: ["Write-through", "Write-back", "Read-through", "Write-around"],
-          correctAnswer: "Write-through",
-          explanation: "Write-through caching updates both cache and DB synchronously.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "What does CDN stand for?",
-          options: ["Content Delivery Network", "Central Database Node", "Computer Data Network", "Client Delivery Network"],
-          correctAnswer: "Content Delivery Network",
-          explanation: "A CDN is a geographically distributed group of servers that speeds up web content delivery.",
-          difficulty,
-          topic
-        },
-        {
-          questionText: "Which theorem states that a distributed data store can simultaneously provide at most two of: Consistency, Availability, and Partition tolerance?",
-          options: ["CAP Theorem", "ACID Theorem", "BASE Theorem", "PACELC Theorem"],
-          correctAnswer: "CAP Theorem",
-          explanation: "The CAP Theorem states that you can only have two of Consistency, Availability, and Partition tolerance.",
-          difficulty,
-          topic
-        }
-      ];
+
+    // Defensive mapping to normalize keys and ensure absolute frontend compatibility
+    mcqData.questions = mcqData.questions.map((q) => ({
+      questionText: q.questionText || q.question || "",
+      options: q.options || q.choices || [],
+      correctAnswer: q.correctAnswer || q.correct_answer || q.answer || "",
+      explanation: q.explanation || q.reason || "",
+      difficulty: q.difficulty || difficulty,
+      topic: q.topic || topic,
+    }));
+
+    if (!mcqData.durationMinutes) {
+      mcqData.durationMinutes = Math.max(10, count * 2);
     }
 
-    return {
-      durationMinutes: questions.length * 2,
-      questions
-    };
+    return mcqData;
+  } catch (error) {
+    console.error(`[AI.service] AI MCQ generation failed:`, error);
+    throw error;
   }
 }
 
 
-export async function generateEmailContent({ type, userName, score, skillName, reason }) {
+export async function generateEmailContent({ type, userName, score, specializationName, reason }) {
+  const name = specializationName || "Selected Specialization";
   let prompt = "";
   if (type === "pass") {
-    prompt = `Write a professional and congratulatory email to mentor candidate ${userName} who has passed the Solve-X skill assessment for "${skillName}" with a score of ${score}%. Let them know their profile is now verified.`;
+    prompt = `Write a professional and congratulatory email to mentor candidate ${userName} who has passed the Solve-X skill assessment for "${name}" with a score of ${score}%. Let them know their profile is now verified.`;
   } else if (type === "fail") {
-    prompt = `Write an encouraging but firm email to mentor candidate ${userName} who did not pass the Solve-X skill assessment for "${skillName}" (Score: ${score}%). Encourage them to study and try again, keeping in mind the max attempt limits.`;
+    prompt = `Write an encouraging but firm email to mentor candidate ${userName} who did not pass the Solve-X skill assessment for "${name}" (Score: ${score}%). Encourage them to study and try again, keeping in mind the max attempt limits.`;
   } else if (type === "auto_submit") {
-    prompt = `Write a formal warning email to mentor candidate ${userName} whose Solve-X skill assessment session for "${skillName}" was auto-submitted due to suspicious proctoring activity (warnings or violations: ${reason}). Explain that their assessment was terminated and submitted automatically.`;
+    prompt = `Write a formal warning email to mentor candidate ${userName} whose Solve-X skill assessment session for "${name}" was auto-submitted due to suspicious proctoring activity (warnings or violations: ${reason}). Explain that their assessment was terminated and submitted automatically.`;
   }
 
   try {
@@ -288,17 +150,115 @@ export async function generateEmailContent({ type, userName, score, skillName, r
     let body = `<p>Hello ${userName},</p>`;
     
     if (type === "pass") {
-      subject = `Congratulations! You passed the Solve-X assessment for ${skillName}`;
-      body += `<p>We are pleased to inform you that you have passed the skill assessment for <strong>${skillName}</strong> with a score of <strong>${score}%</strong>. Your profile has been successfully verified. You can now accept student doubts.</p>`;
+      subject = `Congratulations! You passed the Solve-X assessment for ${name}`;
+      body += `<p>We are pleased to inform you that you have passed the skill assessment for <strong>${name}</strong> with a score of <strong>${score}%</strong>. Your profile has been successfully verified. You can now accept student doubts.</p>`;
     } else if (type === "fail") {
-      subject = `Solve-X Assessment Results: ${skillName}`;
-      body += `<p>Thank you for taking the skill assessment for <strong>${skillName}</strong>. Unfortunately, you did not pass (Score: <strong>${score}%</strong>). You can prepare and select the skill again to try when you are ready.</p>`;
+      subject = `Solve-X Assessment Results: ${name}`;
+      body += `<p>Thank you for taking the skill assessment for <strong>${name}</strong>. Unfortunately, you did not pass (Score: <strong>${score}%</strong>). You can prepare and select the skill again to try when you are ready.</p>`;
     } else if (type === "auto_submit") {
-      subject = `Solve-X Assessment Terminated: ${skillName}`;
-      body += `<p>Your assessment session for <strong>${skillName}</strong> has been automatically terminated and submitted due to suspicious proctoring activity: <strong>${reason}</strong>.</p>`;
+      subject = `Solve-X Assessment Terminated: ${name}`;
+      body += `<p>Your assessment session for <strong>${name}</strong> has been automatically terminated and submitted due to suspicious proctoring activity: <strong>${reason}</strong>.</p>`;
     }
     
     body += `<br/><p>Best regards,<br/>The Solve-X Team</p>`;
     return { subject, body };
+  }
+}
+
+export async function classifyAndNormalizeSkill(inputSkillName, existingData) {
+  const { specializations = [], catalogs = [] } = existingData;
+
+  const systemPrompt = `
+You are an expert AI Classifier and Synonym Resolver.
+
+Your task is to classify a skill name input by a user and map it dynamically.
+You are given a list of existing specializations (sub-categories) and catalog sections (main categories).
+
+Existing Specializations (Sub-Categories):
+${JSON.stringify(specializations.map(s => ({ id: s._id, name: s.name })))}
+
+Existing Catalogs (Main Categories):
+${JSON.stringify(catalogs.map(c => c.name))}
+
+Rules:
+1. Determine if the input skill is a synonym, abbreviation, or slight spelling variation of an existing specialization.
+   - Example: "reactjs", "react developer", "react-js" are synonyms of "React JS".
+   - Example: "nodejs", "node developer" are synonyms of "Node JS".
+   - If a synonym match is found:
+     - Set "isMatch" to true.
+     - Set "matchedSpecializationId" to the exact string ID of that specialization.
+     - Set "matchedSpecializationName" to the exact name of that specialization.
+     - Set "mainCategory" to the catalog/main category it belongs to (e.g. "Frontend" for React JS).
+2. If no synonym match is found:
+   - Set "isMatch" to false.
+   - Set "normalizedSpecializationName" to a professionally formatted Title Case version of the skill (e.g., "Vue JS", "Anatomy", "Pediatrics").
+   - Classify what the "mainCategory" (parent domain) should be for this new skill. Look at existing catalogs first (e.g. "Frontend" or "Backend"). If it belongs to a completely different domain (like medical subjects, e.g. "Anatomy"), generate a suitable main category title (e.g., "MBBS" or "Medical Sciences").
+3. Return only valid JSON. No markdown. No extra text.
+
+JSON structure:
+{
+  "isMatch": boolean,
+  "matchedSpecializationId": "string" (only if isMatch is true),
+  "matchedSpecializationName": "string" (only if isMatch is true),
+  "normalizedSpecializationName": "string" (only if isMatch is false),
+  "mainCategory": "string" (e.g. "Frontend", "Backend", "MBBS", etc.)
+}
+`;
+
+  const userPrompt = `Classify and normalize this input skill: "${inputSkillName}"`;
+
+  try {
+    const response = await client.chat.complete({
+      model: AiConfig.MISTRAL_MODEL,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.1
+    });
+
+    const rawContent = response.choices?.[0]?.message?.content;
+    if (!rawContent) {
+      throw new Error("AI returned empty response");
+    }
+
+    let cleaned = rawContent.trim();
+    if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```[a-zA-Z]*\n/, "").replace(/\n```$/, "");
+    }
+
+    const decision = JSON.parse(cleaned.trim());
+    return {
+      isMatch: !!decision.isMatch,
+      matchedSpecializationId: decision.matchedSpecializationId || null,
+      matchedSpecializationName: decision.matchedSpecializationName || null,
+      normalizedSpecializationName: decision.normalizedSpecializationName || inputSkillName,
+      mainCategory: decision.mainCategory ? decision.mainCategory.trim() : "General"
+    };
+  } catch (error) {
+    console.error("[AI.service] classifyAndNormalizeSkill failed, falling back:", error);
+    // Safe local fallback (simple case-insensitive match on name)
+    const normalizedInput = inputSkillName.trim();
+    const match = specializations.find(s => s.name.toLowerCase() === normalizedInput.toLowerCase());
+    if (match) {
+      // Find main category of this match
+      let mainCategory = "General";
+      const cat = catalogs.find(c => c.specializationIds.some(id => id.toString() === match._id.toString()));
+      if (cat) mainCategory = cat.name;
+
+      return {
+        isMatch: true,
+        matchedSpecializationId: match._id.toString(),
+        matchedSpecializationName: match.name,
+        mainCategory
+      };
+    }
+
+    return {
+      isMatch: false,
+      normalizedSpecializationName: normalizedInput,
+      mainCategory: "General"
+    };
   }
 }

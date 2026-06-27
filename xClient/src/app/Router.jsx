@@ -8,9 +8,12 @@ import ProtectedRoute from "../routes/ProtectedRoute";
 import LoginPage from "../features/auth/pages/LoginPage";
 import RegisterPage from "../features/auth/pages/RegisterPage";
 import OTPVerificationPage from "../features/auth/pages/OTPPage";
+import ForgetPasswordPage from "../features/auth/pages/ForgetPasswordPage";
+import ResetPasswordPage from "../features/auth/pages/ResetPasswordPage";
 import PublicPage from "../shared/pages/PublicPage";
 import MentorDocPage from "../shared/pages/MentorDocPage";
 import StudentDocPage from "../shared/pages/StudentDocPage";
+import AdminDocPage from "../shared/pages/AdminDocPage";
 import StudentLandingPage from "../shared/pages/StudentLandingPage";
 import MentorLandingPage from "../shared/pages/MentorLandingPage";
 import AdminLandingPage from "../shared/pages/AdminLandingPage";
@@ -23,6 +26,11 @@ import StudentDashboard from "../features/dashboard/student/page/StudentDashboar
 import AdminProfile from '../features/profiles/admin/pages/adminProfile.page'
 import StudentProfile from "../features/profiles/student/pages/studentProfile.page";
 import MentorProfile from "../features/profiles/mentor/pages/mentorProfile.page";
+import AskDoubtPage from "../features/doubt/pages/AskDoubtPage";
+import SpecializationSelectPage from "../features/assessment/pages/SpecializationSelectPage";
+import AssessmentTestPage from "../features/assessment/pages/AssessmentTestPage";
+import DoubtOffersPage from "../features/doubt/pages/DoubtOffersPage";
+import ChatRoomPage from "../features/chat/pages/ChatRoomPage";
 
 export const router = createBrowserRouter([
   {
@@ -31,8 +39,8 @@ export const router = createBrowserRouter([
       { path: "/login", element: <LoginPage /> },
       { path: "/register", element: <RegisterPage /> },
       { path: "/verify", element: <OTPVerificationPage /> },
-      { path: "/forgot-password", element: <div>Forgot Password</div> },
-      { path: "/reset-password", element: <div>Reset Password</div> },
+      { path: "/forgot-password", element: <ForgetPasswordPage /> },
+      { path: "/reset-password", element: <ResetPasswordPage /> },
     ],
   },
 
@@ -49,6 +57,11 @@ export const router = createBrowserRouter([
   {
     path: "/student-doc",
     element: <StudentDocPage />,
+  },
+
+  {
+    path: "/admin-doc",
+    element: <AdminDocPage />,
   },
 
   {
@@ -75,6 +88,11 @@ export const router = createBrowserRouter([
           { path: "/dashboard/admin", element: <AdminDashboard /> },
           { path: "/dashboard/mentor", element: <MentorDashboard /> },
           { path: "/dashboard/student", element: <StudentDashboard /> },
+          { path: "/student/ask-doubt", element: <AskDoubtPage /> },
+          { path: "/mentor/assessment/select", element: <SpecializationSelectPage /> },
+          { path: "/mentor/assessment/test", element: <AssessmentTestPage /> },
+          { path: "/student/doubt-sessions/:doubtSessionId/offers", element: <DoubtOffersPage /> },
+          { path: "/chat/:chatRoomId", element: <ChatRoomPage /> },
         ],
       },
       { path: "/admin/profile", element: <AdminProfile /> },
