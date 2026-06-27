@@ -40,7 +40,7 @@ const ForgetPasswordPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col md:flex-row bg-white md:py-3 md:pl-4 items-center justify-center relative font-raleway">
+        <div className="min-h-screen md:h-screen flex flex-col md:flex-row bg-white py-3 pl-4 items-center justify-center relative font-raleway">
             <LoadingOverlay isLoading={isPending} message="Requesting password reset..." />
             {/* Back Button */}
             <button 
