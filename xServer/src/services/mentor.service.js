@@ -405,14 +405,10 @@ class MentorService {
 
         // 9. Generate and Send Result Email via Queue
         const user = await mentorRepository.findUserById(userId);
-        console.log("[EMAIL-DEBUG] user found:", user ? user.email : "NULL — user not found!");
         if (user) {
-            console.log("[EMAIL-DEBUG] specialization found:", specialized ? specialized.name : "NULL — specialization not found!");
             const emailType = evalResult.isPassed ? "pass" : "fail";
-            console.log("[EMAIL-DEBUG] emailType:", emailType, "| score:", evalResult.score);
 
             try {
-                console.log("[EMAIL-DEBUG] Calling generateEmailContent...");
                 const emailContent = await generateEmailContent({
                     type: emailType,
                     userName: user.name,
@@ -420,14 +416,12 @@ class MentorService {
                     specializationName: specialized?.name || "Selected Specialization",
                     reason: ""
                 });
-                console.log("[EMAIL-DEBUG] emailContent generated:", emailContent?.subject);
 
                 await emailQueue.add("send-result-email", {
                     email: user.email,
                     subject: emailContent.subject,
                     body: emailContent.body
                 });
-                console.log("[EMAIL-DEBUG] Email job added to queue for:", user.email);
             } catch (err) {
                 console.error("[EMAIL-DEBUG] Failed to generate/send result email:", err.message);
             }
