@@ -43,7 +43,6 @@ app.get("/health", (req, res) => {
 
 app.use("/api/v1", mentorRoutes, activitySessionRoutes, authRoutes, specializationRoutes, studentRoutes, dashboardRoutes, adminRoutes, dailyRoutes);
 
-// API 404 Handler
 app.use("/api/v1", (req, res, next) => {
   const err = new Error(`Route ${req.originalUrl} not found`);
   err.status = 404;
