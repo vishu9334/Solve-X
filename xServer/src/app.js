@@ -10,7 +10,13 @@ import studentRoutes from './routes/student.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import adminRoutes from './routes/admin.routes.js';
 import dailyRoutes from './routes/daily.routes.js';
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const morganMiddleware = morgan(
   ":remote-addr :method :url :status :res[content-length] - :response-time ms",
@@ -22,7 +28,6 @@ const morganMiddleware = morgan(
 );
 
 app.use(morganMiddleware);
-
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -36,24 +41,27 @@ app.get("/health", (req, res) => {
   });
 });
 
-
 app.use("/api/v1", mentorRoutes, activitySessionRoutes, authRoutes, specializationRoutes, studentRoutes, dashboardRoutes, adminRoutes, dailyRoutes);
 
-app.use((req, res, next) => {
+// API 404 Handler
+app.use("/api/v1", (req, res, next) => {
   const err = new Error(`Route ${req.originalUrl} not found`);
   err.status = 404;
   next(err);
 });
 
+app.use(express.static(path.join(__dirname, '../../xClient/dist')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../xClient/dist/index.html'));
+});
+
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || err.status || 500;
-
   if (statusCode >= 500) {
     logger.error(`${err.message} - Stack: ${err.stack}`);
   } else {
     logger.warn(`${err.message}`);
   }
-
   return res.status(statusCode).json({
     status: "error",
     statusCode,

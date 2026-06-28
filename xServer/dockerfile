@@ -1,0 +1,14 @@
+# Stage 1 — install deps, build if you have a TS step
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+
+# Stage 2 — slim runtime, no build tools shipped
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app ./
+USER node 
+EXPOSE 8001
+CMD [ "node", "server.js" ]
