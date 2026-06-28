@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ export const SocketProvider = ({ children }) => {
     if (!user || !accessToken) {
       if (socket) {
         socket.disconnect();
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSocket(null);
       }
       return;

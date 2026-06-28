@@ -62,7 +62,7 @@ const EVENT_MAP = {
 const useNotificationStore = create(
     devtools(
         persist(
-            (set, get) => ({
+            (set) => ({
                 // Array of notification objects
                 notifications: [],
                 // Count of unread notifications

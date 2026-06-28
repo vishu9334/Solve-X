@@ -199,10 +199,53 @@ const AssessmentTestPage = () => {
     setWarnings((w) => w + 1);
   }, []);
 
+  const submitFinal = async (isTimeExpired = false) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    clearInterval(timerRef.current);
+    setTimeExpired(isTimeExpired);
+
+    const answersArray = questions.map((q) => ({
+      questionId: q.questionText,
+      selectedAnswer: answers[q.questionText] || "",
+    }));
+
+    try {
+      const res = await submitAssessment({ attemptId: attempt._id, answers: answersArray });
+      setResult(res?.data || {});
+      
+      // Exit fullscreen only after successful submission
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen().catch(() => {});
+        }
+      } catch {
+        // Safe to ignore fullscreen exit error
+      }
+    } catch (err) {
+      showToast(err?.message || "Submission failed. Try again.");
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAutoSubmit = async (eventType = "TIME_EXPIRED") => {
+    clearInterval(timerRef.current);
+    if (activitySessionIdRef.current) {
+      await recordEvent({
+        sessionId: activitySessionIdRef.current,
+        eventType,
+        message: eventType === "TIME_EXPIRED" ? "Time limit expired" : "Auto-submitted",
+        screen: getScreenSnapshot(),
+      }).catch(() => {});
+    }
+    submitFinal(eventType === "TIME_EXPIRED");
+  };
+
   // Initialize timer once activeAssessment is loaded
   useEffect(() => {
     if (activeAssessment && !hasInitializedTime) {
       const duration = activeAssessment.questions?.durationMinutes || 15;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTimeLeft(duration * 60);
       setHasInitializedTime(true);
     } else if (!isActiveAssessmentLoading && !activeAssessment && stateQuestions && !hasInitializedTime) {
@@ -237,6 +280,7 @@ const AssessmentTestPage = () => {
   useEffect(() => {
     if (!result) return;
     const initialCountdown = timeExpired ? 300 : 60;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRedirectCountdown(initialCountdown);
     redirectTimerRef.current = setInterval(() => {
       setRedirectCountdown((c) => {
@@ -256,7 +300,9 @@ const AssessmentTestPage = () => {
   const handleEnterFullscreen = async () => {
     try {
       await document.documentElement.requestFullscreen();
-    } catch (_) {}
+    } catch {
+      // Ignore fullscreen error
+    }
     setShowFullscreenPrompt(false);
 
     if (hasStartedRef.current) return;
@@ -269,7 +315,7 @@ const AssessmentTestPage = () => {
       });
       activitySessionIdRef.current =
         res?.data?._id || res?.data?.id || null;
-    } catch (_) {
+    } catch {
       // non-fatal; proctoring is best-effort on client
     }
   };
@@ -344,44 +390,7 @@ const AssessmentTestPage = () => {
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, [showFullscreenPrompt, result, isSubmitting]);
 
-  const handleAutoSubmit = async (eventType = "TIME_EXPIRED") => {
-    clearInterval(timerRef.current);
-    if (activitySessionIdRef.current) {
-      await recordEvent({
-        sessionId: activitySessionIdRef.current,
-        eventType,
-        message: eventType === "TIME_EXPIRED" ? "Time limit expired" : "Auto-submitted",
-        screen: getScreenSnapshot(),
-      }).catch(() => {});
-    }
-    submitFinal(eventType === "TIME_EXPIRED");
-  };
 
-  const submitFinal = async (isTimeExpired = false) => {
-    if (isSubmitting) return;
-    setIsSubmitting(true);
-    clearInterval(timerRef.current);
-
-    const answersArray = questions.map((q) => ({
-      questionId: q.questionText,
-      selectedAnswer: answers[q.questionText] || "",
-    }));
-
-    try {
-      const res = await submitAssessment({ attemptId: attempt._id, answers: answersArray });
-      setResult(res?.data || {});
-      
-      // Exit fullscreen only after successful submission
-      try {
-        if (document.fullscreenElement) {
-          await document.exitFullscreen().catch(() => {});
-        }
-      } catch (_) {}
-    } catch (err) {
-      showToast(err?.message || "Submission failed. Try again.");
-      setIsSubmitting(false);
-    }
-  };
 
 
   const handleAnswer = (questionText, option) => {

@@ -1,0 +1,27 @@
+# OS Files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Design files
+payment.excalidraw
+schemaDraw.excalidraw
+
+# Misc
+*.local

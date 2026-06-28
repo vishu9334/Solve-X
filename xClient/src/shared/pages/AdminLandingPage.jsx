@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { motion } from 'framer-motion';
 import { Link, Navigate } from 'react-router-dom';

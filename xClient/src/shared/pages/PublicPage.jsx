@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import useAuthStore from '../../features/auth/store/auth.store';
 import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { ReactLenis, useLenis } from 'lenis/react';
+import { useLenis } from 'lenis/react';
 import CustomCursor from '../components/CustomCursor';
 import CharacterSection from '../components/CharacterSection';
 import Preloader from '../components/Preloader';
@@ -83,7 +83,7 @@ const mentorItemVariants = {
 };
 
 const PublicPage = () => {
-    const { user } = useAuthStore();
+    useAuthStore();
     const [isPastHero, setIsPastHero] = useState(false);
     const [preloaderComplete, setPreloaderComplete] = useState(() => window.__solveXPreloaderRun === true);
     const [menuOpen, setMenuOpen] = useState(false);

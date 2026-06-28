@@ -31,6 +31,7 @@ const ChatRoomPage = () => {
   // Initialize messages and video room details from DB
   useEffect(() => {
     if (session?.chatMessages) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMessages(session.chatMessages);
     }
     if (session?.videoRoomUrl) {

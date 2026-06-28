@@ -74,7 +74,7 @@ export const useEndDoubtSession = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: endDoubtSessionApi,
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["studentDashboard"] });
       queryClient.invalidateQueries({ queryKey: ["activeSession"] });
       queryClient.invalidateQueries({ queryKey: ["mentorDashboard"] });
