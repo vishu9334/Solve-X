@@ -50,7 +50,7 @@ app.use("/api/v1", (req, res, next) => {
 });
 
 app.use(express.static(path.join(__dirname, '../../xClient/dist')));
-app.get('*', (req, res) => {
+app.get(/(.*)/, (req, res) => {
   res.sendFile(path.join(__dirname, '../../xClient/dist/index.html'));
 });
 

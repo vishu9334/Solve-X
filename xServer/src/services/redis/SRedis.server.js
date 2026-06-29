@@ -3,9 +3,10 @@ import { ApiError } from '../../utils/ApiError.js';
 import { compaireMethod } from '../../utils/Uhash.system.js';
 import redis from '../../configs/redis.config.js'
 import jwt from 'jsonwebtoken'
+import config from '../../configs/config.js'
 
 class redisWhereHouse {
-  async redisHSetFn(email, userData, ttlInSeconds) {
+  async redisHSetFn(email, userData, ttlInSeconds = config.EXPIRE_IN) {
     try {
       const key = `user:${email}`
       await redis.hset(key, ...Object.entries(userData).flat());
@@ -85,7 +86,7 @@ class redisWhereHouse {
     }
   }
 
-  async storePasswordResetOtp(email, userData, ttlInSeconds) {
+  async storePasswordResetOtp(email, userData, ttlInSeconds = config.EXPIRE_IN) {
     try {
       const key = `reset:${email}`;
       await redis.hset(key, ...Object.entries(userData).flat());
@@ -203,7 +204,7 @@ class redisWhereHouse {
     }
   }
 
-  async updateUserOTP(email, hashOTP, ttlInSeconds = 600) {
+  async updateUserOTP(email, hashOTP, ttlInSeconds = config.EXPIRE_IN) {
     try {
       const key = `user:${email}`;
       await redis.hset(key, "otp", hashOTP);

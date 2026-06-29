@@ -5,6 +5,7 @@ import { f4R } from "../utils/UOTP.generator.js";
 import redisWhereHouse from "../services/redis/SRedis.server.js";
 import TokenManager from "../utils/UTokenManager.util.js";
 import emailQueue from '../queue/email.queue.js';
+import config from "../configs/config.js";
 
 class AuthService {
     async register({ name, email, password, role }) {
@@ -37,7 +38,7 @@ class AuthService {
         const OTP = f4R();
         const hashOTP = await hashingMethod(OTP);
         const passwordHash = await hashingMethod(password);
-        const ttlInSeconds = 10 * 60;
+        const ttlInSeconds = config.EXPIRE_IN;
 
         const userData = {
             name,
@@ -155,7 +156,7 @@ class AuthService {
 
         const OTP = f4R();
         const hashOTP = await hashingMethod(OTP);
-        const ttlInSeconds = 10 * 60;
+        const ttlInSeconds = config.EXPIRE_IN;
 
         await Promise.all([
             redisWhereHouse.storePasswordResetOtp(email, { email, otp: hashOTP }, ttlInSeconds),
@@ -246,7 +247,7 @@ class AuthService {
         const newOTP = f4R();
         const hashOTP = await hashingMethod(newOTP);
 
-        await redisWhereHouse.updateUserOTP(email, hashOTP, 600);
+        await redisWhereHouse.updateUserOTP(email, hashOTP, config.EXPIRE_IN);
 
         await emailQueue.add("send-otp", { email, otp: newOTP });
 

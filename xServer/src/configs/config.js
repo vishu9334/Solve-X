@@ -1,5 +1,24 @@
 import dotenv from 'dotenv';
 dotenv.config()
+
+function parseDurationToSeconds(duration, defaultSeconds = 600) {
+    if (!duration) return defaultSeconds;
+    const match = String(duration).trim().match(/^(\d+)([smhd])?$/);
+    if (!match) {
+        const parsed = parseInt(duration, 10);
+        return isNaN(parsed) ? defaultSeconds : parsed;
+    }
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+    switch (unit) {
+        case 's': return value;
+        case 'm': return value * 60;
+        case 'h': return value * 3600;
+        case 'd': return value * 86400;
+        default: return value;
+    }
+}
+
 export default {
     MONGODB_URI         : process.env.MONGODB_URI,
     REDIS_URL           : process.env.REDIS_URL,
@@ -19,5 +38,5 @@ export default {
     REFRESH_SECRET_KEY  : process.env.REFRESH_SECRET_KEY,
     REFRESH_KEY_EXPR    : process.env.REFRESH_KEY_EXPR,
     SALT                : process.env.SALT,
-    EXPIRE_IN           : process.env.REDIS_EXPIRE_IN
+    EXPIRE_IN           : parseDurationToSeconds(process.env.REDIS_EXPIRE_IN, 600)
 };
