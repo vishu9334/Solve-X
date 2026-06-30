@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solve-x-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: solve-x-backend}
+  template:
+    metadata:
+      labels: {app: solve-x-backend}
+    spec:
+      containers:
+        - name: backend
+          image: 109049466470.dkr.ecr.ap-south-1.amazonaws.com/solve-x-backend:v2
+          ports: [{containerPort: 8001}]
+          envFrom:
+            - configMapRef: {name: backend-config}
+            - secretRef:   {name: backend-secrets}
+          resources:
+            requests: {cpu: "200m", memory: "256Mi"}
+            limits:   {cpu: "500m", memory: "512Mi"}
+          readinessProbe:
+            httpGet: {path: /health, port: 8001}
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: {path: /health, port: 8001}
+            initialDelaySeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: solve-x-backend-svc
+spec:
+  type: ClusterIP
+  selector: {app: solve-x-backend}
+  ports: [{port: 80, targetPort: 8001}]
