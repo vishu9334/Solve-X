@@ -22,6 +22,27 @@ const formatRelativeTime = (dateString) => {
   return past.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 };
 
+const getDefaultDate = (scheduledTime) => {
+  if (!scheduledTime) return "";
+  const d = new Date(scheduledTime);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const getDefaultTime = (scheduledTime) => {
+  if (!scheduledTime) return "";
+  const d = new Date(scheduledTime);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${min}`;
+};
+
+const getCurrentDate = () => getDefaultDate(new Date());
+
+const getCurrentTime = () => getDefaultTime(new Date());
+
 const NotificationIcon = ({ notif }) => {
   if (notif.icon === "RiMailUnreadLine") {
     return <RiMailUnreadLine className="w-4.5 h-4.5 text-blue-400" />;
@@ -148,8 +169,8 @@ const NotificationBell = () => {
     const notifId = notif.id;
     const inputs = offerInputs[notifId] || {};
     const price = parseFloat(inputs.price);
-    const date = inputs.date?.trim();
-    const time = inputs.time?.trim();
+    const date = inputs.date?.trim() || getDefaultDate(notif.payload?.scheduledTime);
+    const time = inputs.time?.trim() || getDefaultTime(notif.payload?.scheduledTime);
 
     if (!price || price <= 0 || isNaN(price)) {
       toast.error("Please enter a valid positive price.");
@@ -165,6 +186,8 @@ const NotificationBell = () => {
     }
 
     const availableTime = `${date} at ${time}`;
+    const scheduledDateTime = new Date(`${date}T${time}`);
+    const scheduledTimeISO = isNaN(scheduledDateTime.getTime()) ? null : scheduledDateTime.toISOString();
 
     setIsSendingOffer((prev) => ({ ...prev, [notifId]: true }));
     try {
@@ -172,6 +195,8 @@ const NotificationBell = () => {
         doubtSessionId: notif.payload.doubtSessionId,
         price,
         availableTime,
+        sessionType: "scheduled",
+        scheduledTime: scheduledTimeISO
       });
 
       toast.success(response.data?.message || "Offer sent successfully!");
@@ -213,7 +238,7 @@ const NotificationBell = () => {
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]"
+            className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600-500 px-1 text-[9px] font-bold text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </motion.span>
@@ -228,17 +253,17 @@ const NotificationBell = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-3 w-80 sm:w-96 overflow-hidden rounded-2xl border border-white/10 text-white shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-[2000] font-sans"
+            className="absolute right-0 mt-3 w-80 sm:w-96 overflow-hidden rounded-2xl border border-white/90 text-white shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-[2000] font-sans"
             style={{
-              background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.055'/%3E%3C/svg%3E"), radial-gradient(circle at 100% 50%, rgba(255, 255, 255, 0.75) 0%, rgba(200, 220, 255, 0.45) 25%, transparent 60%), radial-gradient(circle at 20% 30%, #16247d 0%, #0d123d 60%, #06081e 100%)`
+              background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.055'/%3E%3C/svg%3E"), radial-gradient(circle at 100% 50%, rgba(255, 255, 255, 0.75) 0%, rgba(200, 220, 255, 0.45) 25%, transparent 60%), radial-gradient(circle at 20% 30%, #16247d 0%, #0d123d 60%, #06081e 30%)`
             }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 bg-white/[0.02]">
+            <div className="flex items-center justify-between border-b border-white/30 px-4 py-3 bg-white/[0.09]">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm tracking-wider uppercase font-sora" style={{ fontFamily: "'Sora', sans-serif" }}>Notifications</span>
                 {unreadCount > 0 && (
-                  <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold text-rose-400">
+                  <span className="rounded-full bg-rose-500/20 px-2 py-0.5 text-[10px] font-medium text-rose-400">
                     {unreadCount} New
                   </span>
                 )}
@@ -247,7 +272,7 @@ const NotificationBell = () => {
                 {unreadCount > 0 && (
                   <button
                     onClick={markAllRead}
-                    className="bg-transparent border-none text-[10px] font-bold text-sky-400 hover:text-sky-350 cursor-pointer uppercase tracking-wider transition-colors"
+                    className="bg-transparent border-none text-[10px] font-medium text-sky-400 hover:text-sky-350 cursor-pointer uppercase tracking-wider transition-colors"
                   >
                     Mark all
                   </button>
@@ -255,7 +280,7 @@ const NotificationBell = () => {
                 {notifications.length > 0 && (
                   <button
                     onClick={clearAll}
-                    className="bg-transparent border-none text-[10px] font-bold text-rose-400 hover:text-rose-350 cursor-pointer uppercase tracking-wider transition-colors"
+                    className="bg-transparent border-none text-[10px] font-medium text-rose-400 hover:text-rose-350 cursor-pointer uppercase tracking-wider transition-colors"
                   >
                     Clear all
                   </button>
@@ -270,7 +295,7 @@ const NotificationBell = () => {
                   <span className="material-symbols-outlined text-4xl mb-2 text-neutral-500">
                     notifications_off
                   </span>
-                  <p className="text-xs font-semibold tracking-widest uppercase font-sora" style={{ fontFamily: "'Sora', sans-serif" }}>No notifications yet</p>
+                  <p className="text-xs font-normal tracking-widest uppercase font-sora" style={{ fontFamily: "'Sora', sans-serif" }}>No notifications yet</p>
                 </div>
               ) : (
                 notifications.map((notif) => (
@@ -287,37 +312,95 @@ const NotificationBell = () => {
 
                     {/* Content */}
                     <div className="flex-1 min-w-0 flex flex-col gap-1.5 font-sans">
-                      <p className={`font-sans text-[13px] leading-relaxed tracking-wide break-words ${!notif.isRead ? "text-white font-semibold" : "text-neutral-200"
+                      <p className={`font-sans text-[13px] leading-relaxed tracking-wide break-words ${!notif.isRead ? "text-white font-medium" : "text-neutral-200"
                         }`}>
                         {notif.message}
                       </p>
 
                       {notif.type === "new_doubt" && notif.payload && (
                         <div className="flex flex-col gap-2 mt-2 bg-white/[0.02] p-2.5 rounded-xl border border-white/5" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-between text-[10px] text-amber-300 font-bold uppercase tracking-wider mb-1">
+                          <div className="flex items-center justify-between text-[10px] text-amber-300 font-medium uppercase tracking-wider mb-1">
                             <span>Send Bid Offer</span>
                             <span className="bg-amber-300/10 px-2 py-0.5 rounded border border-amber-300/20 text-[9px] font-mono normal-case">
                               Duration: {notif.payload.sessionDuration || "N/A"} mins
                             </span>
                           </div>
 
+                          {notif.payload.sessionType === "scheduled" && notif.payload.scheduledTime ? (
+                            <div className="bg-amber-500/10 border border-amber-500/25 rounded-lg p-2 text-[10px] text-amber-300 font-semibold font-sans mb-1 flex flex-col gap-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <span>📅</span>
+                                <span>
+                                  Student Requested: {new Date(notif.payload.scheduledTime).toLocaleString("en-IN", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit"
+                                  })}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleInputChange(notif.id, "date", getDefaultDate(notif.payload.scheduledTime));
+                                  handleInputChange(notif.id, "time", getDefaultTime(notif.payload.scheduledTime));
+                                  toast.success("Date and Time matched with student's request.");
+                                }}
+                                className="self-start text-[8px] bg-amber-400 text-black hover:bg-amber-300 px-1.5 py-0.5 rounded font-bold transition-colors cursor-pointer border-none"
+                              >
+                                Use Student's Time
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="bg-sky-500/10 border border-sky-500/20 rounded-lg p-2 text-[10px] text-sky-400 font-semibold font-sans mb-1 flex flex-col gap-1.5">
+                              <div className="flex items-center gap-1.5">
+                                <span>⚡</span>
+                                <span>Student Requested: Instant (Ask Now)</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleInputChange(notif.id, "date", getCurrentDate());
+                                  handleInputChange(notif.id, "time", getCurrentTime());
+                                  toast.success("Date and time set to now.");
+                                }}
+                                className="self-start text-[8px] bg-sky-400 text-black hover:bg-sky-300 px-1.5 py-0.5 rounded font-bold transition-colors cursor-pointer border-none"
+                              >
+                                Use Current Time
+                              </button>
+                            </div>
+                          )}
+
                           <div className="flex flex-col gap-2">
                             <div className="flex gap-2">
                               <div className="w-1/2 flex flex-col gap-1">
-                                <span className="text-[8px] text-neutral-400 font-bold uppercase">Price</span>
+                                <span className="text-[8px] text-neutral-400 font-medium uppercase">Price</span>
                                 <input
                                   type="number"
                                   placeholder="Price ($)"
                                   value={offerInputs[notif.id]?.price || ""}
-                                  onChange={(e) => handleInputChange(notif.id, "price", e.target.value)}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === "" || parseFloat(val) >= 0) {
+                                      handleInputChange(notif.id, "price", val);
+                                    }
+                                  }}
+                                  min="1"
                                   className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] text-white focus:outline-none focus:border-amber-300 transition-colors"
                                 />
                               </div>
                               <div className="w-1/2 flex flex-col gap-1">
-                                <span className="text-[8px] text-neutral-400 font-bold uppercase">Date</span>
+                                <span className="text-[8px] text-neutral-400 font-medium uppercase">Date</span>
                                 <input
                                   type="date"
-                                  value={offerInputs[notif.id]?.date || ""}
+                                  value={
+                                    offerInputs[notif.id]?.date !== undefined
+                                      ? offerInputs[notif.id].date
+                                      : getDefaultDate(notif.payload?.scheduledTime)
+                                  }
                                   onChange={(e) => handleInputChange(notif.id, "date", e.target.value)}
                                   className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1 text-[10px] text-white focus:outline-none focus:border-amber-300 transition-colors"
                                 />
@@ -325,20 +408,24 @@ const NotificationBell = () => {
                             </div>
 
                             <div className="flex flex-col gap-1">
-                              <span className="text-[8px] text-neutral-400 font-bold uppercase">Available Time</span>
+                              <span className="text-[8px] text-neutral-400 font-medium uppercase">Available Time</span>
                               <input
-                                type="time"
-                                value={offerInputs[notif.id]?.time || ""}
-                                onChange={(e) => handleInputChange(notif.id, "time", e.target.value)}
-                                className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] text-white focus:outline-none focus:border-amber-300 transition-colors"
-                              />
+                                  type="time"
+                                  value={
+                                    offerInputs[notif.id]?.time !== undefined
+                                      ? offerInputs[notif.id].time
+                                      : getDefaultTime(notif.payload?.scheduledTime)
+                                  }
+                                  onChange={(e) => handleInputChange(notif.id, "time", e.target.value)}
+                                  className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] text-white focus:outline-none focus:border-amber-300 transition-colors"
+                                />
                             </div>
                           </div>
 
                           <button
                             disabled={isSendingOffer[notif.id]}
                             onClick={(e) => handleSendOffer(e, notif)}
-                            className="w-full bg-amber-400 hover:bg-amber-500 disabled:opacity-50 text-[#0c0b11] font-bold text-[9px] uppercase tracking-wider py-1.5 rounded-lg cursor-pointer transition-colors border-none mt-1"
+                            className="w-full bg-amber-400 hover:bg-amber-500 disabled:opacity-50 text-[#0c0b11] font-medium text-[9px] uppercase tracking-wider py-1.5 rounded-lg cursor-pointer transition-colors border-none mt-1"
                           >
                             {isSendingOffer[notif.id] ? "Sending..." : "Send Offer"}
                           </button>
@@ -346,7 +433,7 @@ const NotificationBell = () => {
                       )}
 
                       {notif.type === "offer" && notif.payload && (
-                        <div className="text-[11px] text-emerald-400 font-bold font-mono my-0.5">
+                        <div className="text-[11px] text-emerald-400 font-medium font-mono my-0.5">
                           Price: ${notif.payload.price} | Session Slot: {notif.payload.availableTime}
                         </div>
                       )}

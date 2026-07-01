@@ -10,16 +10,18 @@ class studentController {
     studentReaseQuestion = asyncHandler(async (req, res) => {
         const userId = req.user?._id || req.user?.userId || req.params.userId;
         const { specializationIdentifier, selectSessionTime } = req.query
-        const { typeWriteQuestion } = req.body
+        const { typeWriteQuestion, sessionType, scheduledTime } = req.body
 
         const response = await studentService.specializationMatchingByStudent(
             userId,
             specializationIdentifier,
             selectSessionTime,
-            typeWriteQuestion
+            typeWriteQuestion,
+            sessionType,
+            scheduledTime
         );
 
-        res.status(200).json(new ApiResponse(200, response, "Your doubt has been sent to mentors. Please wait for offers."));
+        res.status(200).json(new ApiResponse(200, response, "Your doubt has been processed."));
     })
 
     /**
@@ -32,7 +34,10 @@ class studentController {
 
         const response = await studentService.selectMentor(userId, doubtSessionId, selectedMentorId);
 
-        res.status(200).json(new ApiResponse(200, response, "Mentor selected successfully. Chat room is ready."));
+        const message = response?.sessionType === "scheduled"
+            ? "Mentor selected successfully. Your doubt session is scheduled."
+            : "Mentor selected successfully. Chat room is ready.";
+        res.status(200).json(new ApiResponse(200, response, message));
     })
 
     /**
@@ -105,6 +110,24 @@ class studentController {
         const { specializationId } = req.params;
         const response = await studentService.getMentorsForSpecialization(specializationId);
         return res.status(200).json(new ApiResponse(200, response, "Verified mentors fetched successfully."));
+    })
+
+    proposeReschedule = asyncHandler(async (req, res) => {
+        const { doubtSessionId } = req.params;
+        const { newScheduledTime } = req.body;
+        const userId = req.user?._id || req.user?.userId;
+
+        const response = await studentService.proposeReschedule(userId, doubtSessionId, newScheduledTime);
+        res.status(200).json(new ApiResponse(200, response, "Reschedule request sent successfully."));
+    })
+
+    respondReschedule = asyncHandler(async (req, res) => {
+        const { doubtSessionId } = req.params;
+        const { action, reason } = req.body;
+        const userId = req.user?._id || req.user?.userId;
+
+        const response = await studentService.respondReschedule(userId, doubtSessionId, action, reason);
+        res.status(200).json(new ApiResponse(200, response, `Reschedule request ${action}d.`));
     })
 }
 

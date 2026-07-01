@@ -8,7 +8,7 @@ import { DoubtSession } from "../models/doubtSession.model.js";
 export const cleanExpiredSessions = async () => {
     try {
         const now = new Date();
-        const result = await DoubtSession.updateMany(
+        const activeResult = await DoubtSession.updateMany(
             {
                 status: "in_session",
                 sessionStartedAt: { $ne: null },
@@ -28,8 +28,45 @@ export const cleanExpiredSessions = async () => {
             }
         );
 
-        if (result.modifiedCount > 0) {
-            console.log(`[SessionCleanup] Auto-completed ${result.modifiedCount} stuck/expired doubt sessions.`);
+        if (activeResult.modifiedCount > 0) {
+            console.log(`[SessionCleanup] Auto-completed ${activeResult.modifiedCount} stuck/expired doubt sessions.`);
+        }
+
+        const instantOpenResult = await DoubtSession.updateMany(
+            {
+                status: "open",
+                sessionType: { $ne: "scheduled" },
+                createdAt: { $lt: new Date(now.getTime() - 10 * 60 * 1000) }
+            },
+            {
+                $set: {
+                    status: "expired",
+                    expiresAt: new Date(now.getTime() + 4 * 60 * 60 * 1000)
+                }
+            }
+        );
+
+        if (instantOpenResult.modifiedCount > 0) {
+            console.log(`[SessionCleanup] Auto-expired ${instantOpenResult.modifiedCount} stale open instant doubt sessions.`);
+        }
+
+        const scheduledOpenResult = await DoubtSession.updateMany(
+            {
+                status: "open",
+                sessionType: "scheduled",
+                selectedMentorId: null,
+                scheduledTime: { $ne: null, $lt: now }
+            },
+            {
+                $set: {
+                    status: "expired",
+                    expiresAt: new Date(now.getTime() + 4 * 60 * 60 * 1000)
+                }
+            }
+        );
+
+        if (scheduledOpenResult.modifiedCount > 0) {
+            console.log(`[SessionCleanup] Auto-expired ${scheduledOpenResult.modifiedCount} stale unaccepted scheduled doubt sessions.`);
         }
     } catch (err) {
         console.error("[SessionCleanup] Error during auto-cleanup:", err.message);

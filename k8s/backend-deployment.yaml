@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: 109049466470.dkr.ecr.ap-south-1.amazonaws.com/solve-x-backend:v2
+          image: 109049466470.dkr.ecr.ap-south-1.amazonaws.com/solve-x-backend:v2.0.1
           ports: [{containerPort: 8001}]
           envFrom:
             - configMapRef: {name: backend-config}

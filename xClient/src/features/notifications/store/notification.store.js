@@ -6,13 +6,18 @@ const EVENT_MAP = {
     student_asked_question: {
         type: "new_doubt",
         icon: "RiMailUnreadLine",
-        getMessage: (p) => `New doubt: "${p.question?.slice(0, 60)}..."`,
+        getMessage: (p) => {
+            const slot = p.sessionType === "scheduled" && p.scheduledTime
+                ? ` for ${new Date(p.scheduledTime).toLocaleString()}`
+                : "";
+            return `New doubt${slot}: "${p.question?.slice(0, 60)}..."`;
+        },
         route: null,
     },
     mentor_offer_received: {
         type: "offer",
         icon: "RiMailAiLine",
-        getMessage: (p) => `Mentor ${p.mentorName} sent a bid of $${p.price}!`,
+        getMessage: (p) => p.message || `Mentor ${p.mentorName} sent a bid of $${p.price}. Accept the mentor offer to continue.`,
         route: (p) => `/student/doubt-sessions/${p.doubtSessionId}/offers`,
     },
     mentor_selected_for_doubt: {
@@ -48,8 +53,14 @@ const EVENT_MAP = {
     doubt_expired: {
         type: "doubt_expired",
         icon: "RiPassExpiredLine",
-        getMessage: () => "No mentor responded. The doubt has expired.",
+        getMessage: (p) => p?.message || "No mentor responded. The doubt has expired.",
         route: null,
+    },
+    meeting_scheduled: {
+        type: "scheduled",
+        icon: "RiCheckboxCircleLine",
+        getMessage: (p) => p.message || "Doubt session has been scheduled.",
+        route: (p) => `/dashboard/student`,
     },
     mentor_warning: {
         type: "warning",

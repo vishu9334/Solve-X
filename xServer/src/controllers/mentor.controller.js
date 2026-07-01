@@ -2,6 +2,7 @@ import { ApiResponse } from "../utils/ApiResponseHandler.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import mentorService from "../services/mentor.service.js";
+import studentService from "../services/student.service.js";
 
 export const selectSpecialization = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
@@ -31,19 +32,8 @@ export const submitAssessment = asyncHandler(async (req, res) => {
 });
 
 export const replyToStudentDoubt = asyncHandler(async (req, res) => {
-    const userId = req.user.userId;
-    const { doubtSessionId, price, availableTime } = req.body;
-
-    if (!doubtSessionId || price === undefined) {
-        throw new ApiError(400, "doubtSessionId and price are required.");
-    }
-
-    const data = await mentorService.replyToStudentDoubt(userId, {
-        doubtSessionId,
-        price,
-        availableTime
-    });
-
+    const userId = req.user?.userId || req.user?._id;
+    const data = await mentorService.replyToStudentDoubt(userId, req.body);
     return res.status(200).json(
         new ApiResponse(200, data, "Offer sent to student.")
     );
@@ -70,33 +60,24 @@ export const updateMentorDescription = asyncHandler(async (req, res) => {
 
 export const updateMentorProfile = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
-    const { socialLinks, jobTitle, company, experienceYears, education, certifications, timezone, preferredLanguage, payoutDetails } = req.body;
-
-    if (
-        socialLinks === undefined &&
-        jobTitle === undefined &&
-        company === undefined &&
-        experienceYears === undefined &&
-        education === undefined &&
-        certifications === undefined &&
-        timezone === undefined &&
-        preferredLanguage === undefined &&
-        payoutDetails === undefined
-    ) {
-        throw new ApiError(400, "Provide at least one field to update");
-    }
-
-    const data = await mentorService.updateMentorProfile(userId, {
-        socialLinks,
-        jobTitle,
-        company,
-        experienceYears,
-        education,
-        certifications,
-        timezone,
-        preferredLanguage,
-        payoutDetails
-    });
+    const data = await mentorService.updateMentorProfile(userId, req.body);
     return res.status(200).json(new ApiResponse(200, data, "Mentor profile updated successfully"));
+});
 
+export const proposeReschedule = asyncHandler(async (req, res) => {
+    const { doubtSessionId } = req.params;
+    const { newScheduledTime } = req.body;
+    const userId = req.user?._id || req.user?.userId;
+
+    const response = await studentService.proposeReschedule(userId, doubtSessionId, newScheduledTime);
+    res.status(200).json(new ApiResponse(200, response, "Reschedule request sent successfully."));
+});
+
+export const rejectScheduledDoubt = asyncHandler(async (req, res) => {
+    const { doubtSessionId } = req.params;
+    const { reason } = req.body;
+    const userId = req.user?._id || req.user?.userId;
+
+    const data = await mentorService.rejectScheduledDoubt(userId, doubtSessionId, reason);
+    return res.status(200).json(new ApiResponse(200, data, "Scheduled doubt session cancelled successfully"));
 });

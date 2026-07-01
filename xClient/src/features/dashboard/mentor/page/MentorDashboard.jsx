@@ -1,5 +1,5 @@
 import { Navigate, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser.js";
 import { useGetMentorDashboard } from "../hook/mentorDashboard.hook.js";
@@ -25,6 +25,56 @@ const fmt = (date) =>
         year: "numeric",
       }).format(new Date(date))
     : "—";
+
+const getDateInputValue = (dateValue) => {
+  const d = new Date(dateValue);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
+const getTimeInputValue = (dateValue) => {
+  const d = new Date(dateValue);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${min}`;
+};
+
+const CountdownTimer = ({ scheduledTime }) => {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = new Date(scheduledTime) - new Date();
+      if (difference <= 0) {
+        setTimeLeft("Starting soon...");
+        return;
+      }
+
+      const hrs = Math.floor(difference / (1000 * 60 * 60));
+      const mins = Math.floor((difference / 1000 / 60) % 60);
+      const secs = Math.floor((difference / 1000) % 60);
+
+      let formatted = "";
+      if (hrs > 0) formatted += `${hrs}h `;
+      if (mins > 0 || hrs > 0) formatted += `${mins}m `;
+      formatted += `${secs}s`;
+
+      setTimeLeft(`Starts in: ${formatted}`);
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(interval);
+  }, [scheduledTime]);
+
+  return (
+    <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[9px] font-bold text-amber-300 font-mono">
+      ⏳ {timeLeft}
+    </span>
+  );
+};
 
 const BarTip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
@@ -128,6 +178,30 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
   const [time, setTime] = useState("");
   const [isSending, setIsSending] = useState(false);
 
+  useEffect(() => {
+    if (session.sessionType === "scheduled" && session.scheduledTime) {
+      setDate(getDateInputValue(session.scheduledTime));
+      setTime(getTimeInputValue(session.scheduledTime));
+    }
+  }, [session]);
+
+  const handleUseStudentTime = (e) => {
+    e.preventDefault();
+    if (session.scheduledTime) {
+      setDate(getDateInputValue(session.scheduledTime));
+      setTime(getTimeInputValue(session.scheduledTime));
+      toast.success("Date and Time matched with student's request.");
+    }
+  };
+
+  const handleUseCurrentTime = (e) => {
+    e.preventDefault();
+    const now = new Date();
+    setDate(getDateInputValue(now));
+    setTime(getTimeInputValue(now));
+    toast.success("Date and time set to now.");
+  };
+
   const currentUserId = currentUser?._id || currentUser?.id;
   const hasOffered = session.mentorOffers?.some(
     (offer) => {
@@ -157,10 +231,15 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
     setIsSending(true);
     try {
       const availableTime = `${date} at ${time}`;
+      const scheduledDateTime = new Date(`${date}T${time}`);
+      const scheduledTimeISO = isNaN(scheduledDateTime.getTime()) ? null : scheduledDateTime.toISOString();
+
       const response = await api.post("/mentor/reply-doubt", {
         doubtSessionId: session._id,
         price: offerPrice,
         availableTime,
+        sessionType: "scheduled",
+        scheduledTime: scheduledTimeISO,
       });
 
       toast.success(response.data?.message || "Offer sent successfully!");
@@ -185,6 +264,13 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
             {isOpportunity ? (
               <>
                 <span>Duration: {session.sessionDuration || "?"} min</span>
+                {session.sessionType === "scheduled" && session.scheduledTime ? (
+                  <span className="text-amber-300 font-semibold">
+                    Requested Time: {new Date(session.scheduledTime).toLocaleString()}
+                  </span>
+                ) : (
+                  <span className="text-sky-300">Type: Instant</span>
+                )}
                 {hasOffered && (
                   <span className="text-emerald-400 font-bold uppercase tracking-wider text-[10px]">
                     ✓ Bid Submitted
@@ -195,7 +281,12 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
               <span>Resolved: {fmt(session.sessionEndedAt || session.updatedAt)}</span>
             )}
             {!isOpportunity && (
-              <span className="text-blue-400/70 capitalize">{session.status || "completed"}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-400/70 capitalize">{session.status || "completed"}</span>
+                {session.status === "scheduled" && session.scheduledTime && (
+                  <CountdownTimer scheduledTime={session.scheduledTime} />
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -228,6 +319,44 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
           <p className="m-0 text-[10px] text-blue-400 font-bold uppercase tracking-wider">
             Send Bid Offer
           </p>
+
+          {session.sessionType === "scheduled" && session.scheduledTime ? (
+            <div className="bg-amber-500/10 border border-amber-500/25 rounded-lg p-2.5 text-xs text-amber-300 font-semibold flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span>📅</span>
+                <span>
+                  Student Requested: {new Date(session.scheduledTime).toLocaleString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleUseStudentTime}
+                className="self-start text-[9px] bg-amber-400 text-black hover:bg-amber-300 px-2 py-0.5 rounded font-bold transition-colors cursor-pointer border-none"
+              >
+                Use Student's Time
+              </button>
+            </div>
+          ) : (
+            <div className="bg-sky-500/10 border border-sky-500/20 rounded-lg p-2.5 text-xs text-sky-400 font-semibold flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span>⚡</span>
+                <span>Student Requested: Instant (Ask Now)</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleUseCurrentTime}
+                className="self-start text-[9px] bg-sky-400 text-black hover:bg-sky-300 px-2 py-0.5 rounded font-bold transition-colors cursor-pointer border-none"
+              >
+                Use Current Time
+              </button>
+            </div>
+          )}
           
           <div className="flex gap-2">
             <div className="w-1/2 flex flex-col gap-1">
@@ -236,7 +365,13 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
                 type="number"
                 placeholder="Price ($)"
                 value={price}
-                onChange={(e) => setPrice(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "" || parseFloat(val) >= 0) {
+                    setPrice(val);
+                  }
+                }}
+                min="1"
                 required
                 className="w-full bg-black/40 border border-white/10 rounded-lg px-2.5 py-1.5 text-[10px] text-white focus:outline-none focus:border-blue-500 transition-colors"
               />

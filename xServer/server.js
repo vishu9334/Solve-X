@@ -22,6 +22,9 @@ mongoose.connect(config.MONGODB_URI)
     import("./src/cron/mentorCleanup.cron.js").then((module) => {
       module.initMentorCleanupCron();
     });
+    import("./src/cron/scheduledDoubt.cron.js").then((module) => {
+      module.initScheduledDoubtCron();
+    });
     const server = http.createServer(app);
     initSocket(server);
     server.listen(PORT, () => {

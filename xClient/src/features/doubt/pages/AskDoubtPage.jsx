@@ -24,6 +24,8 @@ const AskDoubtPage = () => {
     const [sessionTime, setSessionTime] = useState("15");
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
+    const [sessionType, setSessionType] = useState("instant");
+    const [scheduledTime, setScheduledTime] = useState("");
 
     const { data: mentors = [], isLoading: isMentorsLoading } = useGetSpecializationMentors(selectedSpec?.specializationId);
 
@@ -43,11 +45,22 @@ const AskDoubtPage = () => {
             return;
         }
 
+        let finalScheduledTime = null;
+        if (sessionType === "scheduled") {
+            if (!scheduledTime) {
+                setErrorMsg("Please select a date and time for your scheduled session.");
+                return;
+            }
+            finalScheduledTime = new Date(scheduledTime).toISOString();
+        }
+
         askDoubt(
             {
                 specializationIdentifier: selectedSpec.specializationId,
                 selectSessionTime: parseInt(sessionTime, 10),
-                questionText: questionText.trim()
+                questionText: questionText.trim(),
+                sessionType,
+                scheduledTime: finalScheduledTime
             },
             {
                 onSuccess: (data) => {
@@ -132,7 +145,7 @@ const AskDoubtPage = () => {
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     className="rounded-2xl border border-white/10 p-5 shadow-xl sm:rounded-3xl"
-                                    style={{ background: "radial-gradient(circle at 78% 92%, rgba(251,19,36,0.12), transparent 38%), linear-gradient(135deg, rgba(255,255,255,0.08), transparent 40%), rgba(255,255,255,0.03)" }}
+                                    style={{ background: "radial-gradient(circle at 78% 92%, rgba(255,280,236,0.12), transparent 38%), linear-gradient(135deg, rgba(255,255,255,0.08), transparent 40%), rgba(255,255,255,0.03)" }}
                                 >
                                     <h3 className="m-0 text-[11px] font-black tracking-[0.24em] text-indigo-400 uppercase mb-4">
                                         {catalog.categoryName}
@@ -158,7 +171,7 @@ const AskDoubtPage = () => {
                                                     <span className="text-[10px] text-white/50 mt-1 line-clamp-2 min-h-[30px] leading-relaxed">
                                                         {spec.description || "Learn from verified experts."}
                                                     </span>
-                                                    <div className="flex items-center gap-2 mt-3 text-[9px] text-amber-200/70 font-bold bg-white/5 w-fit px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                                    <div className="flex items-center gap-2 mt-3 text-[9px] text-lime-200/70 font-bold bg-white/5 w-fit px-2 py-0.5 rounded-full uppercase tracking-wider">
                                                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                                                         Mentors: {spec.mentorCount || 0}
                                                     </div>
@@ -302,6 +315,97 @@ const AskDoubtPage = () => {
                                     <option value="45">45 Minutes Session</option>
                                     <option value="60">60 Minutes Session</option>
                                 </select>
+                            </div>
+
+                            {/* Session Schedule type selection */}
+                            <div className="flex flex-col gap-3 border-t border-white/5 pt-4">
+                                <label className="text-[10px] font-bold text-white/70 uppercase tracking-[0.16em]">
+                                    Choose Session Schedule
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setSessionType("instant");
+                                            setScheduledTime("");
+                                        }}
+                                        className={`py-2.5 px-4 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${sessionType === "instant"
+                                                ? "border-amber-300 bg-amber-300/10 text-amber-300"
+                                                : "border-white/10 bg-black/25 text-white/60 hover:border-white/20"
+                                            }`}
+                                    >
+                                        ⚡ Ask Now (Instant)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSessionType("scheduled")}
+                                        className={`py-2.5 px-4 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${sessionType === "scheduled"
+                                                ? "border-amber-300 bg-amber-300/10 text-amber-300"
+                                                : "border-white/10 bg-black/25 text-white/60 hover:border-white/20"
+                                            }`}
+                                    >
+                                        📅 Schedule for Later
+                                    </button>
+                                </div>
+
+                                {sessionType === "scheduled" && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        className="flex flex-col gap-3 mt-1"
+                                    >
+                                        {/* Quick suggestions */}
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[9px] text-white/40 uppercase tracking-wider">Quick Suggestions:</span>
+                                            <div className="flex gap-2 flex-wrap">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const offset = new Date(Date.now() + 30 * 60 * 1000);
+                                                        const localIso = new Date(offset.getTime() - offset.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                                                        setScheduledTime(localIso);
+                                                    }}
+                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 text-[10px] text-white/70 border border-white/5 rounded-full cursor-pointer uppercase tracking-wider"
+                                                >
+                                                    +30 Mins
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const offset = new Date(Date.now() + 60 * 60 * 1000);
+                                                        const localIso = new Date(offset.getTime() - offset.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                                                        setScheduledTime(localIso);
+                                                    }}
+                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 text-[10px] text-white/70 border border-white/5 rounded-full cursor-pointer uppercase tracking-wider"
+                                                >
+                                                    +1 Hour
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const offset = new Date(Date.now() + 2 * 60 * 60 * 1000);
+                                                        const localIso = new Date(offset.getTime() - offset.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                                                        setScheduledTime(localIso);
+                                                    }}
+                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 text-[10px] text-white/70 border border-white/5 rounded-full cursor-pointer uppercase tracking-wider"
+                                                >
+                                                    +2 Hours
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Custom date time picker */}
+                                        <div className="flex flex-col gap-2">
+                                            <span className="text-[9px] text-white/40 uppercase tracking-wider">Custom Date & Time:</span>
+                                            <input
+                                                type="datetime-local"
+                                                value={scheduledTime}
+                                                onChange={(e) => setScheduledTime(e.target.value)}
+                                                className="w-full rounded-xl border border-white/10 bg-black/25 p-3 text-xs text-white focus:border-amber-300/50 focus:outline-none font-mono"
+                                            />
+                                        </div>
+                                    </motion.div>
+                                )}
                             </div>
 
                             {/* Error and Success Notifications with AnimatePresence */}

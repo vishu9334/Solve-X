@@ -370,12 +370,12 @@ class MongoMentorRepository extends IMentorRepository {
                                 $expr: {
                                     $and: [
                                         { $eq: ["$selectedMentorId", "$$mentorId"] },
-                                        { $eq: ["$status", "completed"] }
+                                        { $in: ["$status", ["completed", "scheduled"]] }
                                     ]
                                 }
                             }
                         },
-                        { $sort: { sessionEndedAt: -1 } },
+                        { $sort: { createdAt: -1 } },
                         { $limit: 5 },
                         {
                             $lookup: {
@@ -591,7 +591,13 @@ class MongoMentorRepository extends IMentorRepository {
 
     async findOpenDoubtSession(doubtSessionId) {
         const { DoubtSession } = await import("../../models/doubtSession.model.js");
-        return await DoubtSession.findOne({ _id: doubtSessionId, status: "open" });
+        return await DoubtSession.findOne({
+            _id: doubtSessionId,
+            $or: [
+                { status: "open" },
+                { status: "scheduled", selectedMentorId: null }
+            ]
+        });
     }
 
     async saveDoubtSession(doubtSession) {
@@ -600,7 +606,13 @@ class MongoMentorRepository extends IMentorRepository {
 
     async countActiveBids(userId) {
         const { DoubtSession } = await import("../../models/doubtSession.model.js");
-        return await DoubtSession.countDocuments({ status: "open", "mentorOffers.mentorId": userId });
+        return await DoubtSession.countDocuments({
+            $or: [
+                { status: "open" },
+                { status: "scheduled", selectedMentorId: null }
+            ],
+            "mentorOffers.mentorId": userId
+        });
     }
     async specializationOfRepository(specializationId, specializationName) {
         const { default: SpecializationCatalog } = await import("../../models/specializationCatalogs.model.js");

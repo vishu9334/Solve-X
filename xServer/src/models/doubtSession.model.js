@@ -19,6 +19,15 @@ const mentorOfferSchema = new Schema({
         type: String,
         trim: true,
     },
+    sessionType: {
+        type: String,
+        enum: ["instant", "scheduled"],
+        default: "instant",
+    },
+    scheduledTime: {
+        type: Date,
+        default: null,
+    },
     offeredAt: {
         type: Date,
         default: Date.now,
@@ -69,9 +78,37 @@ const doubtSessionSchema = new Schema({
 
     status: {
         type: String,
-        enum: ["open", "mentor_selected", "in_session", "completed", "expired"],
+        enum: ["open", "mentor_selected", "in_session", "completed", "expired", "scheduled"],
         default: "open",
         index: true,
+    },
+
+    sessionType: {
+        type: String,
+        enum: ["instant", "scheduled"],
+        default: "instant",
+    },
+
+    scheduledTime: {
+        type: Date,
+        default: null,
+    },
+
+    rescheduleRequest: {
+        proposedBy: {
+            type: Schema.Types.ObjectId,
+            ref: "CommonUser",
+            default: null,
+        },
+        newScheduledTime: {
+            type: Date,
+            default: null,
+        },
+        status: {
+            type: String,
+            enum: ["pending", "approved", "rejected"],
+            default: null,
+        },
     },
 
     mentorOffers: {
@@ -96,6 +133,11 @@ const doubtSessionSchema = new Schema({
     },
 
     videoRoomName: {
+        type: String,
+        default: null,
+    },
+
+    cancellationReason: {
         type: String,
         default: null,
     },

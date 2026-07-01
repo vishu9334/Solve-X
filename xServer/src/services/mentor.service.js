@@ -514,7 +514,7 @@ class MentorService {
     /**
      * Mentor sends a price/time offer for a student's doubt session
      */
-    async replyToStudentDoubt(userId, { doubtSessionId, price, availableTime }) {
+    async replyToStudentDoubt(userId, { doubtSessionId, price, availableTime, sessionType = "instant", scheduledTime = null }) {
         if (!mongoose.Types.ObjectId.isValid(doubtSessionId))
             throw new ApiError(400, "Invalid doubt session ID");
 
@@ -552,7 +552,15 @@ class MentorService {
         );
         if (alreadyOffered) throw new ApiError(400, "You have already sent an offer for this doubt.");
 
-        const offerPrice = price; 
+        const offerPrice = price;
+        const offerScheduledDate = scheduledTime ? new Date(scheduledTime) : null;
+        if (scheduledTime && Number.isNaN(offerScheduledDate.getTime())) {
+            throw new ApiError(400, "Invalid scheduled time.");
+        }
+        const effectiveScheduledDate = offerScheduledDate || doubtSession.scheduledTime || null;
+        const offerMessage = effectiveScheduledDate
+            ? `Mentor ${mentor.name} sent an offer for ${new Date(effectiveScheduledDate).toLocaleString()}. Accept the mentor offer to confirm this schedule.`
+            : `Mentor ${mentor.name} sent an offer. Accept the mentor offer to start the session.`;
 
         // Push mentor offer into DoubtSession
         doubtSession.mentorOffers.push({
@@ -560,6 +568,8 @@ class MentorService {
             mentorName: mentor.name,
             price: offerPrice,
             availableTime,
+            sessionType,
+            scheduledTime: offerScheduledDate,
             offeredAt: new Date()
         });
         await mentorRepository.saveDoubtSession(doubtSession);
@@ -571,7 +581,11 @@ class MentorService {
             mentorName: mentor.name,
             mentorAvatar: mentor.avatar,
             price: offerPrice,
-            availableTime
+            availableTime,
+            sessionType,
+            scheduledTime: effectiveScheduledDate,
+            message: offerMessage,
+            actionLabel: "Accept mentor offer"
         });
 
         return {
@@ -727,6 +741,10 @@ class MentorService {
             }
         });
 
+        if (Object.keys(cleanUpdateData).length === 0) {
+            throw new ApiError(400, "Provide at least one field to update");
+        }
+
         const updated = await mentorRepository.updateMentorProfile(userId, cleanUpdateData);
         if (!updated) throw new ApiError(404, "Mentor profile not found.");
         return updated;
@@ -750,6 +768,73 @@ class MentorService {
         }else{
           return  await mentorRepository.specializationOfNewCreateOne({ specializationId, specializationName })
         }
+    }
+
+    /**
+     * Mentor rejects/cancels a confirmed scheduled doubt session
+     */
+    async rejectScheduledDoubt(userId, doubtSessionId, reason) {
+        if (!mongoose.Types.ObjectId.isValid(doubtSessionId))
+            throw new ApiError(400, "Invalid doubt session ID");
+
+        if (!reason || !reason.trim()) {
+            throw new ApiError(400, "Cancellation reason is required");
+        }
+
+        const studentRepository = (await import("../repositorys/implimentations/mongo.student.repository.js")).default;
+        const doubtSession = await studentRepository.findDoubtSessionById(doubtSessionId);
+
+        if (!doubtSession) {
+            throw new ApiError(404, "Doubt session not found");
+        }
+
+        if (doubtSession.status !== "scheduled") {
+            throw new ApiError(400, "Only confirmed scheduled sessions can be rejected");
+        }
+
+        if (!doubtSession.selectedMentorId || doubtSession.selectedMentorId.toString() !== userId.toString()) {
+            throw new ApiError(403, "Access denied. Only the assigned mentor can reject this scheduled session");
+        }
+
+        // Update doubt session status and TTL
+        doubtSession.status = "expired";
+        doubtSession.cancellationReason = reason.trim();
+        // 4 hours TTL from now
+        doubtSession.expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000);
+        await studentRepository.saveDoubtSession(doubtSession);
+
+        // Notify student via platform socket
+        sendNotificationToUser(doubtSession.studentId, "mentor_cancelled_scheduled_session", {
+            doubtSessionId: doubtSession._id,
+            reason: reason.trim(),
+            message: `Mentor has cancelled the scheduled doubt session. Reason: ${reason.trim()}`
+        });
+
+        // Send email to student via queue
+        const studentUser = await studentRepository.findStudentId(doubtSession.studentId);
+        if (studentUser) {
+            const subject = "Solve-X Scheduled Session Cancelled by Mentor";
+            const htmlContent = `
+                <h2>Solve-X Scheduled Session Cancelled</h2>
+                <p>The doubt session scheduled for the question: "<strong>${doubtSession.question}</strong>" has been cancelled by the mentor.</p>
+                <p><strong>Reason for cancellation:</strong> ${reason.trim()}</p>
+                <p>Please raise another doubt on the Solve-X platform if you still need assistance.</p>
+            `;
+            try {
+                await emailQueue.add("send-result-email", {
+                    email: studentUser.email,
+                    subject: subject,
+                    body: htmlContent
+                });
+            } catch (err) {
+                console.error("Failed to queue cancellation email:", err);
+            }
+        }
+
+        return {
+            message: "Scheduled doubt session cancelled successfully",
+            doubtSessionId: doubtSession._id
+        };
     }
 }
 
