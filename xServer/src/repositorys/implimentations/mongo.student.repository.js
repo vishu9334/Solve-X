@@ -590,6 +590,13 @@ class MongoStudentRepository extends IstudentContract {
         .select("-payoutDetails -cooldownUntil -lastAssessmentAttemptId");
     }
 
+    findScheduledDoubtSessions = async () => {
+        return await DoubtSession.find({
+            status: { $in: ["open", "scheduled"] },
+            sessionType: "scheduled",
+            scheduledTime: { $ne: null }
+        });
+    }
 }
 
 const studentRepository = new MongoStudentRepository()

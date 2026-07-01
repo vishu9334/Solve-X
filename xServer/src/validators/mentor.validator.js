@@ -35,12 +35,23 @@ export const replyToDoubtValidator = {
   body: z.object({
     doubtSessionId: objectIdSchema,
     price: z.number({ required_error: "price is required" }).positive("price must be a positive number"),
-    availableTime: z.string().trim().min(1, "availableTime is required"),
+    availableTime: z.string().trim().optional(),
+    sessionType: z.enum(["instant", "scheduled"]).optional(),
+    scheduledTime: z.string().trim().optional(),
   }),
 };
 
 export const updateSpecializationDescriptionValidator = {
   body: z.object({
     description: z.string().trim().min(1, "description is required"),
+  }),
+};
+
+export const rejectScheduledDoubtValidator = {
+  params: z.object({
+    doubtSessionId: objectIdSchema,
+  }),
+  body: z.object({
+    reason: z.string({ required_error: "reason is required" }).trim().min(5, "reason must be at least 5 characters long"),
   }),
 };

@@ -11,11 +11,11 @@ export const getSpecialistMentorApi = async(specializationName='')=>{
     }
 };
 
-export const askDoubtApi = async ({specializationIdentifier, selectSessionTime, questionText})=>{
+export const askDoubtApi = async ({specializationIdentifier, selectSessionTime, questionText, sessionType, scheduledTime})=>{
     try {
     const response = await api.post(
       `/student/ask-doubt?specializationIdentifier=${specializationIdentifier}&selectSessionTime=${selectSessionTime}`,
-      { typeWriteQuestion: questionText }
+      { typeWriteQuestion: questionText, sessionType, scheduledTime }
     );
     return response.data;
   } catch (error) {

@@ -1,4 +1,3 @@
-import React from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';

@@ -6,13 +6,14 @@ import { sendNotificationToMultipleUsers, sendNotificationToUser, createChatRoom
 import { MentorProfile } from "../models/AmentorProfile.model.js"
 import { triggerMentorIgnoreWarning } from "../helpers/mentorWarning.helper.js"
 import { cleanExpiredSessions } from "../helpers/sessionCleanup.helper.js"
+import mailService from "../services/MailService.js"
 
 class studentService {
 
     /**
      * Student posts a doubt — creates DoubtSession + notifies all verified mentors of that skill
      */
-    specializationMatchingByStudent = async (userId, specializationIdentifier, selectSessionTime, typeWriteQuestion) => {
+    specializationMatchingByStudent = async (userId, specializationIdentifier, selectSessionTime, typeWriteQuestion, sessionType = "instant", scheduledTime = null) => {
         if (!mongoose.Types.ObjectId.isValid(userId))
             throw new ApiError(401, "Student id's not valid")
         if (!mongoose.Types.ObjectId.isValid(specializationIdentifier))
@@ -44,12 +45,14 @@ class studentService {
             throw new ApiError(404, "No mentors are currently available for this specialization.");
         }
 
-        // Create DoubtSession in DB (status: open)
+        // Create DoubtSession in DB
         const doubtSession = await studentRepository.createDoubtSession({
             studentId: userId,
             specializedId: isSpecializationExisted._id,
             question: typeWriteQuestion,
             sessionDuration: selectSessionTime,
+            sessionType,
+            scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
             status: "open"
         });
 
@@ -59,7 +62,9 @@ class studentService {
             studentName: isExisted.name,
             question: typeWriteQuestion,
             specializationName: isSpecializationExisted.name,
-            sessionDuration: selectSessionTime
+            sessionDuration: selectSessionTime,
+            sessionType,
+            scheduledTime
         };
 
         const mentorUserIds = mentors
@@ -71,53 +76,57 @@ class studentService {
             notificationPayload
         );
 
-        // Set 10-minute expiry for mentor offers
-        setTimeout(async () => {
-            const session = await studentRepository.findDoubtSessionById(doubtSession._id);
-            if (session && session.status === "open") {
-                session.status = "expired";
-                await studentRepository.saveDoubtSession(session);
+        // Set 10-minute expiry for mentor offers only if it is an instant doubt
+        if (sessionType !== "scheduled") {
+            setTimeout(async () => {
+                const session = await studentRepository.findDoubtSessionById(doubtSession._id);
+                if (session && session.status === "open") {
+                    session.status = "expired";
+                    await studentRepository.saveDoubtSession(session);
 
-                // Notify student that no mentor responded in time
-                await sendNotificationToUser(userId, "doubt_expired", {
-                    doubtSessionId: doubtSession._id,
-                    message: "No mentor responded within 10 minutes. Please try again."
-                });
+                    // Notify student that no mentor responded in time
+                    await sendNotificationToUser(userId, "doubt_expired", {
+                        doubtSessionId: doubtSession._id,
+                        message: "No mentor responded within 10 minutes. Please try again."
+                    });
 
-                // ── Track mentor ignore counts ────────────────────────────────
-                // Find which mentors received the notification but did NOT offer
-                const respondedMentorIds = session.mentorOffers.map(o => o.mentorId.toString());
-                const ignoredMentorIds = mentorUserIds.filter(
-                    id => !respondedMentorIds.includes(id.toString())
-                );
+                    // ── Track mentor ignore counts ────────────────────────────────
+                    // Find which mentors received the notification but did NOT offer
+                    const respondedMentorIds = session.mentorOffers.map(o => o.mentorId.toString());
+                    const ignoredMentorIds = mentorUserIds.filter(
+                        id => !respondedMentorIds.includes(id.toString())
+                    );
 
-                const monthKey = new Date().toISOString().slice(0, 7); // e.g. "2026-06"
-                for (const mentorId of ignoredMentorIds) {
-                    try {
-                        const redisKey = `notif:ignored:${mentorId}:${monthKey}`;
-                        const ignoreCount = await redis.incr(redisKey);
-                        // Set 35-day TTL on first increment so key auto-expires after the month
-                        if (ignoreCount === 1) {
-                            await redis.expire(redisKey, 35 * 24 * 60 * 60);
+                    const monthKey = new Date().toISOString().slice(0, 7); // e.g. "2026-06"
+                    for (const mentorId of ignoredMentorIds) {
+                        try {
+                            const redisKey = `notif:ignored:${mentorId}:${monthKey}`;
+                            const ignoreCount = await redis.incr(redisKey);
+                            // Set 35-day TTL on first increment so key auto-expires after the month
+                            if (ignoreCount === 1) {
+                                await redis.expire(redisKey, 35 * 24 * 60 * 60);
+                            }
+                            // Trigger warning at 7 ignores (and every 7 after that)
+                            if (ignoreCount >= 7 && ignoreCount % 7 === 0) {
+                                await triggerMentorIgnoreWarning(mentorId, ignoreCount);
+                            }
+                        } catch (err) {
+                            console.error(`[studentService] Failed to track ignore for mentor ${mentorId}:`, err.message);
                         }
-                        // Trigger warning at 7 ignores (and every 7 after that)
-                        if (ignoreCount >= 7 && ignoreCount % 7 === 0) {
-                            await triggerMentorIgnoreWarning(mentorId, ignoreCount);
-                        }
-                    } catch (err) {
-                        console.error(`[studentService] Failed to track ignore for mentor ${mentorId}:`, err.message);
                     }
-                }
 
-                // Cleanup any doubt-specific Redis cache
-                await redis.del(`doubt:${doubtSession._id}`).catch(() => {});
-            }
-        }, 10 * 60 * 1000); // 10 minutes
+                    // Cleanup any doubt-specific Redis cache
+                    await redis.del(`doubt:${doubtSession._id}`).catch(() => {});
+                }
+            }, 10 * 60 * 1000); // 10 minutes
+        }
 
         return {
             doubtSessionId: doubtSession._id,
             mentorsNotified: mentorUserIds.length,
-            message: "Your doubt has been sent to mentors. You will receive offers within 10 minutes."
+            message: sessionType === "scheduled"
+                ? `Your doubt request has been posted for ${new Date(scheduledTime).toLocaleString()}. Matched mentors have been notified to send offers.`
+                : "Your doubt has been sent to mentors. You will receive offers within 10 minutes."
         };
     }
 
@@ -164,55 +173,104 @@ class studentService {
         );
         if (!mentorOffer) throw new ApiError(404, "This mentor has not sent an offer for this doubt.");
 
-        // Generate unique chat room ID
-        const chatRoomId = `doubt_${doubtSession._id}_${Date.now()}`;
+        const notifyUnselectedMentors = () => {
+            const unselectedMentors = doubtSession.mentorOffers
+                .filter(offer => offer.mentorId.toString() !== selectedMentorId.toString())
+                .map(offer => offer.mentorId);
 
-        // Update DoubtSession
-        doubtSession.selectedMentorId = selectedMentorId;
-        doubtSession.chatRoomId = chatRoomId;
-        doubtSession.status = "in_session";
-        doubtSession.sessionStartedAt = new Date();
-        await studentRepository.saveDoubtSession(doubtSession);
-
-        // Notify the selected mentor
-        sendNotificationToUser(selectedMentorId, "mentor_selected_for_doubt", {
-            doubtSessionId: doubtSession._id,
-            chatRoomId,
-            question: doubtSession.question,
-            sessionDuration: doubtSession.sessionDuration,
-            message: "Student has selected you! Join the chat room."
-        });
-
-        // Notify unselected mentors
-        const unselectedMentors = doubtSession.mentorOffers
-            .filter(offer => offer.mentorId.toString() !== selectedMentorId.toString())
-            .map(offer => offer.mentorId);
-
-        sendNotificationToMultipleUsers(unselectedMentors, "mentor_not_selected", {
-            doubtSessionId: doubtSession._id,
-            message: "Student has selected another mentor for this doubt."
-        });
-
-        // Notify the student to join chat room
-        sendNotificationToUser(userId, "join_chat_room", {
-            doubtSessionId: doubtSession._id,
-            chatRoomId,
-            mentorId: selectedMentorId,
-            mentorName: mentorOffer.mentorName || "Mentor",
-            price: mentorOffer.price,
-            sessionDuration: doubtSession.sessionDuration
-        });
-
-        // Create chat room via socket helper
-        createChatRoom(chatRoomId, userId, selectedMentorId, doubtSession.sessionDuration);
-
-        return {
-            chatRoomId,
-            selectedMentorId,
-            price: mentorOffer.price,
-            sessionDuration: doubtSession.sessionDuration,
-            message: "Mentor selected! Chat room is ready."
+            sendNotificationToMultipleUsers(unselectedMentors, "mentor_not_selected", {
+                doubtSessionId: doubtSession._id,
+                message: "Student has selected another mentor for this doubt."
+            });
         };
+
+        const startInstantSession = async () => {
+            const chatRoomId = `doubt_${doubtSession._id}_${Date.now()}`;
+
+            doubtSession.selectedMentorId = selectedMentorId;
+            doubtSession.chatRoomId = chatRoomId;
+            doubtSession.status = "in_session";
+            doubtSession.sessionStartedAt = new Date();
+            await studentRepository.saveDoubtSession(doubtSession);
+
+            sendNotificationToUser(selectedMentorId, "mentor_selected_for_doubt", {
+                doubtSessionId: doubtSession._id,
+                chatRoomId,
+                question: doubtSession.question,
+                sessionDuration: doubtSession.sessionDuration,
+                message: "Student accepted your offer. Join the chat room now."
+            });
+
+            notifyUnselectedMentors();
+            createChatRoom(chatRoomId, userId, selectedMentorId, doubtSession.sessionDuration);
+
+            return {
+                chatRoomId,
+                selectedMentorId,
+                price: mentorOffer.price,
+                sessionDuration: doubtSession.sessionDuration,
+                message: "Mentor selected! Chat room is ready."
+            };
+        };
+
+        // If mentor offer or student doubt session is scheduled, save future sessions for cron.
+        const isScheduled = mentorOffer.sessionType === "scheduled" || doubtSession.sessionType === "scheduled";
+        if (isScheduled) {
+            const finalScheduledTime = mentorOffer.scheduledTime || doubtSession.scheduledTime;
+            const scheduledDate = finalScheduledTime ? new Date(finalScheduledTime) : null;
+            if (!scheduledDate || Number.isNaN(scheduledDate.getTime())) {
+                throw new ApiError(400, "Scheduled time is required for scheduled sessions.");
+            }
+
+            if (scheduledDate <= new Date()) {
+                return await startInstantSession();
+            }
+
+            doubtSession.selectedMentorId = selectedMentorId;
+            doubtSession.sessionType = "scheduled";
+            doubtSession.scheduledTime = scheduledDate;
+            doubtSession.status = "scheduled";
+            await studentRepository.saveDoubtSession(doubtSession);
+
+            notifyUnselectedMentors();
+
+            const studentPayload = {
+                doubtSessionId: doubtSession._id,
+                studentName: student.name,
+                mentorName: mentorOffer.mentorName || "Mentor",
+                scheduledTime: scheduledDate,
+                message: `Your doubt session is scheduled for ${scheduledDate.toLocaleString()}. It will start automatically at that time.`
+            };
+            sendNotificationToUser(userId, "meeting_scheduled", studentPayload);
+            sendNotificationToUser(selectedMentorId, "meeting_scheduled", {
+                ...studentPayload,
+                message: `Student accepted your offer. The doubt session is scheduled for ${scheduledDate.toLocaleString()} and will start automatically at that time.`
+            });
+
+            const studentUser = await studentRepository.findStudentId(userId);
+            const mentorUser = await studentRepository.findStudentId(selectedMentorId);
+            if (studentUser && mentorUser) {
+                const subject = "Doubt Session Scheduled - Solve-X";
+                const htmlContent = `
+                    <h2>Solve-X Doubt Session Scheduled</h2>
+                    <p>Your doubt session for the question: "<strong>${doubtSession.question}</strong>" has been scheduled.</p>
+                    <p>Meeting Time: <strong>${scheduledDate.toLocaleString()}</strong></p>
+                    <p>Please log in and join the room at the scheduled time.</p>
+                `;
+                await mailService.sendResultEmail(studentUser.email, subject, htmlContent).catch(console.error);
+                await mailService.sendResultEmail(mentorUser.email, subject, htmlContent).catch(console.error);
+            }
+
+            return {
+                selectedMentorId,
+                price: mentorOffer.price,
+                sessionType: "scheduled",
+                scheduledTime: scheduledDate,
+                message: "Mentor selected! Session is scheduled successfully and will start at the approved time."
+            };
+        }
+
+        return await startInstantSession();
     }
 
     /**
@@ -460,6 +518,179 @@ class studentService {
 
         const mentors = await studentRepository.findMentorsWithProfileBySpecialization(specializationId);
         return mentors;
+    }
+
+    proposeReschedule = async (userId, doubtSessionId, newScheduledTime) => {
+        if (!mongoose.Types.ObjectId.isValid(doubtSessionId))
+            throw new ApiError(400, "Invalid doubt session ID");
+        if (!newScheduledTime)
+            throw new ApiError(400, "newScheduledTime is required");
+
+        const doubtSession = await studentRepository.findDoubtSessionById(doubtSessionId);
+        if (!doubtSession || doubtSession.status !== "scheduled") {
+            throw new ApiError(404, "Scheduled doubt session not found.");
+        }
+
+        // Verify caller is either student or mentor for this session
+        const isStudent = doubtSession.studentId.toString() === userId.toString();
+        const isMentor = doubtSession.selectedMentorId.toString() === userId.toString();
+        if (!isStudent && !isMentor) {
+            throw new ApiError(403, "Access denied.");
+        }
+
+        doubtSession.rescheduleRequest = {
+            proposedBy: userId,
+            newScheduledTime: new Date(newScheduledTime),
+            status: "pending"
+        };
+        await studentRepository.saveDoubtSession(doubtSession);
+
+        // Notify the other user
+        const targetUserId = isStudent ? doubtSession.selectedMentorId : doubtSession.studentId;
+        const proposerName = isStudent ? "Student" : "Mentor";
+        await sendNotificationToUser(targetUserId, "reschedule_requested", {
+            doubtSessionId: doubtSession._id,
+            proposedBy: userId,
+            newScheduledTime,
+            message: `${proposerName} has requested to reschedule the meeting to ${new Date(newScheduledTime).toLocaleString()}.`
+        });
+
+        return { message: "Reschedule request sent successfully." };
+    }
+
+    respondReschedule = async (userId, doubtSessionId, action, reason = "") => {
+        if (!mongoose.Types.ObjectId.isValid(doubtSessionId))
+            throw new ApiError(400, "Invalid doubt session ID");
+        if (!["approve", "reject"].includes(action))
+            throw new ApiError(400, "Action must be approve or reject");
+
+        const doubtSession = await studentRepository.findDoubtSessionById(doubtSessionId);
+        if (!doubtSession || doubtSession.status !== "scheduled" || !doubtSession.rescheduleRequest) {
+            throw new ApiError(404, "Reschedule request not found.");
+        }
+
+        // Must be responded by the other user (not the one who proposed it)
+        if (doubtSession.rescheduleRequest.proposedBy.toString() === userId.toString()) {
+            throw new ApiError(403, "You cannot respond to your own reschedule request.");
+        }
+
+        const isStudent = doubtSession.studentId.toString() === userId.toString();
+        const isMentor = doubtSession.selectedMentorId.toString() === userId.toString();
+        if (!isStudent && !isMentor) {
+            throw new ApiError(403, "Access denied.");
+        }
+
+        const targetUserId = doubtSession.rescheduleRequest.proposedBy;
+
+        if (action === "approve") {
+            const newTime = doubtSession.rescheduleRequest.newScheduledTime;
+            doubtSession.scheduledTime = newTime;
+            doubtSession.rescheduleRequest.status = "approved";
+
+            // Save and clean up request
+            doubtSession.rescheduleRequest = null;
+            await studentRepository.saveDoubtSession(doubtSession);
+
+            // Fetch user details for email
+            const studentUser = await studentRepository.findStudentId(doubtSession.studentId);
+            const mentorUser = await studentRepository.findStudentId(doubtSession.selectedMentorId);
+
+            // Send notification
+            const payload = {
+                doubtSessionId: doubtSession._id,
+                scheduledTime: newTime,
+                message: "Reschedule request approved. The new meeting time is set."
+            };
+            await sendNotificationToUser(targetUserId, "reschedule_approved", payload);
+            await sendNotificationToUser(userId, "reschedule_approved", payload);
+
+            // Send emails
+            if (studentUser && mentorUser) {
+                const subject = "Meeting Rescheduled - Solve-X";
+                const htmlContent = `
+                    <h2>Solve-X Doubt Session Rescheduled</h2>
+                    <p>Your scheduled doubt session has been successfully rescheduled to: <strong>${newTime.toLocaleString()}</strong>.</p>
+                `;
+                await mailService.sendResultEmail(studentUser.email, subject, htmlContent).catch(console.error);
+                await mailService.sendResultEmail(mentorUser.email, subject, htmlContent).catch(console.error);
+            }
+            return { message: "Reschedule request approved successfully." };
+        } else {
+            // Rejection flow
+            // If the responder is the mentor, warn them and ask for/validate reason
+            const isMentorResponder = doubtSession.selectedMentorId.toString() === userId.toString();
+            if (isMentorResponder) {
+                if (!reason || reason.trim() === "") {
+                    throw new ApiError(400, "Reason is required when a mentor rejects a reschedule request.");
+                }
+
+                // Retrieve mentor profile
+                const mentorProfile = await MentorProfile.findOne({ userId });
+                if (mentorProfile) {
+                    const now = new Date();
+                    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+                    // Add current rejection
+                    mentorProfile.rescheduleRejections.push({
+                        doubtSessionId: doubtSession._id,
+                        reason: reason.trim(),
+                        date: now
+                    });
+
+                    // Count rejections in the last 2 weeks
+                    const recentRejectionsCount = mentorProfile.rescheduleRejections.filter(
+                        rej => rej.date >= twoWeeksAgo
+                    ).length;
+
+                    let warningMsg = "Reschedule request was rejected.";
+                    let penaltyApplied = false;
+
+                    // If it is 3 or more times in 2 weeks
+                    if (recentRejectionsCount >= 3) {
+                        mentorProfile.penalties.push({
+                            amount: 100,
+                            reason: `Excessive reschedule rejections (${recentRejectionsCount} in last 2 weeks)`,
+                            date: now
+                        });
+                        mentorProfile.warnings.push({
+                            warningType: "penalty_applied",
+                            reason: `Penalty of 100 INR applied due to ${recentRejectionsCount} reschedule rejections in 2 weeks.`,
+                            date: now
+                        });
+                        penaltyApplied = true;
+                        warningMsg = `Reschedule request was rejected. A penalty of 100 INR has been applied to your account because you have rejected reschedule requests ${recentRejectionsCount} times in the last 2 weeks.`;
+                    } else {
+                        mentorProfile.warnings.push({
+                            warningType: "rejection_warning",
+                            reason: `Reschedule request rejected. Rejections in last 2 weeks: ${recentRejectionsCount}. Limit before penalty: 3.`,
+                            date: now
+                        });
+                        warningMsg = `Reschedule request was rejected. Warning: Rejecting 3 or more reschedule requests in a 2-week period will result in a 100 INR penalty. (Current rejections: ${recentRejectionsCount})`;
+                    }
+
+                    await mentorProfile.save();
+
+                    // Send platform warning notification to mentor
+                    await sendNotificationToUser(userId, "mentor_reschedule_warning", {
+                        doubtSessionId: doubtSession._id,
+                        rejectionsCount: recentRejectionsCount,
+                        penaltyApplied,
+                        message: warningMsg
+                    });
+                }
+            }
+
+            doubtSession.rescheduleRequest.status = "rejected";
+            doubtSession.rescheduleRequest = null;
+            await studentRepository.saveDoubtSession(doubtSession);
+
+            await sendNotificationToUser(targetUserId, "reschedule_rejected", {
+                doubtSessionId: doubtSession._id,
+                reason,
+                message: "Reschedule request was rejected."
+            });
+            return { message: "Reschedule request rejected." };
+        }
     }
 }
 

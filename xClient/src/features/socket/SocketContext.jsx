@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +22,7 @@ export const SocketProvider = ({ children }) => {
     if (!user || !accessToken) {
       if (socket) {
         socket.disconnect();
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSocket(null);
       }
       return;
@@ -37,22 +39,54 @@ export const SocketProvider = ({ children }) => {
 
     setSocket(newSocket);
 
-    newSocket.on("connect", () => {
+    const register = () => {
       const userId = user._id || user.id;
       if (userId) {
         newSocket.emit("register_user", userId);
+        console.log("Socket client registered user:", userId);
       }
+    };
+
+    console.log("Attempting socket connection to:", socketUrl);
+
+    if (newSocket.connected) {
+      console.log("Socket already connected synchronously.");
+      register();
+    }
+
+    newSocket.on("connect", () => {
+      console.log("Socket connected successfully. ID:", newSocket.id);
+      register();
+    });
+
+    newSocket.on("connect_error", (err) => {
+      console.error("Socket connect_error:", err.message, err);
+    });
+
+    newSocket.on("disconnect", (reason) => {
+      console.log("Socket disconnected, reason:", reason);
     });
 
     // ─── Socket Event Listeners ─────────────────────────────────
 
     // For Mentor: Student asked a question matching their skill
     newSocket.on("student_asked_question", (data) => {
-      toast.info(`🔔 New Doubt posted in ${data.specializationName}: "${data.question}"`, {
+      const requestedTime = data.sessionType === "scheduled" && data.scheduledTime
+        ? ` for ${new Date(data.scheduledTime).toLocaleString()}`
+        : "";
+      toast.info(`🔔 New Doubt posted${requestedTime} in ${data.specializationName}: "${data.question}"`, {
         toastId: `asked_${data.doubtSessionId}`,
       });
       useNotificationStore.getState().addNotification("student_asked_question", data, data?._offline);
       // Invalidate dashboard to update "Open Opportunities"
+      queryClient.invalidateQueries({ queryKey: ["mentorDashboard"] });
+    });
+
+    // For both: Session scheduled in future
+    newSocket.on("meeting_scheduled", (data) => {
+      toast.success(data.message || "Doubt session scheduled successfully!");
+      useNotificationStore.getState().addNotification("meeting_scheduled", data, data?._offline);
+      queryClient.invalidateQueries({ queryKey: ["studentDashboard"] });
       queryClient.invalidateQueries({ queryKey: ["mentorDashboard"] });
     });
 
@@ -75,7 +109,7 @@ export const SocketProvider = ({ children }) => {
 
     // For Student: Mentor sent an offer/bid
     newSocket.on("mentor_offer_received", (data) => {
-      toast.info(`💬 Mentor ${data.mentorName} sent a bid of $${data.price}!`, {
+      toast.info(data.message || `💬 Mentor ${data.mentorName} sent a bid of $${data.price}. Accept the mentor offer to continue.`, {
         toastId: `offer_${data.mentorId}`,
       });
       useNotificationStore.getState().addNotification("mentor_offer_received", data, data?._offline);

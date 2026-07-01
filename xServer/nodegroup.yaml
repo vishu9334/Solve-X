@@ -1,0 +1,24 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: solveX-dev
+  region: ap-south-1
+
+vpc:
+  id: vpc-0822371d0960e674f
+  securityGroup: sg-09cb39086f49bdbc2
+  subnets:
+    public:
+      ap-south-1a:
+        id: subnet-098e9e510cc9fd620
+      ap-south-1b:
+        id: subnet-0c4fe9f88b16db6f0
+
+managedNodeGroups:
+  - name: standard-workers
+    instanceType: t3.medium
+    minSize: 1
+    maxSize: 3
+    desiredCapacity: 2
+

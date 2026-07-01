@@ -28,10 +28,22 @@ export const initSocket = (server) => {
                 const pendingKey = `notif:pending:${userId}`;
                 const pendingRaw = await redis.lrange(pendingKey, 0, -1);
                 if (pendingRaw.length > 0) {
-                    // Deliver oldest first (list is newest-first due to lpush)
                     for (const raw of [...pendingRaw].reverse()) {
                         try {
                             const notif = JSON.parse(raw);
+
+                            // Check if student_asked_question has already expired
+                            if (notif.eventName === "student_asked_question") {
+                                const session = await DoubtSession.findById(notif.payload.doubtSessionId);
+                                if (!session || ["expired", "completed", "in_session"].includes(session.status)) {
+                                    socket.emit("doubt_expired", {
+                                        doubtSessionId: notif.payload.doubtSessionId,
+                                        message: `A student's doubt request for "${notif.payload.question?.slice(0, 40)}..." arrived while you were offline, but has already expired.`
+                                    });
+                                    continue;
+                                }
+                            }
+
                             socket.emit(notif.eventName, { ...notif.payload, _offline: true });
                         } catch (_) { /* skip malformed */ }
                     }

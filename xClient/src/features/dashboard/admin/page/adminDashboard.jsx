@@ -173,7 +173,6 @@ const AdminDashboard = () => {
   /* ── data ────────────────────────────────────────────────────── */
   const {
     users = {},
-    mentors = {},
     subscriptions = {},
     proctoringFlagStats = {},
     doubtSessions = {},

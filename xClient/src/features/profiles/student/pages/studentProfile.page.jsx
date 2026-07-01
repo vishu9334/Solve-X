@@ -64,16 +64,11 @@ const StudentProfile = () => {
 
   if (isCheckingSession) {
     return (
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        ...pageBackgroundStyle,
-        color: "#ffffff",
-        fontFamily: "sans-serif"
-      }}>
-        <span style={{ fontSize: "14px", fontWeight: "500", letterSpacing: "0.05em" }}>Checking student session...</span>
+      <div 
+        className="flex items-center justify-center min-h-screen text-white font-sans"
+        style={pageBackgroundStyle}
+      >
+        <span className="text-sm font-medium tracking-wide">Checking student session...</span>
       </div>
     );
   }
@@ -89,58 +84,27 @@ const StudentProfile = () => {
 
   if (isProfileLoading) {
     return (
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        ...pageBackgroundStyle,
-        color: "#ffffff",
-        fontFamily: "sans-serif"
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
-          <div style={{
-            width: "48px",
-            height: "48px",
-            borderRadius: "50%",
-            border: "2px solid rgba(255, 255, 255, 0.1)",
-            borderTopColor: "#6366f1",
-            animation: "spin 1s linear infinite"
-          }} />
-          <span style={{ fontSize: "14px", fontWeight: "500" }}>Loading profile details...</span>
+      <div 
+        className="flex items-center justify-center min-h-screen text-white font-sans"
+        style={pageBackgroundStyle}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-2 border-white/10 border-t-indigo-500 animate-spin" />
+          <span className="text-sm font-medium">Loading profile details...</span>
         </div>
-        <style>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
       </div>
     );
   }
 
   if (isProfileError) {
     return (
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        ...pageBackgroundStyle,
-        padding: "24px",
-        fontFamily: "sans-serif"
-      }}>
-        <div style={{
-          backgroundColor: "rgba(239, 68, 68, 0.1)",
-          border: "1px solid rgba(239, 68, 68, 0.2)",
-          color: "#ef4444",
-          borderRadius: "16px",
-          padding: "24px",
-          maxWidth: "400px",
-          width: "100%",
-          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
-        }}>
-          <h3 style={{ margin: "0 0 8px 0", fontSize: "18px", fontWeight: "bold" }}>Error Loading Profile</h3>
-          <p style={{ margin: 0, fontSize: "14px" }}>{profileError?.message || "Check network connection or credentials."}</p>
+      <div 
+        className="flex items-center justify-center min-h-screen p-6 font-sans"
+        style={pageBackgroundStyle}
+      >
+        <div className="bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl p-6 max-w-[400px] w-full shadow-lg">
+          <h3 className="m-0 mb-2 text-lg font-bold">Error Loading Profile</h3>
+          <p className="m-0 text-sm">{profileError?.message || "Check network connection or credentials."}</p>
         </div>
       </div>
     );
@@ -190,178 +154,90 @@ const StudentProfile = () => {
     >
       <CustomCursor />
 
-
-
       <main className="relative z-10 mx-auto flex w-full max-w-5xl flex-col gap-6">
         
         <div className="flex flex-col gap-4 border-b border-white/10 pb-4 sm:flex-row sm:justify-between sm:items-center">
           <div>
-            <span style={{
-              fontFamily: "monospace",
-              fontSize: "12px",
-              letterSpacing: "0.3em",
-              color: "#6366f1",
-              textTransform: "uppercase",
-              display: "block",
-              marginBottom: "4px"
-            }}>
+            <span className="font-mono text-xs tracking-[0.3em] text-indigo-500 uppercase block mb-1">
               [ STUDENT IDENTITY SYSTEM ]
             </span>
-            <h1 style={{
-              fontSize: "28px",
-              fontWeight: "300",
-              margin: 0,
-              color: "#ffffff"
-            }}>
+            <h1 className="text-3xl font-light m-0 text-white">
               {name || "Student profile"}
             </h1>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div className="flex items-center gap-4">
             <Link 
               to="/dashboard/student" 
-              style={{
-                fontSize: "12px",
-                color: "rgba(255,255,255,0.7)",
-                textDecoration: "none",
-                fontWeight: "600",
-                letterSpacing: "0.05em",
-                border: "1px solid rgba(255,255,255,0.15)",
-                padding: "6px 16px",
-                borderRadius: "16px",
-                backgroundColor: "rgba(255,255,255,0.02)",
-                transition: "all 0.2s"
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#6366f1"; e.currentTarget.style.color = "#ffffff"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
+              className="text-xs text-white/70 hover:text-white font-semibold tracking-wide border border-white/15 hover:border-indigo-500 px-4 py-1.5 rounded-2xl bg-white/[0.02] transition-all duration-200 cursor-pointer no-underline"
             >
               Back to Dashboard
             </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span className="live-ping" style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                backgroundColor: "#10b981",
-                position: "relative",
-                display: "inline-block"
-              }}></span>
-              <span style={{
-                fontSize: "11px",
-                color: "#a3a3a3",
-                fontWeight: "bold",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em"
-              }}>ACTIVE</span>
+            <div className="flex items-center gap-2">
+              <span className="live-ping w-2 h-2 rounded-full bg-emerald-500 relative inline-block animate-pulse"></span>
+              <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider">ACTIVE</span>
             </div>
           </div>
         </div>
 
         {/* Main Layout Grid */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: "24px"
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* LEFT: Identity Details & Subscription Info */}
-          <div style={{
-            backgroundColor: "rgba(12, 11, 22, 0.78)",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            borderRadius: "24px",
-            padding: "28px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "24px",
-            boxSizing: "border-box"
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+          <div className="bg-[#0c0b16]/35 border border-white/10 rounded-3xl p-7 flex flex-col gap-6 box-border">
+            <div className="flex items-center gap-5">
               {/* Avatar Circle */}
-              <div style={{
-                width: "72px",
-                height: "72px",
-                borderRadius: "50%",
-                backgroundColor: "#6366f1",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "28px",
-                fontWeight: "300",
-                boxShadow: "0 10px 20px rgba(99, 102, 241, 0.25)"
-              }}>
+              <div className="w-[72px] h-[72px] rounded-full bg-indigo-500 flex items-center justify-center text-3xl font-light shadow-[0_10px_20px_rgba(99,102,241,0.25)]">
                 {name ? name[0].toUpperCase() : "S"}
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <span style={{ fontSize: "11px", color: "#6366f1", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] text-indigo-500 font-bold uppercase tracking-wider">
                   Solve-X Scholar
                 </span>
                 {isEditing ? (
                   <input
                     type="text"
                     {...register("name")}
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.06)",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      color: "#ffffff",
-                      borderRadius: "8px",
-                      padding: "4px 8px",
-                      fontSize: "18px",
-                      fontWeight: "bold",
-                      outline: "none",
-                      width: "180px"
-                    }}
+                    className="bg-white/5 border border-white/15 text-white rounded-lg px-2.5 py-1 text-lg font-bold outline-none w-[180px] focus:border-indigo-500/50"
                   />
                 ) : (
-                  <h3 style={{ fontSize: "20px", fontWeight: "500", margin: 0 }}>{name}</h3>
+                  <h3 className="text-xl font-medium m-0">{name}</h3>
                 )}
-                <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>
+                <span className="text-xs text-white/50 font-mono">
                   {profileData.email || currentUser.email}
                 </span>
               </div>
             </div>
 
             {/* Subscription Box */}
-            <div style={{
-              backgroundColor: "rgba(99, 102, 241, 0.05)",
-              border: "1px solid rgba(99, 102, 241, 0.15)",
-              borderRadius: "16px",
-              padding: "16px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px"
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "11px", color: "#a5b4fc", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <div className="bg-mist-300/4 border border-indigo-500/100 rounded-2xl p-4 flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-green-500 font-bold uppercase tracking-wider">
                   Membership Status
                 </span>
-                <span style={{
-                  fontSize: "9px",
-                  fontWeight: "bold",
-                  textTransform: "uppercase",
-                  padding: "2px 8px",
-                  borderRadius: "9999px",
-                  backgroundColor: profileData.subscriptionStatus === 'active' ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)",
-                  color: profileData.subscriptionStatus === 'active' ? "#34d399" : "#f87171",
-                  border: profileData.subscriptionStatus === 'active' ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(239, 68, 68, 0.3)"
-                }}>
+                <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full border ${
+                  profileData.subscriptionStatus === 'active' 
+                    ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" 
+                    : "bg-red-500/15 text-red-400 border-red-500/30"
+                }`}>
                   {profileData.subscriptionStatus || "inactive"}
                 </span>
               </div>
               {profileData.subscriptionStatus === 'active' && profileData.subscriptionExpiresAt ? (
-                <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.7)" }}>
+                <span className="text-xs text-white/70">
                   Expires: {new Date(profileData.subscriptionExpiresAt).toLocaleDateString()}
                 </span>
               ) : (
-                <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>
+                <span className="text-xs text-white/50">
                   Subscribe to access unlimited mentor sessions.
                 </span>
               )}
             </div>
 
             {/* Quick Details List */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", borderTop: "1px solid rgba(255,255,255,0.1)", paddingTop: "20px" }}>
+            <div className="flex flex-col gap-4 border-t border-white/10 pt-5">
               {/* Education */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", fontWeight: "bold" }}>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] text-white/40 uppercase font-bold">
                   Education
                 </span>
                 {isEditing ? (
@@ -369,28 +245,18 @@ const StudentProfile = () => {
                     type="text"
                     {...register("education")}
                     placeholder="e.g. B.Tech Computer Science"
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.06)",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      color: "#ffffff",
-                      borderRadius: "8px",
-                      padding: "8px 12px",
-                      fontSize: "13px",
-                      outline: "none",
-                      width: "100%",
-                      boxSizing: "border-box"
-                    }}
+                    className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none w-full box-border focus:border-indigo-500/50"
                   />
                 ) : (
-                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)" }}>
+                  <span className="text-sm text-white/85">
                     {education || "Not specified"}
                   </span>
                 )}
               </div>
 
               {/* Language */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", fontWeight: "bold" }}>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] text-white/40 uppercase font-bold">
                   Preferred Language
                 </span>
                 {isEditing ? (
@@ -398,54 +264,33 @@ const StudentProfile = () => {
                     type="text"
                     {...register("preferredLanguage")}
                     placeholder="e.g. Hindi, English"
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.06)",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      color: "#ffffff",
-                      borderRadius: "8px",
-                      padding: "8px 12px",
-                      fontSize: "13px",
-                      outline: "none",
-                      width: "100%",
-                      boxSizing: "border-box"
-                    }}
+                    className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none w-full box-border focus:border-indigo-500/50"
                   />
                 ) : (
-                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)" }}>
+                  <span className="text-sm text-white/85">
                     {preferredLanguage || "Not specified"}
                   </span>
                 )}
               </div>
 
               {/* Timezone */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", fontWeight: "bold" }}>
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] text-white/40 uppercase font-bold">
                   Timezone
                 </span>
                 {isEditing ? (
                   <select
                     {...register("timezone")}
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.06)",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      color: "#ffffff",
-                      borderRadius: "8px",
-                      padding: "8px 12px",
-                      fontSize: "13px",
-                      outline: "none",
-                      width: "100%",
-                      boxSizing: "border-box",
-                      cursor: "pointer"
-                    }}
+                    className="bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none w-full box-border cursor-pointer focus:border-indigo-500/50"
                   >
-                    <option value="" style={{ backgroundColor: "#121116" }}>Select timezone</option>
-                    <option value="GMT+5:30" style={{ backgroundColor: "#121116" }}>IST (GMT+5:30)</option>
-                    <option value="GMT+0:00" style={{ backgroundColor: "#121116" }}>UTC (GMT+0:00)</option>
-                    <option value="GMT-5:00" style={{ backgroundColor: "#121116" }}>EST (GMT-5:00)</option>
-                    <option value="GMT-8:00" style={{ backgroundColor: "#121116" }}>PST (GMT-8:00)</option>
+                    <option value="" className="bg-[#121116]">Select timezone</option>
+                    <option value="GMT+5:30" className="bg-[#121116]">IST (GMT+5:30)</option>
+                    <option value="GMT+0:00" className="bg-[#121116]">UTC (GMT+0:00)</option>
+                    <option value="GMT-5:00" className="bg-[#121116]">EST (GMT-5:00)</option>
+                    <option value="GMT-8:00" className="bg-[#121116]">PST (GMT-8:00)</option>
                   </select>
                 ) : (
-                  <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.85)" }}>
+                  <span className="text-sm text-white/85">
                     {timezone || "Not specified"}
                   </span>
                 )}
@@ -454,106 +299,44 @@ const StudentProfile = () => {
           </div>
 
           {/* RIGHT: Bio, Skills & Social Links */}
-          <div style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "24px"
-          }}>
+          <div className="flex flex-col gap-6">
             
             {/* Bio Card */}
-            <div style={{
-              backgroundColor: "rgba(12, 11, 22, 0.78)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "24px",
-              padding: "28px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-              boxSizing: "border-box"
-            }}>
-              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", fontWeight: "bold" }}>
+            <div className="bg-[#0c0b16]/15 border border-white/30 rounded-3xl p-7 flex flex-col gap-4 box-border">
+              <span className="text-[11px] text-white/40 uppercase font-bold">
                 Biography
               </span>
               {isEditing ? (
                 <textarea
                   {...register("bio")}
                   placeholder="Tell us about your learning journey..."
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.06)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    color: "#ffffff",
-                    borderRadius: "16px",
-                    padding: "14px",
-                    fontSize: "14px",
-                    lineHeight: "1.6",
-                    outline: "none",
-                    width: "100%",
-                    minHeight: "120px",
-                    resize: "none",
-                    boxSizing: "border-box"
-                  }}
+                  className="bg-white/5 border border-white/15 text-white rounded-2xl p-3.5 text-sm leading-relaxed outline-none w-full min-h-[120px] resize-none box-border focus:border-indigo-500/50"
                 />
               ) : (
-                <p style={{
-                  fontSize: "14px",
-                  lineHeight: "1.7",
-                  color: "rgba(255, 255, 255, 0.8)",
-                  margin: 0,
-                  fontStyle: bio ? "normal" : "italic"
-                }}>
+                <p className={`text-sm leading-relaxed text-white/80 m-0 ${bio ? "" : "italic"}`}>
                   {bio || "Write a short bio to let mentors know more about your goals."}
                 </p>
               )}
             </div>
 
             {/* Skills Card */}
-            <div style={{
-              backgroundColor: "rgba(12, 11, 22, 0.78)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "24px",
-              padding: "28px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-              boxSizing: "border-box"
-            }}>
-              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", fontWeight: "bold" }}>
+            <div className="bg-[#0c0b16]/15 border border-white/30 rounded-3xl p-7 flex flex-col gap-4 box-border">
+              <span className="text-[11px] text-white/40 uppercase font-bold">
                 My Tech Stack / Focus Areas
               </span>
               
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              <div className="flex flex-wrap gap-2">
                 {skills.length > 0 ? (
                   skills.map((skill, index) => (
                     <div 
                       key={index}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "6px",
-                        backgroundColor: "rgba(99, 102, 241, 0.08)",
-                        border: "1px solid rgba(99, 102, 241, 0.2)",
-                        color: "#a5b4fc",
-                        borderRadius: "12px",
-                        padding: "6px 12px",
-                        fontSize: "12px",
-                        fontWeight: "600"
-                      }}
+                      className="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 rounded-xl px-3 py-1.5 text-xs font-semibold"
                     >
                       <span>{skill}</span>
                       {isEditing && (
                         <button
                           onClick={() => handleRemoveSkill(skill)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            color: "#ef4444",
-                            cursor: "pointer",
-                            fontSize: "14px",
-                            padding: 0,
-                            lineHeight: 1,
-                            display: "flex",
-                            alignItems: "center"
-                          }}
+                          className="bg-transparent border-none text-red-400 hover:text-red-300 cursor-pointer text-sm p-0 leading-none flex items-center"
                         >
                           &times;
                         </button>
@@ -561,43 +344,25 @@ const StudentProfile = () => {
                     </div>
                   ))
                 ) : (
-                  <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>
+                  <span className="text-sm text-white/40 italic">
                     No skills added yet.
                   </span>
                 )}
               </div>
 
               {isEditing && (
-                <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+                <div className="flex gap-2.5 mt-2">
                   <input
                     type="text"
                     value={newSkill}
                     onChange={(e) => setNewSkill(e.target.value)}
                     placeholder="Add a skill (e.g. React, Node.js)"
                     onKeyDown={(e) => { if (e.key === 'Enter') handleAddSkill(); }}
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.06)",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      color: "#ffffff",
-                      borderRadius: "12px",
-                      padding: "8px 14px",
-                      fontSize: "12px",
-                      outline: "none",
-                      flexGrow: 1
-                    }}
+                    className="bg-white/5 border border-white/15 text-white rounded-xl px-3.5 py-2 text-xs outline-none flex-1 focus:border-indigo-500/50"
                   />
                   <button
                     onClick={handleAddSkill}
-                    style={{
-                      backgroundColor: "#6366f1",
-                      border: "none",
-                      color: "#ffffff",
-                      borderRadius: "12px",
-                      padding: "0 16px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      cursor: "pointer"
-                    }}
+                    className="bg-indigo-500 hover:bg-indigo-600 border-none text-white rounded-xl px-4 text-xs font-bold cursor-pointer transition-colors duration-200"
                   >
                     Add
                   </button>
@@ -606,21 +371,12 @@ const StudentProfile = () => {
             </div>
 
             {/* Social Links Card */}
-            <div style={{
-              backgroundColor: "rgba(12, 11, 22, 0.78)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              borderRadius: "24px",
-              padding: "28px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "16px",
-              boxSizing: "border-box"
-            }}>
-              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", fontWeight: "bold" }}>
+            <div className="bg-[#0c0b16]/15 border border-white/30 rounded-3xl p-7 flex flex-col gap-4 box-border">
+              <span className="text-[11px] text-white/40 uppercase font-bold">
                 Connected Profiles
               </span>
 
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px" }}>
+              <div className="flex flex-wrap gap-3">
                 {socialLinks.length > 0 ? (
                   socialLinks.map((link, index) => {
                     const platform = link.platform?.toLowerCase() || "other";
@@ -628,53 +384,27 @@ const StudentProfile = () => {
                     return (
                       <div
                         key={index}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          backgroundColor: "rgba(255, 255, 255, 0.04)",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
-                          borderRadius: "14px",
-                          padding: "8px 14px",
-                          fontSize: "12px",
-                          boxSizing: "border-box"
-                        }}
+                        className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3.5 py-2 text-xs box-border"
                       >
                         <a
                           href={formatExternalUrl(link.url)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "8px",
-                            textDecoration: "none",
-                            color: "rgba(255, 255, 255, 0.8)",
-                            fontWeight: "500"
-                          }}
+                          className="flex items-center gap-2 no-underline text-white/80 hover:text-white font-medium"
                         >
                           {iconUrl && (
                             <img
                               src={iconUrl}
                               alt={link.platform}
-                              style={{ width: "16px", height: "16px", filter: "invert(1)" }}
+                              className="w-4 h-4 invert"
                             />
                           )}
-                          <span style={{ textTransform: "capitalize" }}>{link.platform}</span>
+                          <span className="capitalize">{link.platform}</span>
                         </a>
                         {isEditing && (
                           <button
                             onClick={() => handleRemoveSocialLink(index)}
-                            style={{
-                              background: "none",
-                              border: "none",
-                              color: "#ef4444",
-                              cursor: "pointer",
-                              fontSize: "14px",
-                              padding: 0,
-                              lineHeight: 1,
-                              marginLeft: "4px"
-                            }}
+                            className="bg-transparent border-none text-red-400 hover:text-red-300 cursor-pointer text-sm p-0 leading-none ml-1"
                           >
                             &times;
                           </button>
@@ -683,45 +413,25 @@ const StudentProfile = () => {
                     );
                   })
                 ) : (
-                  <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>
+                  <span className="text-sm text-white/40 italic">
                     No social profiles linked yet.
                   </span>
                 )}
               </div>
 
               {isEditing && (
-                <div style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "10px",
-                  alignItems: "center",
-                  backgroundColor: "rgba(0, 0, 0, 0.3)",
-                  padding: "12px",
-                  borderRadius: "14px",
-                  border: "1px solid rgba(255, 255, 255, 0.05)",
-                  boxSizing: "border-box",
-                  marginTop: "8px"
-                }}>
+                <div className="flex flex-wrap gap-2.5 items-center bg-black/35 p-3 rounded-2xl border border-white/5 box-border mt-2">
                   <select
                     value={newPlatform}
                     onChange={(e) => setNewPlatform(e.target.value)}
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.08)",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      borderRadius: "10px",
-                      padding: "6px 10px",
-                      fontSize: "12px",
-                      color: "#ffffff",
-                      outline: "none",
-                      cursor: "pointer"
-                    }}
+                    className="bg-white/10 border border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none cursor-pointer focus:border-indigo-500/50"
                   >
-                    <option value="linkedin" style={{ backgroundColor: "#121116" }}>LinkedIn</option>
-                    <option value="github" style={{ backgroundColor: "#121116" }}>GitHub</option>
-                    <option value="twitter" style={{ backgroundColor: "#121116" }}>Twitter</option>
-                    <option value="instagram" style={{ backgroundColor: "#121116" }}>Instagram</option>
-                    <option value="portfolio" style={{ backgroundColor: "#121116" }}>Portfolio</option>
-                    <option value="other" style={{ backgroundColor: "#121116" }}>Other</option>
+                    <option value="linkedin" className="bg-[#121116]">LinkedIn</option>
+                    <option value="github" className="bg-[#121116]">GitHub</option>
+                    <option value="twitter" className="bg-[#121116]">Twitter</option>
+                    <option value="instagram" className="bg-[#121116]">Instagram</option>
+                    <option value="portfolio" className="bg-[#121116]">Portfolio</option>
+                    <option value="other" className="bg-[#121116]">Other</option>
                   </select>
                   <input
                     type="url"
@@ -729,29 +439,11 @@ const StudentProfile = () => {
                     value={newUrl}
                     onChange={(e) => setNewUrl(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") handleAddSocialLink(); }}
-                    style={{
-                      flexGrow: 1,
-                      backgroundColor: "rgba(255, 255, 255, 0.08)",
-                      border: "1px solid rgba(255, 255, 255, 0.15)",
-                      borderRadius: "10px",
-                      padding: "6px 10px",
-                      fontSize: "12px",
-                      color: "#ffffff",
-                      outline: "none"
-                    }}
+                    className="flex-1 min-w-[150px] bg-white/10 border border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-white outline-none focus:border-indigo-500/50"
                   />
                   <button
                     onClick={handleAddSocialLink}
-                    style={{
-                      padding: "6px 12px",
-                      backgroundColor: "#6366f1",
-                      color: "#ffffff",
-                      border: "none",
-                      borderRadius: "10px",
-                      fontSize: "12px",
-                      fontWeight: "bold",
-                      cursor: "pointer"
-                    }}
+                    className="px-3.5 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white border-none rounded-lg text-xs font-bold cursor-pointer transition-colors duration-200"
                   >
                     Add
                   </button>
@@ -763,12 +455,7 @@ const StudentProfile = () => {
         </div>
 
         {/* Action Buttons Row */}
-        <div style={{
-          display: "flex",
-          justifyContent: "flex-end",
-          gap: "12px",
-          marginTop: "12px"
-        }}>
+        <div className="flex justify-end gap-3 mt-3">
           {isEditing ? (
             <>
               <button
@@ -784,39 +471,14 @@ const StudentProfile = () => {
                   setSocialLinks(profileData.socialLinks || []);
                   setSkills(profileData.skills || []);
                 }}
-                style={{
-                  padding: "8px 24px",
-                  borderRadius: "9999px",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  backgroundColor: "transparent",
-                  color: "#ffffff",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  transition: "background-color 0.2s"
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 0.05)"}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                className="px-6 py-2 rounded-full border border-white/20 hover:bg-white/5 bg-transparent text-white text-sm font-semibold cursor-pointer transition-colors duration-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit(onSubmit)}
                 disabled={isUpdating}
-                style={{
-                  padding: "8px 24px",
-                  borderRadius: "9999px",
-                  border: "none",
-                  backgroundColor: "#6366f1",
-                  color: "#ffffff",
-                  fontSize: "13px",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
-                  transition: "background-color 0.2s"
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#4f46e5"}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#6366f1"}
+                className="px-6 py-2 rounded-full border-none bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold cursor-pointer shadow-[0_4px_12px_rgba(99,102,241,0.3)] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUpdating ? "Saving..." : "Save Changes"}
               </button>
@@ -824,20 +486,7 @@ const StudentProfile = () => {
           ) : (
             <button
               onClick={() => setIsEditing(true)}
-              style={{
-                padding: "8px 24px",
-                borderRadius: "9999px",
-                border: "none",
-                backgroundColor: "#6366f1",
-                color: "#ffffff",
-                fontSize: "13px",
-                fontWeight: "600",
-                cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(99, 102, 241, 0.3)",
-                transition: "background-color 0.2s"
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#4f46e5"}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "#6366f1"}
+              className="px-6 py-2 rounded-full border-none bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-semibold cursor-pointer shadow-[0_4px_12px_rgba(99,102,241,0.3)] transition-colors duration-200"
             >
               Edit Profile
             </button>

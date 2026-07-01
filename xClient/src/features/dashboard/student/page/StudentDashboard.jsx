@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Navigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
@@ -32,7 +33,9 @@ const StatusBadge = ({ status }) => {
           ? "border-amber-400/25 bg-amber-400/10 text-amber-300"
           : status === "mentor_selected"
             ? "border-indigo-400/25 bg-indigo-400/10 text-indigo-300"
-            : "border-white/15 bg-white/5 text-white/50";
+            : status === "scheduled"
+              ? "border-amber-500/25 bg-amber-500/10 text-amber-400"
+              : "border-white/15 bg-white/5 text-white/50";
 
   return (
     <span className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${style}`}>
@@ -49,6 +52,41 @@ const formatDate = (date) => {
     month: "short",
     year: "numeric",
   }).format(new Date(date));
+};
+
+const CountdownTimer = ({ scheduledTime }) => {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference = new Date(scheduledTime) - new Date();
+      if (difference <= 0) {
+        setTimeLeft("Starting soon...");
+        return;
+      }
+
+      const hrs = Math.floor(difference / (1000 * 60 * 60));
+      const mins = Math.floor((difference / 1000 / 60) % 60);
+      const secs = Math.floor((difference / 1000) % 60);
+
+      let formatted = "";
+      if (hrs > 0) formatted += `${hrs}h `;
+      if (mins > 0 || hrs > 0) formatted += `${mins}m `;
+      formatted += `${secs}s`;
+
+      setTimeLeft(`Starts in: ${formatted}`);
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(interval);
+  }, [scheduledTime]);
+
+  return (
+    <span className="rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1 text-[10px] font-bold text-amber-300 font-mono">
+      ⏳ {timeLeft}
+    </span>
+  );
 };
 
 const StudentDashboard = () => {
@@ -115,7 +153,7 @@ const StudentDashboard = () => {
   const { profile = {}, stats = {}, recentSessions = [] } = dashboardData;
 
   return (
-    <div className="min-h-[calc(100vh-9rem)] overflow-x-hidden bg-[radial-gradient(circle_at_8%_80%,rgba(255,217,110,0.28),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.38),transparent_34%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] px-0 pt-32 pb-4 text-white sm:pt-24 sm:pb-6 flex flex-col">
+    <div className="min-h-[calc(100vh-9rem)] overflow-x-hidden bg-[radial-gradient(circle_at_8%_80%,rgba(55,100,260,0.28),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.38),transparent_34%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)] px-0 pt-32 pb-4 text-white sm:pt-24 sm:pb-6 flex flex-col">
       <div className="mx-auto w-[94%] max-w-[1200px] flex flex-col gap-6">
         <div className="flex flex-col justify-between gap-4 border-b border-white/10 pb-5 md:flex-row md:items-end">
           <div>
@@ -254,11 +292,14 @@ const StudentDashboard = () => {
                       )}
                       <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/45">
                         <span className="rounded-full bg-white/5 px-3 py-1">
-                          Duration: {session.sessionDuration || "N/A"}
+                          Duration: {session.sessionDuration || "N/A"} Mins
                         </span>
                         <span className="rounded-full bg-white/5 px-3 py-1">
                           Created: {formatDate(session.createdAt)}
                         </span>
+                        {session.status === "scheduled" && session.scheduledTime && (
+                          <CountdownTimer scheduledTime={session.scheduledTime} />
+                        )}
                       </div>
                     </motion.article>
                   );

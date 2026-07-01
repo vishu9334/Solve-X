@@ -11,6 +11,10 @@ router.post("/student/ask-doubt/:userId", verifyAccessToken, studentController.s
 // Student selects a mentor from the received offers
 router.post("/student/select-mentor/:doubtSessionId", verifyAccessToken, studentController.selectMentor);
 
+// Student reschedules doubt sessions
+router.post("/student/sessions/:doubtSessionId/reschedule-request", verifyAccessToken, studentController.proposeReschedule);
+router.post("/student/sessions/:doubtSessionId/reschedule-respond", verifyAccessToken, studentController.respondReschedule);
+
 // Student ends an active doubt session manually
 router.post("/student/end-session/:doubtSessionId", verifyAccessToken, studentController.endSession);
 

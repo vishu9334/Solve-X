@@ -3,7 +3,7 @@ import { Link, Navigate } from 'react-router-dom';
 import useAuthStore from '../../features/auth/store/auth.store';
 import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { ReactLenis, useLenis } from 'lenis/react';
+import { useLenis } from 'lenis/react';
 import CustomCursor from '../components/CustomCursor';
 import CharacterSection from '../components/CharacterSection';
 import Preloader from '../components/Preloader';
@@ -83,7 +83,7 @@ const mentorItemVariants = {
 };
 
 const PublicPage = () => {
-    const { user } = useAuthStore();
+    useAuthStore();
     const [isPastHero, setIsPastHero] = useState(false);
     const [preloaderComplete, setPreloaderComplete] = useState(() => window.__solveXPreloaderRun === true);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -239,8 +239,8 @@ const PublicPage = () => {
                         <Link
                             to="/login"
                             className={`inline-flex h-[42px] w-[100px] items-center justify-center rounded-full border text-sm font-medium tracking-[-0.03em] transition-colors duration-200 ${isPastHero
-                                    ? 'bg-gradient-to-b from-white to-[#e2e2e2] border-black/12 text-black'
-                                    : 'bg-gradient-to-b from-white to-[#e2e2e2] border-white/20 text-black'
+                                ? 'bg-gradient-to-b from-white to-[#e2e2e2] border-black/12 text-black'
+                                : 'bg-gradient-to-b from-white to-[#e2e2e2] border-white/20 text-black'
                                 }`}
                         >
                             Log In
@@ -367,7 +367,7 @@ const PublicPage = () => {
                         style={{ fontSize: 'clamp(2.6rem, 6.5vw, 72px)' }}
                     >
                         Real Doubts. Real Mentors.{' '}
-                        <em className="font-serif font-normal italic text-white">Real Answers.</em>
+                        <em className="font-serif font-normal italic text-green-500">Real Answers.</em>
                     </motion.h1>
 
                     {/* Subtext */}
@@ -386,11 +386,11 @@ const PublicPage = () => {
                             whileHover={{ scale: 1.04, boxShadow: '0 8px 30px rgba(62,62,244,0.2)' }}
                             whileTap={{ scale: 0.96 }}
                             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                            className="inline-block"
+                            className="inline-block rounded-full"
                         >
                             <Link
                                 to="/register"
-                                className="inline-flex items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 backdrop-blur-md px-8 py-3.5 text-base font-bold text-amber-300 transition-all hover:bg-amber-300/20 hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] cursor-pointer"
+                                className="inline-flex items-center justify-center rounded-full border bg-white/20 backdrop-blur-md px-8 py-3.5 text-base font-bold text-white transition-all hover:bg-white-300/20 hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] cursor-pointer"
                             >
                                 Create an Account — It's Free
                             </Link>
@@ -405,7 +405,7 @@ const PublicPage = () => {
                 <div className="mx-auto w-full max-w-[1200px]">
 
                     {/* Section header */}
-                    <div className="mx-auto flex w-full max-w-[860px] flex-col items-center text-center gap-4 mb-14">
+                    <div className="mx-auto rounded-full flex w-full max-w-[860px] flex-col items-center text-center gap-4 mb-14">
                         <h2
                             className="font-raleway font-normal leading-tight tracking-tight text-black"
                             style={{ fontSize: 'clamp(1.9rem, 4vw, 46px)' }}
@@ -424,7 +424,7 @@ const PublicPage = () => {
                         >
                             <Link
                                 to="/register"
-                                className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-300/40 bg-amber-300/10 backdrop-blur-md px-5 py-2.5 text-sm font-bold text-amber-300 transition hover:bg-amber-300/20 hover:shadow-[0_0_15px_rgba(251,191,36,0.25)] cursor-pointer"
+                                className=" inline-flex items-center justify-center gap-2 outline-0 border border-cyan-400/45 bg-cyan-400/10 px-5 py-2.5 text-sm font-bold text-cyan-500 backdrop-blur-md transition-all duration-300 hover:border-cyan-300/80 hover:bg-cyan-400/20 hover:text-white hover:shadow-[0_0_18px_rgba(34,211,238,0.28)] hover:bg-red-500/70 cursor-pointer"
                             >
                                 Try Now
                             </Link>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import useAuthStore from '../../features/auth/store/auth.store';
 
@@ -7,10 +7,6 @@ const INACTIVITY_LIMIT = 5 * 60 * 1000; // 5 minutes
 const AuthLayout = () => {
     const { user } = useAuthStore();
     const [shouldRedirectToPublic, setShouldRedirectToPublic] = useState(false);
-
-    const resetTimer = useCallback(() => {
-        setShouldRedirectToPublic(false);
-    }, []);
 
     // Only run inactivity timer when user is NOT logged in (on auth pages)
     useEffect(() => {

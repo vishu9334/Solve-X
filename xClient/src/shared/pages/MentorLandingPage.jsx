@@ -3,7 +3,6 @@ import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { motion } from 'framer-motion';
 import { Link, Navigate } from 'react-router-dom';
 import CustomCursor from '../components/CustomCursor';
-import useAuthStore from '../../features/auth/store/auth.store';
 import { useLogout } from '../../features/auth/hooks/useLogout.js';
 import { useCurrentUser } from '../../features/auth/hooks/useCurrentUser.js';
 

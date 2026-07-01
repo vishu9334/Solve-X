@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import useAuthStore from "../../features/auth/store/auth.store";
 import { useLogout } from "../../features/auth/hooks/useLogout.js";
 import NotificationBell from "./NotificationBell.jsx";
@@ -29,8 +29,6 @@ const Header = () => {
         performLogout();
     };
 
-    const isStudentDashboard = location.pathname === "/dashboard/student";
-    const isMentorDashboard = location.pathname === "/dashboard/mentor";
     const isAssessmentTest = location.pathname === "/mentor/assessment/test";
     const isAssessmentSelect = location.pathname === "/mentor/assessment/select";
 

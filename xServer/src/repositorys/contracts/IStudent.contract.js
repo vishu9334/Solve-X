@@ -71,6 +71,9 @@ class IstudentContract {
     async findMentorsWithProfileBySpecialization(specializationId) {
         throw new Error("Method not implemented");
     }
+    async findScheduledDoubtSessions() {
+        throw new Error("Method not implemented");
+    }
 }
 
 export default IstudentContract

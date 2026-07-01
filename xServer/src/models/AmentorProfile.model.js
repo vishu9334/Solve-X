@@ -98,6 +98,33 @@ const mentorProfileSchema = new Schema({
         trim: true,
         default: null,
     },
+
+    warnings: {
+        type: [{
+            warningType: { type: String },
+            reason: String,
+            date: { type: Date, default: Date.now }
+        }],
+        default: []
+    },
+
+    penalties: {
+        type: [{
+            amount: { type: Number, default: 0 },
+            reason: String,
+            date: { type: Date, default: Date.now }
+        }],
+        default: []
+    },
+
+    rescheduleRejections: {
+        type: [{
+            doubtSessionId: { type: Schema.Types.ObjectId, ref: "DoubtSession" },
+            reason: String,
+            date: { type: Date, default: Date.now }
+        }],
+        default: []
+    },
 }, { timestamps: true });
 
 export const MentorProfile = mongoose.model("MentorProfile", mentorProfileSchema);
