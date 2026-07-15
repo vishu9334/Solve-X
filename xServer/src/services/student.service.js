@@ -274,35 +274,69 @@ class studentService {
     }
 
     /**
-     * Student ends session early (manual)
+     * Student ends or cancels session (manual)
      */
     endSession = async (userId, doubtSessionId) => {
         if (!mongoose.Types.ObjectId.isValid(doubtSessionId))
             throw new ApiError(400, "Invalid doubt session ID");
 
-        const doubtSession = await studentRepository.findDoubtSessionByIdAndStudent(doubtSessionId, userId);
-        if (!doubtSession || doubtSession.status !== "in_session") {
-            throw new ApiError(404, "No active session found.");
+        const doubtSession = await studentRepository.findDoubtSessionById(doubtSessionId);
+        if (!doubtSession) {
+            throw new ApiError(404, "Doubt session not found.");
         }
 
-        doubtSession.status = "completed";
+        const studentIdStr = (doubtSession.studentId?._id || doubtSession.studentId)?.toString();
+        const mentorIdStr = (doubtSession.selectedMentorId?._id || doubtSession.selectedMentorId)?.toString();
+        const userIdStr = (userId?._id || userId)?.toString();
+
+        const isStudent = !!studentIdStr && studentIdStr === userIdStr;
+        const isMentor = !!mentorIdStr && mentorIdStr === userIdStr;
+
+        if (!isStudent && !isMentor) {
+            throw new ApiError(403, "You are not authorized to end this session.");
+        }
+
+        const activeStatuses = ["open", "mentor_selected", "in_session", "scheduled"];
+        if (!activeStatuses.includes(doubtSession.status)) {
+            throw new ApiError(400, `Cannot cancel a session that is already ${doubtSession.status}.`);
+        }
+
+        const oldStatus = doubtSession.status;
+        
+        // If it was in_session, transition to completed. Otherwise, transition to cancelled.
+        if (oldStatus === "in_session") {
+            doubtSession.status = "completed";
+        } else {
+            doubtSession.status = "cancelled";
+        }
+
         doubtSession.sessionEndedAt = new Date();
         // Set TTL: auto-delete 4 hours after session ends
         doubtSession.expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000);
         await studentRepository.saveDoubtSession(doubtSession);
 
-        // Notify mentor that session ended
-        sendNotificationToUser(doubtSession.selectedMentorId, "session_ended", {
-            doubtSessionId: doubtSession._id,
-            message: "Student has ended the session."
-        });
+        // Notify peer user
+        const targetUserId = isMentor ? (doubtSession.studentId?._id || doubtSession.studentId) : (doubtSession.selectedMentorId?._id || doubtSession.selectedMentorId);
+        const endedByRole = isMentor ? "Mentor" : "Student";
+        if (targetUserId) {
+            sendNotificationToUser(targetUserId, "session_ended", {
+                doubtSessionId: doubtSession._id,
+                message: oldStatus === "in_session"
+                    ? `${endedByRole} has ended the session.`
+                    : `${endedByRole} has cancelled the doubt session.`
+            });
+        }
 
-        // Manually destroy the chat room
+        // Manually destroy the chat room if it exists
         if (doubtSession.chatRoomId) {
             await destroyChatRoom(doubtSession.chatRoomId);
         }
 
-        return { message: "Session ended successfully." };
+        return { 
+            message: oldStatus === "in_session" 
+                ? "Session ended successfully." 
+                : "Doubt session cancelled successfully." 
+        };
     }
 
     studentDashboard = async ({ userId }) => {

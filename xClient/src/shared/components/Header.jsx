@@ -34,7 +34,10 @@ const Header = () => {
 
     if (!user) return null;
 
-    const forceCollapse = isAssessmentTest;
+    const isChat = location.pathname.startsWith("/chat/");
+    if (isChat) return null;
+
+    const forceCollapse = isAssessmentTest || location.pathname.startsWith("/chat/");
 
     const headerClasses = (isAssessmentSelect || isAssessmentTest)
         ? "fixed top-0 left-0 right-0 z-[1000] flex w-full flex-col gap-3 border-b border-white/10 px-6 py-3.5 text-white bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_32px_rgba(0,0,0,0.37)] box-border xl:flex-row xl:items-center xl:justify-between xl:px-8 backdrop-blur-[20px]"

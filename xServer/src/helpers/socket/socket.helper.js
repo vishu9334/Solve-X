@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import { DoubtSession } from "../../models/doubtSession.model.js";
 import redis from "../../configs/redis.config.js";
-
+import WebRTCHandler from "./webrtc.handler.js";
 let io = null;
 const onlineUsers = new Map();       // Key: userId, Value: socketId
 const activeChatTimers = new Map();  // Key: chatRoomId, Value: setTimeout ref
@@ -16,7 +16,8 @@ export const initSocket = (server) => {
 
     io.on("connection", (socket) => {
         console.log(`User connected: ${socket.id}`);
-
+         const webrtc = new WebRTCHandler(io, socket);
+            webrtc.init();
         // ─── Register user (Student or Mentor) ───────────────────
         socket.on("register_user", async (userId) => {
             if (!userId) return;
@@ -92,6 +93,20 @@ export const initSocket = (server) => {
             io.in(chatRoomId).emit("receive_chat_message", chatMessage);
         });
 
+        // ─── Request session end (Mentor permission workflow) ───
+        socket.on("request_end_session", async ({ chatRoomId, mentorName, studentId }) => {
+            if (!chatRoomId) return;
+            io.in(chatRoomId).emit("mentor_request_end_session", { chatRoomId, mentorName });
+            if (studentId) {
+                await sendNotificationToUser(studentId, "mentor_request_end_session", { chatRoomId, mentorName });
+            }
+        });
+
+        socket.on("end_session_response", async ({ chatRoomId, approved }) => {
+            if (!chatRoomId) return;
+            io.in(chatRoomId).emit("end_session_response", { approved });
+        });
+
         // ─── Leave chat room ─────────────────────────────────────
         socket.on("leave_chat_room", ({ chatRoomId, userId }) => {
             if (!chatRoomId) return;
@@ -101,6 +116,7 @@ export const initSocket = (server) => {
 
         // ─── Disconnect ──────────────────────────────────────────
         socket.on("disconnect", () => {
+             WebRTCHandler.cleanup(io, socket);
             for (const [userId, socketId] of onlineUsers.entries()) {
                 if (socketId === socket.id) {
                     onlineUsers.delete(userId);
