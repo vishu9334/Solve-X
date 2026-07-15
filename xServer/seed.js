@@ -9,7 +9,6 @@ import { AssessmentStore } from "./src/models/assessmentDataStore.model.js";
 import { Attempt } from "./src/models/assessmentAttempt.model.js";
 import { Answer } from "./src/models/Answer.model.js";
 import { AssessmentActivitySession } from "./src/models/assessmentActivityDataStore.model.js";
-import SpecializationCatalog from "./src/models/specializationCatalogs.model.js";
 import config from "./src/configs/config.js";
 
 dotenv.config();
@@ -41,7 +40,6 @@ async function seed() {
     await CommonUser.deleteMany({});
     await MentorProfile.deleteMany({});
     await Specialization.deleteMany({});
-    await SpecializationCatalog.deleteMany({});
     await AssessmentStore.deleteMany({});
     await Attempt.deleteMany({});
     await Answer.deleteMany({});
@@ -87,10 +85,6 @@ async function seed() {
     ];
 
     console.log("🌱 Seeding Admin Skills and Assessment Stores...");
-    
-    // We will collect the generated specialization IDs to seed the catalogs
-    const specializationIdsMap = {};
-
     for (const skillData of defaultSkills) {
       // Create AssessmentStore first
       const assessment = await AssessmentStore.create({
@@ -124,34 +118,12 @@ async function seed() {
       const result = await Specialization.collection.insertOne(skillDoc);
       const skillId = result.insertedId;
 
-      specializationIdsMap[formattedName] = skillId;
-
       // Link AssessmentStore back to the created Skill
       assessment.category = skillId;
       await assessment.save();
 
       console.log(`✅ Seeded Skill: "${formattedName}" (Slug: "${slug}") with linked Assessment.`);
     }
-
-    // 5. Seed Specialization Catalog
-    console.log("🌱 Seeding Specialization Catalogs...");
-    await SpecializationCatalog.create({
-      specializationCatalogs: [
-        {
-          name: "Software Architecture",
-          specializationIds: [specializationIdsMap["Mern Stack"]]
-        },
-        {
-          name: "System Design",
-          specializationIds: [specializationIdsMap["System Design"]]
-        },
-        {
-          name: "Data Structures & Algorithms",
-          specializationIds: [specializationIdsMap["Data Structures & Algorithms"]]
-        }
-      ]
-    });
-    console.log("✅ Seeded Specialization Catalogs.");
 
     console.log("🎉 Seeding completed successfully!");
   } catch (error) {

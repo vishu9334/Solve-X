@@ -10,8 +10,8 @@ const CustomCursor = () => {
         const ring = ringRef.current;
         if (!dot || !ring) return;
 
-        // Quickset for initial position at screen center
-        gsap.set([dot, ring], { xPercent: -50, yPercent: -50, x: window.innerWidth / 2, y: window.innerHeight / 2 });
+        // Quickset for initial position offscreen
+        gsap.set([dot, ring], { xPercent: -50, yPercent: -50, x: -100, y: -100 });
 
         // Reuse the same tween setters instead of allocating new tweens on
         // every mouse event. This keeps pointer movement from competing with scroll.
@@ -112,26 +112,26 @@ const CustomCursor = () => {
             {/* Small dot */}
             <div
                 ref={dotRef}
-                className="fixed top-0 left-0 pointer-events-none z-[9999] hidden md:block transform-gpu will-change-transform"
+                className="fixed top-0 left-0 pointer-events-none z-[9999] hidden md:block"
                 style={{
-                    width: 6,
-                    height: 6,
+                    width: 5,
+                    height: 5,
                     borderRadius: '50%',
-                    backgroundColor: '#3e3ef4',
-                    boxShadow: '0 0 10px rgba(62,62,244,0.8)'
+                    backgroundColor: '#ffffff',
+                    mixBlendMode: 'difference',
                 }}
             />
             {/* Magnetic ring */}
             <div
                 ref={ringRef}
-                className="fixed top-0 left-0 pointer-events-none z-[9998] hidden md:block transform-gpu will-change-transform"
+                className="fixed top-0 left-0 pointer-events-none z-[9998] hidden md:block"
                 style={{
                     width: 36,
                     height: 36,
                     borderRadius: '50%',
-                    border: '1.5px solid rgba(62, 62, 244, 0.45)',
-                    backgroundColor: 'rgba(62, 62, 244, 0.05)',
-                    transition: 'width 0.3s, height 0.3s, border-color 0.3s',
+                    border: '1.5px solid rgba(255, 255, 255, 0.45)',
+                    backgroundColor: 'transparent',
+                    transition: 'width 0.3s, height 0.3s',
                 }}
             />
         </>

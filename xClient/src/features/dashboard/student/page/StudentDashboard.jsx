@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser.js";
 import { useGetStudentDashboard } from "../hook/studentDashboard.hook.js";
-import { useEndDoubtSession } from "../../../doubt/hooks/useDoubt.js";
 
 const StatCard = ({ label, value, tone = "text-amber-300", helper }) => (
   <motion.div
@@ -98,8 +97,6 @@ const StudentDashboard = () => {
     isError: isDashboardError,
     error: dashboardError,
   } = useGetStudentDashboard();
-
-  const { mutate: endSession } = useEndDoubtSession();
 
   if (isCheckingSession) {
     return (
@@ -293,32 +290,15 @@ const StudentDashboard = () => {
                       ) : (
                         CardContent
                       )}
-                      <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/45 items-center justify-between w-full">
-                        <div className="flex flex-wrap gap-2">
-                          <span className="rounded-full bg-white/5 px-3 py-1">
-                            Duration: {session.sessionDuration || "N/A"} Mins
-                          </span>
-                          <span className="rounded-full bg-white/5 px-3 py-1">
-                            Created: {formatDate(session.createdAt)}
-                          </span>
-                          {session.status === "scheduled" && session.scheduledTime && (
-                            <CountdownTimer scheduledTime={session.scheduledTime} />
-                          )}
-                        </div>
-                        
-                        {["open", "mentor_selected", "scheduled", "in_session"].includes(session.status) && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              if (window.confirm(`Are you sure you want to ${session.status === "in_session" ? "end" : "cancel"} this session?`)) {
-                                endSession(session._id);
-                              }
-                            }}
-                            className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1 text-[10px] font-bold rounded-lg transition-colors cursor-pointer border-none"
-                          >
-                            {session.status === "in_session" ? "End Session" : "Cancel Doubt"}
-                          </button>
+                      <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-white/45">
+                        <span className="rounded-full bg-white/5 px-3 py-1">
+                          Duration: {session.sessionDuration || "N/A"} Mins
+                        </span>
+                        <span className="rounded-full bg-white/5 px-3 py-1">
+                          Created: {formatDate(session.createdAt)}
+                        </span>
+                        {session.status === "scheduled" && session.scheduledTime && (
+                          <CountdownTimer scheduledTime={session.scheduledTime} />
                         )}
                       </div>
                     </motion.article>

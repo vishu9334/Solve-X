@@ -15,7 +15,6 @@ const DashboardLayout = () => {
     const isAssessmentTest = location.pathname === "/mentor/assessment/test";
     const isAssessmentSelect = location.pathname === "/mentor/assessment/select";
     const isDashboard = location.pathname === "/dashboard/mentor" || location.pathname === "/dashboard/student";
-    const isChat = location.pathname.startsWith("/chat/");
 
     let mainPaddingClass = "pt-32 sm:pt-24";
     if (isAssessmentTest) {
@@ -23,8 +22,6 @@ const DashboardLayout = () => {
     } else if (isAssessmentSelect) {
         mainPaddingClass = "pt-20";
     } else if (isDashboard) {
-        mainPaddingClass = "pt-0";
-    } else if (isChat) {
         mainPaddingClass = "pt-0";
     }
 
@@ -38,8 +35,8 @@ const DashboardLayout = () => {
                 <Outlet />
             </main>
 
-            {/* Reusable Footer Component - hidden on chat and assessment pages */}
-            {!isAssessmentTest && !isChat && <Footer />}
+            {/* Reusable Footer Component */}
+            {!isAssessmentTest && <Footer />}
         </div>
     );
 };
