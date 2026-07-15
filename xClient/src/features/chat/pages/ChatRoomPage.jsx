@@ -281,14 +281,23 @@ const ChatRoomPage = () => {
 
   const [showEndRequestModal, setShowEndRequestModal] = useState(false);
   const [requestingMentorName, setRequestingMentorName] = useState("");
+  const hasHandledEndRef = useRef(false);
+
+  const finishSessionEnd = useCallback((msgText) => {
+    if (hasHandledEndRef.current) return;
+    hasHandledEndRef.current = true;
+
+    if (msgText) toast.info(msgText);
+    handleLeaveCall();
+    navigate(currentUser.role === "mentor" ? "/dashboard/mentor" : "/dashboard/student");
+  }, [currentUser, handleLeaveCall, navigate]);
 
   useEffect(() => {
     if (!socket || !chatRoomId || !currentUser) return;
     socket.emit("join_chat_room", { chatRoomId, userId: currentUser._id || currentUser.id });
     const handleMsg = (m) => setMessages((prev) => [...prev, m]);
     const handleEnd = (d) => {
-      toast.warn(d.message || "Doubt session ended.");
-      navigate(currentUser.role === "mentor" ? "/dashboard/mentor" : "/dashboard/student");
+      finishSessionEnd(d.message || "Doubt session ended.");
     };
 
     const handleMentorEndReq = (payload) => {
@@ -300,9 +309,7 @@ const ChatRoomPage = () => {
 
     const handleEndRes = (payload) => {
       if (currentUser.role === "mentor") {
-        if (payload.approved) {
-          toast.success("Student approved session end request.");
-        } else {
+        if (!payload.approved) {
           toast.warn("Student declined session end request.");
         }
       }
@@ -320,7 +327,7 @@ const ChatRoomPage = () => {
       socket.off("end_session_response", handleEndRes);
       socket.emit("leave_chat_room", { chatRoomId, userId: currentUser._id || currentUser.id });
     };
-  }, [socket, chatRoomId, currentUser, navigate]);
+  }, [socket, chatRoomId, currentUser, finishSessionEnd]);
 
   useEffect(() => {
     if (!session || session.status !== "in_session" || !session.sessionStartedAt) return;
@@ -344,7 +351,9 @@ const ChatRoomPage = () => {
 
   const triggerDirectEndSession = () => {
     endSession(doubtSessionId, {
-      onSuccess: () => { toast.success("Session ended."); handleLeaveCall(); navigate(currentUser.role === "mentor" ? "/dashboard/mentor" : "/dashboard/student"); },
+      onSuccess: () => {
+        finishSessionEnd("Session ended.");
+      },
       onError: (err) => toast.error(err?.message || "Failed to end session."),
     });
   };
