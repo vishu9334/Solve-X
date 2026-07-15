@@ -8,15 +8,13 @@ import { SocketProvider } from "../features/socket/SocketContext.jsx";
 
 const Providers = ({ children }) => {
   return (
-    <ReactLenis root options={{ lerp: 0.08, duration: 1.2, smoothWheel: true }}>
-      <QueryClientProvider client={queryClient}>
-        <SocketProvider>
-          {children}
-          <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="colored" />
-          {/* <ReactQueryDevtools initialIsOpen={false}/>  */}
-        </SocketProvider>
-      </QueryClientProvider>
-    </ReactLenis>
+    <QueryClientProvider client={queryClient}>
+      <SocketProvider>
+        {children}
+        <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover theme="colored" />
+        {/* <ReactQueryDevtools initialIsOpen={false}/>  */}
+      </SocketProvider>
+    </QueryClientProvider>
   )
 }
 

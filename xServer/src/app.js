@@ -9,7 +9,6 @@ import specializationRoutes from './routes/specialization.routes.js';
 import studentRoutes from './routes/student.routes.js';
 import dashboardRoutes from './routes/dashboard.routes.js';
 import adminRoutes from './routes/admin.routes.js';
-import dailyRoutes from './routes/daily.routes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -41,7 +40,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.use("/api/v1", mentorRoutes, activitySessionRoutes, authRoutes, specializationRoutes, studentRoutes, dashboardRoutes, adminRoutes, dailyRoutes);
+app.use("/api/v1", mentorRoutes, activitySessionRoutes, authRoutes, specializationRoutes, studentRoutes, dashboardRoutes, adminRoutes);
 
 app.use("/api/v1", (req, res, next) => {
   const err = new Error(`Route ${req.originalUrl} not found`);

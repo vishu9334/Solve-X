@@ -87,8 +87,8 @@ const AskDoubtPage = () => {
                 className="w-full flex-1 flex flex-col items-center justify-center -mt-32 sm:-mt-24 pt-32 sm:pt-24 min-h-[500px]"
                 style={pageBackgroundStyle}
             >
-                <div className="flex flex-col items-center justify-center gap-3 text-white/50 font-mono">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-300 border-t-transparent" />
+                <div className="flex flex-col items-center justify-center gap-3 text-white/90 font-mono">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
                     <span className="animate-pulse text-xs tracking-wider uppercase">Loading specializations...</span>
                 </div>
             </div>

@@ -18,6 +18,8 @@ import StudentLandingPage from "../shared/pages/StudentLandingPage";
 import MentorLandingPage from "../shared/pages/MentorLandingPage";
 import AdminLandingPage from "../shared/pages/AdminLandingPage";
 import NotFoundPage from "../shared/pages/NotFoundPage";
+import PrivacyPolicyPage from "../shared/pages/PrivacyPolicyPage";
+import TermsConditionsPage from "../shared/pages/TermsConditionsPage";
 
 import AdminDashboard from "../features/dashboard/admin/page/adminDashboard";
 import MentorDashboard from "../features/dashboard/mentor/page/MentorDashboard";
@@ -77,6 +79,16 @@ export const router = createBrowserRouter([
   {
     path: "/admin-landing",
     element: <AdminLandingPage />,
+  },
+
+  {
+    path: "/privacy",
+    element: <PrivacyPolicyPage />,
+  },
+
+  {
+    path: "/terms",
+    element: <TermsConditionsPage />,
   },
 
   {
