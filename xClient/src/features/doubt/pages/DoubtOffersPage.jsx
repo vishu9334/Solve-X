@@ -4,7 +4,6 @@ import {
   useGetDoubtSessionOffers,
   useGetDoubtSessionDetails,
   useSelectMentor,
-  useEndDoubtSession,
 } from "../hooks/useDoubt.js";
 import { useState } from "react";
 import NotificationSendingOverlay from "../../../shared/components/NotificationSendingOverlay";
@@ -30,17 +29,6 @@ const DoubtOffersPage = () => {
     useGetDoubtSessionOffers(doubtSessionId);
 
   const { mutate: selectMentor, isPending: isAccepting } = useSelectMentor();
-  const { mutate: endSession } = useEndDoubtSession();
-
-  const handleCancelSession = () => {
-    if (window.confirm("Are you sure you want to cancel this doubt request?")) {
-      endSession(doubtSessionId, {
-        onSuccess: () => {
-          navigate("/dashboard/student");
-        }
-      });
-    }
-  };
 
   const handleAcceptOffer = (mentorId) => {
     setErrorMsg("");
@@ -114,29 +102,20 @@ const DoubtOffersPage = () => {
           initial="hidden"
           animate="visible"
           variants={fadeInUp}
-          className="flex w-full flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/10 pb-6 sm:pb-8"
+          className="flex w-full flex-col gap-3 border-b border-white/10 pb-6 sm:pb-8"
         >
-          <div>
-            <p className="m-0 text-[10px] font-bold uppercase tracking-[0.24em] text-lime-400">
-              [ Doubt Offers Panel ]
-            </p>
+          <p className="m-0 text-[10px] font-bold uppercase tracking-[0.24em] text-lime-400">
+            [ Doubt Offers Panel ]
+          </p>
 
-            <h1 className="m-0 text-[clamp(2rem,5vw,3.5rem)] font-black uppercase leading-[0.95] tracking-tight font-space-grotesk">
-              Review Mentor Bids
-            </h1>
+          <h1 className="m-0 text-[clamp(2rem,5vw,3.5rem)] font-black uppercase leading-[0.95] tracking-tight font-space-grotesk">
+            Review Mentor Bids
+          </h1>
 
-            <p className="m-0 max-w-3xl text-sm leading-relaxed text-emerald-300/75 sm:text-base mt-2">
-              Compare mentor prices, ratings, and experience to accept the best
-              match for your session.
-            </p>
-          </div>
-          
-          <button
-            onClick={handleCancelSession}
-            className="rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-xs font-bold uppercase tracking-[0.16em] text-red-400 hover:bg-red-500 hover:text-white hover:shadow-[0_0_20px_rgba(239,68,68,0.25)] transition-all shrink-0 cursor-pointer border-none"
-          >
-            Cancel Doubt Request
-          </button>
+          <p className="m-0 max-w-3xl text-sm leading-relaxed text-emerald-300/75 sm:text-base">
+            Compare mentor prices, ratings, and experience to accept the best
+            match for your session.
+          </p>
         </motion.header>
 
         {/* Session Details */}

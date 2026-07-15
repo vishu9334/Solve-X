@@ -695,19 +695,16 @@ class MentorService {
         const data = await mentorRepository.mentorDashboardFetch(userId);
         if (!data) throw new ApiError(404, "Mentor dashboard data not found.");
 
-        // Calculate profile completion percentage (matches frontend checklist exactly)
-        const completionFields = [
-            Boolean(data.profile.jobTitle && data.profile.jobTitle.trim()),
-            Boolean(data.profile.company && data.profile.company.trim()),
-            Boolean(data.profile.experienceYears && data.profile.experienceYears > 0),
-            Boolean(data.profile.education && data.profile.education.trim()),
-            Boolean(data.profile.preferredLanguage && data.profile.preferredLanguage.trim()),
-            Boolean(data.profile.timezone && data.profile.timezone.trim()),
-            Boolean(data.profile.socialLinks && data.profile.socialLinks.length > 0),
-            Boolean(data.profile.certifications && data.profile.certifications.length > 0)
-        ];
-        const completedCount = completionFields.filter(Boolean).length;
-        const completion = Math.round((completedCount / completionFields.length) * 100);
+        // Calculate profile completion percentage
+        let completion = 40; // 20% name + 20% email are guaranteed
+        if (user.avatar && !user.avatar.includes("blank-profile-picture")) completion += 20;
+
+        const mentorProfile = await mentorRepository.findMentorProfile(userId);
+        if (mentorProfile) {
+            if (mentorProfile.socialLinks && mentorProfile.socialLinks.length > 0) completion += 20;
+        }
+
+        if (data.profile.specialization && data.profile.specialization.description) completion += 20;
 
         // Calculate active bids count
         const activeBidsCount = await mentorRepository.countActiveBids(userId);

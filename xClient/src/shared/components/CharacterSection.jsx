@@ -23,20 +23,20 @@ const CharacterSection = () => {
     return (
         <section
             id="characters"
-            className="py-6 md:py-24 px-4 w-full mt-8"
+            className="relative bg-[#f4f4f4] py-16 md:py-24 px-4 overflow-hidden"
         >
             <div className="mx-auto w-full max-w-[1200px]">
 
                 {/* Section Title */}
                 <div className="text-center mb-16">
                     <h2
-                        className="font-raleway font-normal tracking-tight text-white/70 leading-tight"
+                        className="font-raleway font-normal tracking-tight text-black leading-tight"
                         style={{ fontSize: 'clamp(1.8rem, 4vw, 44px)' }}
                     >
                         How Solve-X{' '}
                         <em className="font-serif font-normal italic">works for you</em>
                     </h2>
-                    <p className="mt-3 text-base font-light text-white/55 max-w-lg mx-auto md:text-lg">
+                    <p className="mt-3 text-base font-light text-black/55 max-w-lg mx-auto md:text-lg">
                         A student asks. A mentor answers. It's that simple.
                     </p>
                 </div>
@@ -80,9 +80,11 @@ const CharacterSection = () => {
                                 <path d="M155,195 Q175,200 170,210" fill="none" stroke="#FFE0B2" strokeWidth="10" strokeLinecap="round" />
 
                                 {/* Head */}
-                                <g
+                                <motion.g
+                                    animate={{ rotate: [-4, 4, -4] }}
+                                    transition={{ repeat: Infinity, duration: 0.6, ease: "easeInOut" }}
                                     style={{ transformOrigin: '130px 183px' }}
-                                    className="student-head animate-head-wobble"
+                                    className="student-head"
                                 >
                                     <circle cx="130" cy="155" r="28" fill="#FFE0B2" />
                                     {/* Hair — messy student hair */}
@@ -97,12 +99,15 @@ const CharacterSection = () => {
                                     <path d="M134,148 Q140,144 146,148" fill="none" stroke="#2C3E50" strokeWidth="2.5" strokeLinecap="round" />
                                     {/* Mouth — confused/wondering "o" */}
                                     <ellipse cx="130" cy="168" rx="4" ry="3.5" fill="#C09070" />
-                                </g>
+                                </motion.g>
 
                                 {/* Question mark floating */}
-                                <g className="animate-float-question">
+                                <motion.g
+                                    animate={{ y: [-14, 0, -14] }}
+                                    transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
+                                >
                                     <text x="155" y="115" fontSize="36" fontWeight="bold" fill="#3e3ef4" opacity="0.7" fontFamily="serif">?</text>
-                                </g>
+                                </motion.g>
 
                                 {/* Thought bubbles */}
                                 <circle cx="150" cy="130" r="3" fill="#3e3ef4" opacity="0.3" />
@@ -182,14 +187,16 @@ const CharacterSection = () => {
                                 <path d="M80,200 Q65,230 75,260" fill="none" stroke="#FFE0B2" strokeWidth="10" strokeLinecap="round" />
 
                                 {/* Right arm — pointing to board (animated) */}
-                                <g
+                                <motion.g
+                                    animate={{ rotate: [0, -12, 0] }}
+                                    transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
                                     style={{ transformOrigin: '140px 200px' }}
-                                    className="mentor-arm animate-arm-point"
+                                    className="mentor-arm"
                                 >
                                     <path d="M140,200 Q165,175 175,140" fill="none" stroke="#FFE0B2" strokeWidth="10" strokeLinecap="round" />
                                     {/* Pointing finger */}
                                     <circle cx="175" cy="137" r="4" fill="#FFE0B2" />
-                                </g>
+                                </motion.g>
 
                                 {/* Head */}
                                 <circle cx="110" cy="160" r="28" fill="#FFE0B2" />
@@ -209,13 +216,14 @@ const CharacterSection = () => {
                                 <circle cx="124" cy="178" r="3" fill="#37474F" />
 
                                 {/* Lightbulb */}
-                                <g
+                                <motion.g
+                                    animate={{ scale: [1, 1.15, 1], opacity: [0.75, 1, 0.75] }}
+                                    transition={{ repeat: Infinity, duration: 0.9, ease: "easeInOut" }}
                                     style={{ transformOrigin: '80px 60px' }}
-                                    className="animate-lightbulb-pulse"
                                 >
                                     <circle cx="80" cy="70" r="16" fill="#FFD54F" opacity="0.25" />
                                     <text x="72" y="78" fontSize="24">💡</text>
-                                </g>
+                                </motion.g>
                             </svg>
                         </div>
                         <div className="mt-4 text-center">
@@ -231,8 +239,8 @@ const CharacterSection = () => {
                 <div className="mt-20 md:mt-28 flex justify-center">
                     <div className="relative w-full max-w-[700px] rounded-[24px] bg-white border border-black/[0.06] p-8 md:p-12 text-center shadow-[0_18px_60px_rgba(62,62,244,0.08)] overflow-hidden">
                         {/* Glow accents */}
-                        <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-[#3e3ef4]/8 blur-3xl pointer-events-none transform-gpu" />
-                        <div className="absolute -bottom-16 -left-16 w-36 h-36 rounded-full bg-[#FFD54F]/10 blur-3xl pointer-events-none transform-gpu" />
+                        <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-[#3e3ef4]/8 blur-3xl pointer-events-none" />
+                        <div className="absolute -bottom-16 -left-16 w-36 h-36 rounded-full bg-[#FFD54F]/10 blur-3xl pointer-events-none" />
 
                         <p className="text-sm font-medium text-[#3e3ef4] tracking-wide uppercase mb-3">Start Solving Now</p>
 

@@ -94,14 +94,7 @@ class MongoMentorRepository extends IMentorRepository {
     }
 
     async createAttempt(userId, assessmentId) {
-        const existing = await Attempt.findOne({ userId, assessmentId });
-        if (existing) {
-            existing.status = "pending";
-            existing.updatedAt = new Date();
-            await existing.save();
-            return existing;
-        }
-        return await Attempt.create({
+        return Attempt.create({
             userId,
             assessmentId,
             status: "pending",
@@ -109,15 +102,7 @@ class MongoMentorRepository extends IMentorRepository {
     }
 
     async createAttemptWithMax(userId, assessmentId, maxAttempts) {
-        const existing = await Attempt.findOne({ userId, assessmentId });
-        if (existing) {
-            existing.status = "pending";
-            existing.maxAttempts = maxAttempts;
-            existing.updatedAt = new Date();
-            await existing.save();
-            return existing;
-        }
-        return await Attempt.create({
+        return Attempt.create({
             userId,
             assessmentId,
             status: "pending",

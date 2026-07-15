@@ -1,25 +1,8 @@
 import { Router } from "express";
-import { 
-    selectSpecialization, 
-    submitAssessment, 
-    replyToStudentDoubt, 
-    mentorProfile, 
-    updateMentorDescription, 
-    updateMentorProfile, 
-    getActiveAssessment, 
-    proposeReschedule, 
-    rejectScheduledDoubt,
-    acceptDoubtRequest
-} from "../controllers/mentor.controller.js";
+import { selectSpecialization, submitAssessment, replyToStudentDoubt, mentorProfile, updateMentorDescription, updateMentorProfile, getActiveAssessment, proposeReschedule, rejectScheduledDoubt } from "../controllers/mentor.controller.js";
 import { verifyAccessToken } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validate.middleware.js";
-import { 
-    submitAssessmentValidator, 
-    selectSpecializationValidator, 
-    replyToDoubtValidator, 
-    updateSpecializationDescriptionValidator, 
-    rejectScheduledDoubtValidator 
-} from "../validators/mentor.validator.js";
+import { submitAssessmentValidator, selectSpecializationValidator, replyToDoubtValidator, updateSpecializationDescriptionValidator, rejectScheduledDoubtValidator } from "../validators/mentor.validator.js";
 
 const router = Router();
 
@@ -30,7 +13,6 @@ router.post("/mentor/reply-doubt", verifyAccessToken, validate(replyToDoubtValid
 router.get("/mentor/profile", verifyAccessToken, mentorProfile);
 router.patch("/mentor/profile", verifyAccessToken, updateMentorProfile);
 router.patch("/mentor/specialization/description", verifyAccessToken, validate(updateSpecializationDescriptionValidator), updateMentorDescription);
-router.post("/mentor/accept-doubt/:doubtId", verifyAccessToken, acceptDoubtRequest);
 
 // Mentor reschedule request
 router.post("/mentor/sessions/:doubtSessionId/reschedule-request", verifyAccessToken, proposeReschedule);

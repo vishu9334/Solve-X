@@ -154,24 +154,6 @@ const MentorProfile = () => {
   const isVerifiedMentor = Boolean(profileData.isVerifiedMentor);
   const rating = Number(profileData.rating || 5.0).toFixed(1);
 
-  // --- Profile Completion Ratio (real data-driven) ---
-  const completionFields = [
-    { label: "Job Title",   filled: Boolean(profileData.jobTitle?.trim()) },
-    { label: "Company",     filled: Boolean(profileData.company?.trim()) },
-    { label: "Experience",  filled: (profileData.experienceYears || 0) > 0 },
-    { label: "Education",   filled: Boolean(profileData.education?.trim()) },
-    { label: "Language",    filled: Boolean(profileData.preferredLanguage?.trim()) },
-    { label: "Timezone",    filled: Boolean(profileData.timezone?.trim()) },
-    { label: "Social Links",filled: (profileData.socialLinks?.length || 0) > 0 },
-    { label: "Certifications", filled: (profileData.certifications?.length || 0) > 0 },
-  ];
-  const completedCount = completionFields.filter(f => f.filled).length;
-  const completionPct = Math.round((completedCount / completionFields.length) * 100);
-  const completionColor =
-    completionPct === 100 ? "#34d399"
-    : completionPct >= 60 ? "#fbbf24"
-    : "#f87171";
-
   return (
     <div className="min-h-screen flex flex-col px-6 text-white bg-[radial-gradient(circle_at_82%_30%,rgba(255,255,255,0.40),transparent_30%),radial-gradient(circle_at_86%_18%,rgba(0,62,244,0.45),transparent_20%),radial-gradient(circle_at_0%_80%,rgba(20,12,220,0.50),transparent_38%),linear-gradient(180deg,#050509_0%,#060612_58%,#15131a_100%)]">
       <CustomCursor />
@@ -278,37 +260,6 @@ const MentorProfile = () => {
                   {profileData.email || currentUser.email}
                 </span>
               </div>
-            </div>
-
-            {/* Profile Completion Ratio */}
-            <div className="flex flex-col gap-2 border-t border-white/10 pt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-[11px] text-white/40 uppercase font-bold tracking-wider">Profile Completion</span>
-                <span className="text-[13px] font-bold" style={{ color: completionColor }}>{completionPct}%</span>
-              </div>
-              {/* Progress bar */}
-              <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${completionPct}%`, background: completionColor }}
-                />
-              </div>
-              {/* Missing fields */}
-              {completionPct < 100 && (
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {completionFields.filter(f => !f.filled).map(f => (
-                    <span
-                      key={f.label}
-                      className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-white/40"
-                    >
-                      {f.label}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {completionPct === 100 && (
-                <span className="text-[11px] text-emerald-400 font-semibold">✓ Profile fully complete</span>
-              )}
             </div>
 
             {/* Quick Details List */}

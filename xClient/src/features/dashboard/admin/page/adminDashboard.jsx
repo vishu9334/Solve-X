@@ -177,19 +177,10 @@ const AdminDashboard = () => {
     proctoringFlagStats = {},
     doubtSessions = {},
     recentSessions = [],
-    popularSpecializations = [],
+    popularSkills = [],
   } = adminResponse?.data || {};
 
   const totalOnline = (users.onlineStudents || 0) + (users.onlineMentors || 0);
-
-  /* ── mentor:student ratio (real DB data) ─────────────────────── */
-  const totalS = users.totalStudents || 0;
-  const totalM = users.totalMentors || 0;
-  const ratioDisplay = totalM === 0
-    ? "N/A"
-    : totalS === 0
-      ? `0:1`
-      : `1:${(totalS / totalM).toFixed(1)}`;
 
   /* ── chart: doubt status bar ─────────────────────────────────── */
   const doubtBarData = [
@@ -206,9 +197,9 @@ const AdminDashboard = () => {
     { label: "Online M", display: `${users.onlineMentors || 0} online`, value: users.onlineMentors || 0, color: "#c4b5fd" },
   ];
 
-  /* ── chart: skills donut (fixed: was using wrong field name) ─── */
+  /* ── chart: skills donut ─────────────────────────────────────── */
   const SKILL_COLORS = ["#3b82f6","#60a5fa","#93c5fd","#fbbf24","#34d399","#a78bfa"];
-  const skillPieData = popularSpecializations.slice(0, 6).map((s) => ({
+  const skillPieData = popularSkills.slice(0, 6).map((s) => ({
     name: s.name,
     value: s.mentorCount || 0,
   }));
@@ -252,12 +243,11 @@ const AdminDashboard = () => {
           <p className="text-[10px] uppercase tracking-widest text-white/20 mb-2 ml-0.5">
             Users &amp; Subscriptions
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard label="Total Students"        value={users.totalStudents || 0}               sub={`${users.onlineStudents || 0} online now`} accent="text-blue-400"    index={0} />
             <StatCard label="Total Mentors"         value={users.totalMentors || 0}                sub={`${users.onlineMentors || 0} online now`}  accent="text-violet-400"  index={1} />
-            <StatCard label="Mentor:Student Ratio"  value={ratioDisplay}                           sub="Per mentor (live DB)"                      accent="text-amber-400"   index={2} />
-            <StatCard label="Active Subscriptions"  value={subscriptions.activeSubscriptions || 0} sub="Paying students"                           accent="text-emerald-400" index={3} />
-            <StatCard label="Online Now"            value={totalOnline}                            sub="Students + mentors"                        accent="text-sky-400"     index={4} />
+            <StatCard label="Active Subscriptions"  value={subscriptions.activeSubscriptions || 0} sub="Paying students"                           accent="text-emerald-400" index={2} />
+            <StatCard label="Online Now"            value={totalOnline}                            sub="Students + mentors"                        accent="text-sky-400"     index={3} />
           </div>
         </div>
 
@@ -374,7 +364,7 @@ const AdminDashboard = () => {
           <div className="flex gap-1 mb-4 bg-white/[0.04] rounded-lg p-1 w-full sm:w-fit">
             {[
               { key: "sessions", label: `Recent Sessions (${recentSessions.length})` },
-              { key: "skills",   label: `Popular Skills (${popularSpecializations.length})` },
+              { key: "skills",   label: `Popular Skills (${popularSkills.length})` },
             ].map(({ key, label }) => (
               <button
                 key={key}
@@ -399,8 +389,8 @@ const AdminDashboard = () => {
                 <p className="text-xs text-white/30 py-6 text-center">No recent sessions found.</p>
               )
             ) : (
-              popularSpecializations.length > 0 ? (
-                popularSpecializations.map((skill, i) => (
+              popularSkills.length > 0 ? (
+                popularSkills.map((skill, i) => (
                   <SkillRow key={skill._id || i} skill={skill} index={i} />
                 ))
               ) : (

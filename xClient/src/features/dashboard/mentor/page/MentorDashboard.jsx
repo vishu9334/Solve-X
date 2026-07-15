@@ -291,7 +291,7 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
           </div>
         </div>
 
-        {isOpportunity ? (
+        {isOpportunity && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -307,15 +307,6 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
           >
             {hasOffered ? "Offered" : isExpanded ? "Cancel" : "Bid Offer"}
           </button>
-        ) : (
-          session.chatRoomId && (session.status === "in_session" || session.status === "scheduled") && (
-            <Link
-              to={`/chat/${session.chatRoomId}`}
-              className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-colors border shrink-0 border-blue-500/30 bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white cursor-pointer no-underline"
-            >
-              Join Room
-            </Link>
-          )
         )}
       </div>
 
