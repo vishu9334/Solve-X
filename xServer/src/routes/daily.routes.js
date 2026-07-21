@@ -4,7 +4,7 @@ import dailyController from "../controllers/daily.controller.js";
 
 const router = Router();
 
+// Daily video room connection (legacy/Daily.co integration)
 router.post("/daily/connect/:doubtId", verifyAccessToken, dailyController.dailyToConnect);
-router.post("/mentor/accept-doubt/:doubtId", verifyAccessToken, dailyController.acceptDoubtRequest);
 
 export default router;
