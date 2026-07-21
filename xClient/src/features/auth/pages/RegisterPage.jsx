@@ -195,14 +195,21 @@ const RegisterPage = () => {
                     </form>
 
                     {/* Footer */}
-                    <div className="text-center text-sm text-slate-600">
-                        Already have an account?{' '}
-                        <Link 
-                            to="/login" 
-                            className="text-blue-600 hover:text-blue-800 font-semibold transition-colors"
-                        >
-                            Sign in
-                        </Link>
+                    <div className="text-center text-sm text-slate-600 flex flex-col gap-3">
+                        <div>
+                            Already have an account?{' '}
+                            <Link 
+                                to="/login" 
+                                className="text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+                            >
+                                Sign in
+                            </Link>
+                        </div>
+                        <div className="text-xs text-slate-400 flex justify-center gap-3">
+                            <Link to="/privacy" className="hover:text-slate-600 transition-colors">Privacy Policy</Link>
+                            <span>•</span>
+                            <Link to="/terms" className="hover:text-slate-600 transition-colors">Terms & Conditions</Link>
+                        </div>
                     </div>
 
                 </div>

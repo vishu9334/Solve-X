@@ -44,8 +44,8 @@ class studentController {
      * Student ends an active doubt session manually
      */
     endSession = asyncHandler(async (req, res) => {
-        const { doubtSessionId } = req.params
-        const userId = req.user?._id || req.params.userId
+        const { doubtSessionId } = req.params;
+        const userId = req.user?._id || req.user?.id || req.user?.userId || req.params.userId;
 
         const response = await studentService.endSession(userId, doubtSessionId);
 

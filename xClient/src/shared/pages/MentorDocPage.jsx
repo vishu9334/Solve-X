@@ -36,24 +36,20 @@ const MentorDocPage = () => {
             {/* Floating Navbar */}
             <motion.header
                 initial={false}
-                animate={{
-                    backgroundColor: isPastHero ? 'rgba(255, 255, 255, 0.95)' : 'rgba(17, 17, 27, 0.90)',
-                    borderColor: isPastHero ? 'rgba(0, 0, 0, 0.10)' : 'rgba(255, 255, 255, 0.15)',
-                    boxShadow: isPastHero ? '0 8px 24px rgba(31, 38, 135, 0.08)' : '0 8px 24px rgba(0, 0, 0, 0.24)',
-                }}
+               
                 transition={{ type: 'spring', stiffness: 150, damping: 24, mass: 0.8 }}
-                className="fixed top-4 left-1/2 -translate-x-1/2 transform-gpu w-[92%] max-w-[1200px] z-50 flex justify-between items-center py-[14px] border px-6 rounded-full"
+                className="fixed top-4 left-1/2 -translate-x-1/2 transform-gpu w-[92%] max-w-[1200px] z-50 flex justify-between items-center py-[14px]"
             >
                 {/* Logo */}
                 <Link to="/" className="flex items-center gap-2.5 cursor-pointer no-underline">
                     <img src="/logo.png" alt="Solve-X" className="w-7 h-7 object-contain" />
-                    <span className={`text-sm font-semibold tracking-[0.15em] uppercase transition-colors duration-300 ${isPastHero ? 'text-black' : 'text-white'}`}>
+                    <span className="text-sm font-semibold tracking-[0.15em] uppercase text-white transition-colors duration-300">
                         SOLVE-X
                     </span>
                 </Link>
 
                 {/* Nav Links */}
-                <nav className="hidden md:flex items-center gap-6">
+                <nav className="hidden md:flex items-center gap-6 bg-white/20 px-10 py-2.5 rounded-md">
                     {[
                         { label: 'Home', to: '/' },
                         { label: 'Mentor Docs', to: '/mentor-doc' },
@@ -63,15 +59,13 @@ const MentorDocPage = () => {
                             <Link
                                 to={item.to}
                                 className={`text-sm transition-colors duration-300 tracking-[-0.01em] no-underline font-medium ${
-                                    isPastHero 
-                                        ? item.to === '/mentor-doc' ? 'text-indigo-600 font-semibold' : 'text-slate-700 hover:text-black' 
-                                        : item.to === '/mentor-doc' ? 'text-indigo-400 font-semibold' : 'text-white/85 hover:text-white'
+                                    item.to === '/mentor-doc' ? 'text-indigo-400 font-semibold' : 'text-black/85 hover:text-white'
                                 }`}
                             >
                                 {item.label}
                             </Link>
                             {i < arr.length - 1 && (
-                                <span className={`w-px h-[22px] shrink-0 ${isPastHero ? 'bg-slate-200' : 'bg-white/30'}`} />
+                                <span className="w-px h-[22px] shrink-0 bg-white/30" />
                             )}
                         </span>
                     ))}
@@ -81,20 +75,16 @@ const MentorDocPage = () => {
                 <div className="flex items-center gap-2.5">
                     <Link
                         to="/login"
-                        className={`hidden sm:inline-flex h-[42px] w-[100px] items-center justify-center rounded-full border text-sm font-medium tracking-[-0.03em] no-underline transition-colors duration-200 ${
-                            isPastHero
-                                ? 'bg-gradient-to-b from-white to-[#e2e2e2] border-black/12 text-black hover:to-white'
-                                : 'bg-gradient-to-b from-white to-[#e2e2e2] border-white/20 text-black hover:to-white'
-                        }`}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2 text-xs sm:text-sm rounded-lg border border-white/60 bg-white/10 backdrop-blur-md whitespace-nowrap tracking-[-0.03em] text-lime-400 transition-all duration-300 hover:bg-white/20 cursor-pointer no-underline font-medium"
                     >
-                        Log In
+                        Login
                     </Link>
                     <Link
                         to="/register"
-                        className="inline-flex items-center gap-2 h-[42px] rounded-full border border-white/25 bg-gradient-to-b from-[#242424] from-[19%] to-black px-5 text-sm font-medium tracking-[-0.03em] text-white no-underline transition-colors duration-300 hover:from-[#2e2e2e] hover:to-neutral-900 cursor-pointer"
+                        className="flex items-center justify-center gap-1.5 px-4 py-2 text-xs sm:text-sm rounded-lg border border-white/60 bg-white/10 backdrop-blur-md whitespace-nowrap tracking-[-0.03em] text-orange-400 transition-all duration-300 hover:bg-white/20 cursor-pointer no-underline font-medium"
                     >
                         Get Started
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="m9 18 6-6-6-6" />
                         </svg>
                     </Link>
@@ -102,7 +92,7 @@ const MentorDocPage = () => {
                     {/* Mobile Hamburger Menu */}
                     <button
                         onClick={() => setMenuOpen(!menuOpen)}
-                        className={`flex md:hidden items-center justify-center p-1 bg-transparent border-none focus:outline-none cursor-pointer ${isPastHero ? 'text-black' : 'text-white'}`}
+                        className="flex md:hidden items-center justify-center p-1 bg-transparent border-none focus:outline-none cursor-pointer text-white"
                     >
                         <span className="material-symbols-outlined text-2xl select-none">
                             {menuOpen ? 'close' : 'menu'}
