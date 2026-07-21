@@ -14,6 +14,7 @@ import dailyRoutes from './routes/daily.routes.js';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -54,10 +55,19 @@ app.use("/api/v1", (req, res, next) => {
   next(err);
 });
 
-app.use(express.static(path.join(__dirname, '../../xClient/dist')));
-app.get(/(.*)/, (req, res) => {
-  res.sendFile(path.join(__dirname, '../../xClient/dist/index.html'));
-});
+const distPath = path.join(__dirname, '../../xClient/dist');
+const indexPath = path.join(distPath, 'index.html');
+
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get(/(.*)/, (req, res) => {
+    res.sendFile(indexPath);
+  });
+} else {
+  app.get(/(.*)/, (req, res) => {
+    res.status(200).json({ message: 'API is running. Frontend not built yet.' });
+  });
+}
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || err.status || 500;
