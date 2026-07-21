@@ -1,6 +1,7 @@
 import express from 'express'
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 import {logger} from '../src/utils/logger.js'
 import mentorRoutes from './routes/mentor.routes.js';
 import activitySessionRoutes from './routes/activitySession.routes.js';
@@ -28,6 +29,10 @@ const morganMiddleware = morgan(
 );
 
 app.use(morganMiddleware);
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true,
+}));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

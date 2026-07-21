@@ -9,7 +9,7 @@ const activeChatTimers = new Map();  // Key: chatRoomId, Value: setTimeout ref
 export const initSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: "*",
+            origin: process.env.FRONTEND_URL || "http://localhost:5173",
             methods: ["GET", "POST"]
         }
     });
@@ -227,4 +227,3 @@ export const destroyChatRoom = async (chatRoomId) => {
 
     console.log(`Chat room ${chatRoomId} manually destroyed.`);
 };
-
