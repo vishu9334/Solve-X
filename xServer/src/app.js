@@ -52,6 +52,7 @@ app.use(cors({
     callback(new Error(`CORS blocked: ${origin}`));
   },
   credentials: true,
+  exposedHeaders: ["Authorization"],  // ← allow frontend to read access token
 }));
 app.use(cookieParser());
 app.use(express.json());
