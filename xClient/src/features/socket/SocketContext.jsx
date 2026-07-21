@@ -28,9 +28,11 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    const socketUrl = import.meta.env.MODE === "production"
-      ? window.location.origin
-      : "http://localhost:8001";
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL ||
+      (import.meta.env.MODE === "production"
+        ? window.location.origin
+        : "http://localhost:8001");
 
     const newSocket = io(socketUrl, {
       transports: ["websocket"],
