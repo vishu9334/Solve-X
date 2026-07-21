@@ -3,6 +3,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import mentorService from "../services/mentor.service.js";
 import studentService from "../services/student.service.js";
+import { DoubtSession } from "../models/doubtSession.model.js";
+import { sendNotificationToUser } from "../helpers/socket/socket.helper.js";
 
 export const selectSpecialization = asyncHandler(async (req, res) => {
     const userId = req.user.userId;
@@ -80,4 +82,33 @@ export const rejectScheduledDoubt = asyncHandler(async (req, res) => {
 
     const data = await mentorService.rejectScheduledDoubt(userId, doubtSessionId, reason);
     return res.status(200).json(new ApiResponse(200, data, "Scheduled doubt session cancelled successfully"));
+});
+
+export const acceptDoubtRequest = asyncHandler(async (req, res) => {
+    const { doubtId } = req.params;
+    const mentorId = req.user?._id || req.user?.userId;
+
+    const doubt = await DoubtSession.findById(doubtId);
+    if (!doubt) {
+        throw new ApiError(404, "Doubt session not found");
+    }
+
+    doubt.status = "in_session";
+    doubt.selectedMentorId = mentorId;
+    doubt.sessionStartedAt = new Date();
+    await doubt.save();
+
+    await sendNotificationToUser(doubt.studentId, "session:started", {
+        doubtId,
+        message: "Your doubt session is starting."
+    });
+
+    await sendNotificationToUser(mentorId, "session:started", {
+        doubtId,
+        message: "Session is starting."
+    });
+
+    return res.status(200).json(
+        new ApiResponse(200, { doubtId }, "Doubt accepted successfully. Session started.")
+    );
 });

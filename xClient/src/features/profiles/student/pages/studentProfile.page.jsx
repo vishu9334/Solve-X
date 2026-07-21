@@ -147,6 +147,22 @@ const StudentProfile = () => {
     setSkills(skills.filter(s => s !== skillToRemove));
   };
 
+  // --- Profile Completion Ratio (real data-driven) ---
+  const completionFields = [
+    { label: "Bio",         filled: Boolean(profileData.bio?.trim()) },
+    { label: "Education",  filled: Boolean(profileData.education?.trim()) },
+    { label: "Language",   filled: Boolean(profileData.preferredLanguage?.trim()) },
+    { label: "Timezone",   filled: Boolean(profileData.timezone?.trim()) },
+    { label: "Skills",     filled: (profileData.skills?.length || 0) > 0 },
+    { label: "Social Links", filled: (profileData.socialLinks?.length || 0) > 0 },
+  ];
+  const completedCount = completionFields.filter(f => f.filled).length;
+  const completionPct = Math.round((completedCount / completionFields.length) * 100);
+  const completionColor =
+    completionPct === 100 ? "#34d399"
+    : completionPct >= 60 ? "#818cf8"
+    : "#f87171";
+
   return (
     <div 
       className="student-profile-page w-full min-h-screen relative px-4 py-24 sm:px-6 lg:px-8 text-white overflow-hidden"
@@ -230,6 +246,37 @@ const StudentProfile = () => {
                 <span className="text-xs text-white/50">
                   Subscribe to access unlimited mentor sessions.
                 </span>
+              )}
+            </div>
+
+            {/* Profile Completion Ratio */}
+            <div className="flex flex-col gap-2 border border-white/10 rounded-2xl p-4 bg-white/[0.02]">
+              <div className="flex justify-between items-center">
+                <span className="text-[11px] text-white/40 uppercase font-bold tracking-wider">Profile Completion</span>
+                <span className="text-[13px] font-bold" style={{ color: completionColor }}>{completionPct}%</span>
+              </div>
+              {/* Progress bar */}
+              <div className="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${completionPct}%`, background: completionColor }}
+                />
+              </div>
+              {/* Missing fields */}
+              {completionPct < 100 && (
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {completionFields.filter(f => !f.filled).map(f => (
+                    <span
+                      key={f.label}
+                      className="text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/[0.04] text-white/40"
+                    >
+                      {f.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {completionPct === 100 && (
+                <span className="text-[11px] text-emerald-400 font-semibold">✓ Profile fully complete</span>
               )}
             </div>
 
