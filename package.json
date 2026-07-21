@@ -1,0 +1,8 @@
+{
+  "name": "solve-x",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix xClient run build",
+    "install:client": "npm --prefix xClient install"
+  }
+}
