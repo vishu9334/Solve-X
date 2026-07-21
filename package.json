@@ -3,6 +3,8 @@
   "private": true,
   "scripts": {
     "build": "npm --prefix xClient run build",
-    "install:client": "npm --prefix xClient install"
+    "install:client": "npm --prefix xClient install",
+    "render:build": "npm --prefix xClient install && npm --prefix xClient run build && npm --prefix xServer install",
+    "render:start": "node xServer/server.js"
   }
 }
