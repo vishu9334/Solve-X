@@ -30,8 +30,27 @@ const morganMiddleware = morgan(
 );
 
 app.use(morganMiddleware);
+
+// ─── CORS: allow configured frontend + all Vercel preview URLs + localhost ───
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:3000",
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+
+    // Allow exact match
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Allow all *.vercel.app preview deployments
+    if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+    callback(new Error(`CORS blocked: ${origin}`));
+  },
   credentials: true,
 }));
 app.use(cookieParser());
