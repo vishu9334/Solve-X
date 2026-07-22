@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useSocket } from "../../socket/SocketContext.jsx";
 import { useGetDoubtSessionDetails, useEndDoubtSession } from "../../doubt/hooks/useDoubt.js";
 import useAuthStore from "../../auth/store/auth.store.js";
