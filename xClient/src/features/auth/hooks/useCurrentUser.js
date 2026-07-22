@@ -7,10 +7,12 @@ import useAuthStore from "../store/auth.store";
 export const useCurrentUser = () => {
   const setUser = useAuthStore((state) => state.setUser);
   const logout = useAuthStore((state) => state.logout);
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const query = useQuery({
     queryKey: ["auth", "current-user"],
     queryFn: getCurrentUserApi,
+    enabled: !!accessToken,
     retry: false,
     staleTime: 1000 * 60 * 5,
   });
