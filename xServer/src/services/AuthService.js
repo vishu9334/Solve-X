@@ -135,7 +135,12 @@ class AuthService {
         if (!accessToken) {
             throw new ApiError(400, "Access token required.");
         }
-       return await redisWhereHouse.blacklistTokens(accessToken, refreshToken);
+        try {
+            await redisWhereHouse.blacklistTokens(accessToken, refreshToken);
+        } catch (error) {
+            console.error("Blacklist token warning during logout:", error.message);
+        }
+        return true;
     }
 
     async forgotPassword({ email }) {

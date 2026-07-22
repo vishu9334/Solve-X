@@ -71,9 +71,11 @@ class redisWhereHouse {
 
       const results = await pipeline.exec();
       const failed = results?.find(([err]) => err);
-      if (failed) throw failed[0];
+      if (failed) {
+        console.error("Redis pipeline execution error during blacklisting:", failed[0]?.message);
+      }
     } catch (error) {
-      throw new ApiError(500, error.message || "Token blacklisting failed.");
+      console.error("Token blacklisting error:", error.message);
     }
   }
 
