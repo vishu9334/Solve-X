@@ -21,7 +21,7 @@ function parseDurationToSeconds(duration, defaultSeconds = 600) {
 
 export default {
     MONGODB_URI         : process.env.MONGODB_URI,
-    REDIS_URL           : process.env.REDIS_URL,
+    REDIS_URL           : process.env.REDIS_URL || process.env.REST_URL || process.env.UPSTASH_REDIS_URL,
     FRONTEND_URL        : process.env.FRONTEND_URL,
     MISTRAL_MODEL       : process.env.MISTRAL_MODEL,
     AI_API_KEY          : process.env.AI_API_KEY,

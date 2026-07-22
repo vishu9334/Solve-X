@@ -100,15 +100,17 @@ class studentService {
                     const monthKey = new Date().toISOString().slice(0, 7); // e.g. "2026-06"
                     for (const mentorId of ignoredMentorIds) {
                         try {
-                            const redisKey = `notif:ignored:${mentorId}:${monthKey}`;
-                            const ignoreCount = await redis.incr(redisKey);
-                            // Set 35-day TTL on first increment so key auto-expires after the month
-                            if (ignoreCount === 1) {
-                                await redis.expire(redisKey, 35 * 24 * 60 * 60);
-                            }
-                            // Trigger warning at 7 ignores (and every 7 after that)
-                            if (ignoreCount >= 7 && ignoreCount % 7 === 0) {
-                                await triggerMentorIgnoreWarning(mentorId, ignoreCount);
+                            if (redis) {
+                                const redisKey = `notif:ignored:${mentorId}:${monthKey}`;
+                                const ignoreCount = await redis.incr(redisKey);
+                                // Set 35-day TTL on first increment so key auto-expires after the month
+                                if (ignoreCount === 1) {
+                                    await redis.expire(redisKey, 35 * 24 * 60 * 60);
+                                }
+                                // Trigger warning at 7 ignores (and every 7 after that)
+                                if (ignoreCount >= 7 && ignoreCount % 7 === 0) {
+                                    await triggerMentorIgnoreWarning(mentorId, ignoreCount);
+                                }
                             }
                         } catch (err) {
                             console.error(`[studentService] Failed to track ignore for mentor ${mentorId}:`, err.message);
@@ -116,7 +118,7 @@ class studentService {
                     }
 
                     // Cleanup any doubt-specific Redis cache
-                    await redis.del(`doubt:${doubtSession._id}`).catch(() => {});
+                    if (redis) await redis.del(`doubt:${doubtSession._id}`).catch(() => {});
                 }
             }, 10 * 60 * 1000); // 10 minutes
         }

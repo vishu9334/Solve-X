@@ -51,10 +51,10 @@ export const checkScheduledSessions = async () => {
             const diffMins = Math.round(diffMs / 60000);
 
             // 1-Hour Reminder (45 to 60 mins away)
-            const hasSent1h = await redis.get(`reminder:1h:${session._id}`);
+            const hasSent1h = await redis?.get(`reminder:1h:${session._id}`);
             if (diffMins <= 60 && diffMins >= 45 && !hasSent1h) {
                 logger.info(`[ScheduledDoubtCron] Sending 1-hour pre-meeting reminder for session: ${session._id}`);
-                await redis.set(`reminder:1h:${session._id}`, "true", "EX", 7200); // 2 hours TTL
+                await redis?.set(`reminder:1h:${session._id}`, "true", "EX", 7200); // 2 hours TTL
 
                 const payload = {
                     doubtSessionId: session._id,
@@ -77,10 +77,10 @@ export const checkScheduledSessions = async () => {
             }
 
             // 5-Minute Reminder (0 to 5 mins away)
-            const hasSent5m = await redis.get(`reminder:5m:${session._id}`);
+            const hasSent5m = await redis?.get(`reminder:5m:${session._id}`);
             if (diffMins <= 5 && diffMins > 0 && !hasSent5m) {
                 logger.info(`[ScheduledDoubtCron] Sending 5-minute pre-meeting reminder for session: ${session._id}`);
-                await redis.set(`reminder:5m:${session._id}`, "true", "EX", 3600); // 1 hour TTL
+                await redis?.set(`reminder:5m:${session._id}`, "true", "EX", 3600); // 1 hour TTL
 
                 const payload = {
                     doubtSessionId: session._id,

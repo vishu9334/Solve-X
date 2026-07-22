@@ -159,7 +159,7 @@ class MentorService {
                 }
 
                 // Cache questions in Redis
-                await redis.set(
+                await redis?.set(
                     `assessment:questions:${newAttempt._id.toString()}`,
                     JSON.stringify(questions.questions),
                     "EX",
@@ -235,7 +235,7 @@ class MentorService {
                 }
 
                 // Cache questions in Redis for 1 hour
-                await redis.set(
+                await redis?.set(
                     `assessment:questions:${attempt._id.toString()}`,
                     JSON.stringify(questions.questions),
                     "EX",
@@ -268,7 +268,7 @@ class MentorService {
         }
 
         // Store generated questions in Redis for 1 hour to grade securely
-        await redis.set(
+        await redis?.set(
             `assessment:questions:${attempt._id.toString()}`,
             JSON.stringify(questions.questions),
             "EX",
@@ -322,7 +322,7 @@ class MentorService {
         }
 
         // 3. Retrieve correct answers cached in Redis
-        const cachedQuestionsStr = await redis.get(`assessment:questions:${attemptId}`);
+        const cachedQuestionsStr = await redis?.get(`assessment:questions:${attemptId}`);
         if (!cachedQuestionsStr) {
             const remaining = attempt.maxAttempts - attempt.attempts.length;
             throw new ApiError(400, `Assessment session has expired. Please select the skill again to start a new attempt. You have ${remaining} attempts remaining.`);
@@ -428,7 +428,7 @@ class MentorService {
         }
 
         // 9. Clean up Redis cache for questions
-        await redis.del(`assessment:questions:${attemptId}`);
+        await redis?.del(`assessment:questions:${attemptId}`);
 
         return {
             attemptStatus: attempt.status,
@@ -508,7 +508,7 @@ class MentorService {
         }
 
         // Clean up Redis cache for questions
-        await redis.del(`assessment:questions:${attempt._id.toString()}`);
+        await redis?.del(`assessment:questions:${attempt._id.toString()}`);
     }
 
     /**
@@ -616,7 +616,7 @@ class MentorService {
         }
 
         // Get cached questions
-        const cachedQuestionsStr = await redis.get(`assessment:questions:${attempt._id.toString()}`);
+        const cachedQuestionsStr = await redis?.get(`assessment:questions:${attempt._id.toString()}`);
         let questionsList = [];
         let durationMinutes = 15;
 
@@ -631,7 +631,7 @@ class MentorService {
             durationMinutes = questions.durationMinutes || 15;
 
             // Cache questions in Redis for 1 hour
-            await redis.set(
+            await redis?.set(
                 `assessment:questions:${attempt._id.toString()}`,
                 JSON.stringify(questionsList),
                 "EX",
