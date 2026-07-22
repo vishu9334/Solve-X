@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "installCommand": "npm --prefix xClient install",
-  "buildCommand": "npm --prefix xClient run build",
+  "installCommand": "if [ -d \"xClient\" ]; then npm --prefix xClient install; else npm install; fi",
+  "buildCommand": "if [ -d \"xClient\" ]; then npm --prefix xClient run build; else npm run build; fi",
   "outputDirectory": "xClient/dist",
   "rewrites": [
     {
@@ -11,3 +11,5 @@
     }
   ]
 }
+
+
