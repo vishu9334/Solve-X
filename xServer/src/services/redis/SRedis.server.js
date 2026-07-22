@@ -7,6 +7,7 @@ import config from '../../configs/config.js'
 
 class redisWhereHouse {
   async redisHSetFn(email, userData, ttlInSeconds = config.EXPIRE_IN) {
+    if (!redis) throw new ApiError(503, "Redis not configured. OTP features unavailable.");
     try {
       const key = `user:${email}`
       await redis.hset(key, ...Object.entries(userData).flat());
@@ -16,6 +17,7 @@ class redisWhereHouse {
     }
   }
   async verifyOtpAndCleanupUser(email, userOtp) {
+    if (!redis) throw new ApiError(503, "Redis not configured. OTP verification unavailable.");
     try {
       const key = `user:${email}`;
       const userData = await redis.hgetall(key);
@@ -45,6 +47,7 @@ class redisWhereHouse {
   }
 
   async blacklistTokens(accessToken, refreshToken) {
+    if (!redis) return; // gracefully skip if Redis not available
     try {
       const pipeline = redis.pipeline();
       let queued = 0;
@@ -75,6 +78,7 @@ class redisWhereHouse {
   }
 
   async isTokenBlacklisted(token, type = 'access') {
+    if (!redis) return false; // ← if no Redis, assume token is valid
     try {
       const decoded = jwt.decode(token);
       if (!decoded?.jti) return false;
@@ -87,6 +91,7 @@ class redisWhereHouse {
   }
 
   async storePasswordResetOtp(email, userData, ttlInSeconds = config.EXPIRE_IN) {
+    if (!redis) throw new ApiError(503, "Redis not configured. Password reset unavailable.");
     try {
       const key = `reset:${email}`;
       await redis.hset(key, ...Object.entries(userData).flat());
@@ -97,6 +102,7 @@ class redisWhereHouse {
   }
 
   async verifyResetOtpAndCleanup(email, userOtp) {
+    if (!redis) throw new ApiError(503, "Redis not configured. Password reset unavailable.");
     try {
       const key = `reset:${email}`;
       const userData = await redis.hgetall(key);
@@ -123,6 +129,7 @@ class redisWhereHouse {
   }
 
   async enforcePasswordResetRateLimit(email, maxAttempts = 2, windowSeconds = 30 * 60) {
+    if (!redis) return; // skip rate limiting if Redis not available
     try {
       const key = `reset:limit:${email}`;
       const count = await redis.incr(key);
@@ -146,6 +153,7 @@ class redisWhereHouse {
   }
 
   async enforceRegisterOtpRateLimit(email, maxAttempts = 3, windowSeconds = 30 * 60) {
+    if (!redis) return; // skip rate limiting if Redis not available
     try {
       const key = `register:limit:${email}`;
       const count = await redis.incr(key);
@@ -168,6 +176,7 @@ class redisWhereHouse {
     }
   }
   async userExists(email) {
+    if (!redis) return false; // assume not exists if Redis unavailable
     try {
       const key = `user:${email}`;
       const exists = await redis.exists(key);
@@ -178,6 +187,7 @@ class redisWhereHouse {
   }
 
   async enforceResendRateLimit(email, maxAttempts = 3, windowSeconds = 3600) {
+    if (!redis) return { attemptsRemaining: maxAttempts }; // skip if Redis unavailable
     try {
       const key = `otp:resend:count:${email}`;
       const count = await redis.incr(key);
@@ -205,6 +215,7 @@ class redisWhereHouse {
   }
 
   async updateUserOTP(email, hashOTP, ttlInSeconds = config.EXPIRE_IN) {
+    if (!redis) throw new ApiError(503, "Redis not configured. OTP features unavailable.");
     try {
       const key = `user:${email}`;
       await redis.hset(key, "otp", hashOTP);
