@@ -1,10 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import useAuthStore from "../auth/store/auth.store.js";
-import { router } from "../../app/Router.jsx";
 import useNotificationStore from "../notifications/store/notification.store.js";
 
 const SocketContext = createContext(null);
@@ -13,16 +13,18 @@ export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
+  const socketRef = useRef(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const accessToken = useAuthStore((state) => state.accessToken);
 
   useEffect(() => {
     // Only connect if user and token are present
     if (!user || !accessToken) {
-      if (socket) {
-        socket.disconnect();
-        // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
         setSocket(null);
       }
       return;
@@ -39,6 +41,9 @@ export const SocketProvider = ({ children }) => {
       autoConnect: true,
     });
 
+    socketRef.current = newSocket;
+    // Publish the imperative socket instance to context consumers.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(newSocket);
 
     const register = () => {
@@ -126,7 +131,7 @@ export const SocketProvider = ({ children }) => {
       queryClient.invalidateQueries({ queryKey: ["studentDashboard"] });
       queryClient.invalidateQueries({ queryKey: ["mentorDashboard"] });
       if (data?.chatRoomId) {
-        router.navigate(`/chat/${data.chatRoomId}`);
+        navigate(`/chat/${data.chatRoomId}`);
       }
     });
 
@@ -169,8 +174,12 @@ export const SocketProvider = ({ children }) => {
 
     return () => {
       newSocket.disconnect();
+      if (socketRef.current === newSocket) {
+        socketRef.current = null;
+        setSocket(null);
+      }
     };
-  }, [user, accessToken, queryClient]);
+  }, [user, accessToken, queryClient, navigate]);
 
   return (
     <SocketContext.Provider value={socket}>

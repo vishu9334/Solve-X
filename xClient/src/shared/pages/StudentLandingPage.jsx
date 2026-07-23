@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, Navigate } from 'react-router-dom';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import CustomCursor from '../components/CustomCursor';
 import { useLogout } from '../../features/auth/hooks/useLogout.js';
 import { useCurrentUser } from '../../features/auth/hooks/useCurrentUser.js';
+
+const DotLottieReact = lazy(() =>
+    import('@lottiefiles/dotlottie-react').then((module) => ({
+        default: module.DotLottieReact,
+    }))
+);
 
 const mentors = [
     { id: 1, name: 'Aarav', skill: 'DSA Expert', price: '₹199', rating: '4.9', time: '2:00 PM', color: '#fbbf24' },
@@ -37,8 +42,20 @@ const StepBadge = ({ number, label }) => (
     </div>
 );
 
+const LottiePlaceholder = () => (
+    <div className="flex h-full w-full items-center justify-center">
+        <div className="h-16 w-16 rounded-full border border-white/10 border-t-amber-200/70 animate-spin" />
+    </div>
+);
+
+const LandingLottie = ({ src }) => (
+    <Suspense fallback={<LottiePlaceholder />}>
+        <DotLottieReact src={src} loop autoplay />
+    </Suspense>
+);
+
 const StudentLandingPage = () => {
-    const { data: currentUser, isPending } = useCurrentUser();
+    const { data: currentUser } = useCurrentUser();
     const [selectedMentorId, setSelectedMentorId] = useState(1);
     const [menuOpen, setMenuOpen] = useState(false);
     const selectedMentor = mentors.find((mentor) => mentor.id === selectedMentorId);
@@ -48,19 +65,7 @@ const StudentLandingPage = () => {
         performLogout();
     };
 
-    if (isPending) {
-        return (
-            <div className="min-h-screen bg-[#050509] flex items-center justify-center text-white font-mono">
-                <div className="animate-pulse">Loading session...</div>
-            </div>
-        );
-    }
-
-    if (!currentUser) {
-        return <Navigate to="/" replace />;
-    }
-
-    if (currentUser.role !== 'student') {
+    if (currentUser && currentUser.role !== 'student') {
         if (currentUser.role === 'admin') return <Navigate to="/dashboard/admin" replace />;
         return <Navigate to="/dashboard/mentor" replace />;
     }
@@ -174,11 +179,7 @@ const StudentLandingPage = () => {
                             Mentor
                         </div>
                         <div className="h-44 sm:h-52">
-                            <DotLottieReact
-                                src="https://lottie.host/2b84a845-2537-42b1-babc-649e5e2b48bd/Hq2VMhDj0q.lottie"
-                                loop
-                                autoplay
-                            />
+                            <LandingLottie src="https://lottie.host/2b84a845-2537-42b1-babc-649e5e2b48bd/Hq2VMhDj0q.lottie" />
                         </div>
                         <p className="relative z-10 -mt-2 text-center text-xs text-white/50">The mentor connects through the laptop and guides the student.</p>
                     </div>
@@ -200,11 +201,7 @@ const StudentLandingPage = () => {
                             Student
                         </div>
                         <div className="h-44 sm:h-52">
-                            <DotLottieReact
-                                src="https://lottie.host/f3da4e6c-7f31-44aa-a5e9-28685d82ef96/NNCcgMPazz.lottie"
-                                loop
-                                autoplay
-                            />
+                            <LandingLottie src="https://lottie.host/f3da4e6c-7f31-44aa-a5e9-28685d82ef96/NNCcgMPazz.lottie" />
                         </div>
                         <p className="relative z-10 -mt-2 text-center text-xs text-white/50">The student posts a question and preferred session time.</p>
                     </div>

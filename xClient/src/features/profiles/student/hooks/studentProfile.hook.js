@@ -1,11 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { studentProfileUpdate, studentProfileGet } from '../api/studentProfile.api.js'
 import { toast } from 'react-toastify'
+import useAuthStore from '../../../auth/store/auth.store.js'
 
 export const useGetStudentProfile = () => {
+    const accessToken = useAuthStore((state) => state.accessToken)
+
     return useQuery({
         queryKey: ['studentProfile'],
         queryFn: studentProfileGet,
+        enabled: !!accessToken,
     })
 }
 

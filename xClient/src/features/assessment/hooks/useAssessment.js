@@ -7,19 +7,26 @@ import {
   recordActivityEventApi,
   submitAssessmentApi,
 } from '../api/assessment.api.js';
+import useAuthStore from '../../auth/store/auth.store.js';
 
 export const useGetSpecializations = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   return useQuery({
     queryKey: ['specializations'],
     queryFn: getSpecializationsApi,
+    enabled: !!accessToken,
     select: (response) => response?.data || [],
   });
 };
 
 export const useGetActiveAssessment = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   return useQuery({
     queryKey: ['activeAssessment'],
     queryFn: getActiveAssessmentApi,
+    enabled: !!accessToken,
     select: (response) => response?.data || null,
   });
 };

@@ -280,7 +280,7 @@ const renderTheoryVisual = (stepIndex, assessmentPassed, setAssessmentPassed) =>
 };
 
 const MentorLandingPage = () => {
-    const { data: currentUser, isPending } = useCurrentUser();
+    const { data: currentUser } = useCurrentUser();
     const [assessmentPassed, setAssessmentPassed] = useState(true);
     const [activeStep, setActiveStep] = useState(0);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -290,19 +290,7 @@ const MentorLandingPage = () => {
         performLogout();
     };
 
-    if (isPending) {
-        return (
-            <div className="min-h-screen bg-[#050509] flex items-center justify-center text-white font-mono">
-                <div className="animate-pulse">Loading session...</div>
-            </div>
-        );
-    }
-
-    if (!currentUser) {
-        return <Navigate to="/" replace />;
-    }
-
-    if (currentUser.role !== 'mentor') {
+    if (currentUser && currentUser.role !== 'mentor') {
         if (currentUser.role === 'admin') return <Navigate to="/dashboard/admin" replace />;
         return <Navigate to="/dashboard/student" replace />;
     }
@@ -319,21 +307,29 @@ const MentorLandingPage = () => {
 
                 {/* Desktop menu links - visible on xl and above */}
                 <div className="hidden xl:flex items-center gap-5">
-                    <Link to="/dashboard/mentor" className="text-xs font-semibold text-white/70 hover:text-white transition-colors">
-                        Dashboard
-                    </Link>
-                    {currentUser && (
-                        <button
-                            onClick={handleLogout}
-                            disabled={isLoggingOut}
-                            className="text-xs font-semibold text-white/70 hover:text-red-400 transition-colors disabled:opacity-50"
-                        >
-                            {isLoggingOut ? 'Logging out...' : 'Logout'}
-                        </button>
+                    {currentUser ? (
+                        <>
+                            <Link to="/dashboard/mentor" className="text-xs font-semibold text-white/70 hover:text-white transition-colors">
+                                Dashboard
+                            </Link>
+                            <button
+                                onClick={handleLogout}
+                                disabled={isLoggingOut}
+                                className="text-xs font-semibold text-white/70 hover:text-red-400 transition-colors disabled:opacity-50"
+                            >
+                                {isLoggingOut ? 'Logging out...' : 'Logout'}
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login" className="text-xs font-semibold text-white/70 hover:text-white transition-colors">
+                                Login
+                            </Link>
+                            <Link to="/register?role=mentor" className="rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-5 py-2 text-xs font-bold text-white transition-all hover:bg-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)]">
+                                Join as Mentor
+                            </Link>
+                        </>
                     )}
-                    <Link to="/dashboard/mentor" className="rounded-full border border-white/20 bg-white/10 backdrop-blur-md px-5 py-2 text-xs font-bold text-white transition-all hover:bg-white/20 hover:shadow-[0_0_15px_rgba(255,255,255,0.15)]">
-                        Become a Mentor
-                    </Link>
                 </div>
 
                 {/* Mobile/Tablet Hamburger Icon */}

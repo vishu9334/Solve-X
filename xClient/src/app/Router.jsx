@@ -1,118 +1,133 @@
+/* eslint-disable react-refresh/only-export-components */
+import { lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
+import LazyRoute from "./LazyRoute.jsx";
+import RootLayout from "./RootLayout.jsx";
 import { AuthLayout } from "../shared/layouts/AuthLayout";
 import { DashboardLayout } from "../shared/layouts/DashboardLayout";
 
 import ProtectedRoute from "../routes/ProtectedRoute";
 
-import LoginPage from "../features/auth/pages/LoginPage";
-import RegisterPage from "../features/auth/pages/RegisterPage";
-import OTPVerificationPage from "../features/auth/pages/OTPPage";
-import ForgetPasswordPage from "../features/auth/pages/ForgetPasswordPage";
-import ResetPasswordPage from "../features/auth/pages/ResetPasswordPage";
-import PublicPage from "../shared/pages/PublicPage";
-import MentorDocPage from "../shared/pages/MentorDocPage";
-import StudentDocPage from "../shared/pages/StudentDocPage";
-import AdminDocPage from "../shared/pages/AdminDocPage";
-import StudentLandingPage from "../shared/pages/StudentLandingPage";
-import MentorLandingPage from "../shared/pages/MentorLandingPage";
-import AdminLandingPage from "../shared/pages/AdminLandingPage";
-import NotFoundPage from "../shared/pages/NotFoundPage";
-import PrivacyPolicyPage from "../shared/pages/PrivacyPolicyPage";
-import TermsConditionsPage from "../shared/pages/TermsConditionsPage";
+const LoginPage = lazy(() => import("../features/auth/pages/LoginPage"));
+const RegisterPage = lazy(() => import("../features/auth/pages/RegisterPage"));
+const OTPVerificationPage = lazy(() => import("../features/auth/pages/OTPPage"));
+const ForgetPasswordPage = lazy(() => import("../features/auth/pages/ForgetPasswordPage"));
+const ResetPasswordPage = lazy(() => import("../features/auth/pages/ResetPasswordPage"));
+const PublicPage = lazy(() => import("../shared/pages/PublicPage"));
+const MentorDocPage = lazy(() => import("../shared/pages/MentorDocPage"));
+const StudentDocPage = lazy(() => import("../shared/pages/StudentDocPage"));
+const AdminDocPage = lazy(() => import("../shared/pages/AdminDocPage"));
+const StudentLandingPage = lazy(() => import("../shared/pages/StudentLandingPage"));
+const MentorLandingPage = lazy(() => import("../shared/pages/MentorLandingPage"));
+const AdminLandingPage = lazy(() => import("../shared/pages/AdminLandingPage"));
+const NotFoundPage = lazy(() => import("../shared/pages/NotFoundPage"));
+const PrivacyPolicyPage = lazy(() => import("../shared/pages/PrivacyPolicyPage"));
+const TermsConditionsPage = lazy(() => import("../shared/pages/TermsConditionsPage"));
 
-import AdminDashboard from "../features/dashboard/admin/page/adminDashboard";
-import MentorDashboard from "../features/dashboard/mentor/page/MentorDashboard";
-import StudentDashboard from "../features/dashboard/student/page/StudentDashboard";
+const AdminDashboard = lazy(() => import("../features/dashboard/admin/page/adminDashboard"));
+const MentorDashboard = lazy(() => import("../features/dashboard/mentor/page/MentorDashboard"));
+const StudentDashboard = lazy(() => import("../features/dashboard/student/page/StudentDashboard"));
 
-import AdminProfile from '../features/profiles/admin/pages/adminProfile.page'
-import StudentProfile from "../features/profiles/student/pages/studentProfile.page";
-import MentorProfile from "../features/profiles/mentor/pages/mentorProfile.page";
-import AskDoubtPage from "../features/doubt/pages/AskDoubtPage";
-import SpecializationSelectPage from "../features/assessment/pages/SpecializationSelectPage";
-import AssessmentTestPage from "../features/assessment/pages/AssessmentTestPage";
-import DoubtOffersPage from "../features/doubt/pages/DoubtOffersPage";
-import ChatRoomPage from "../features/chat/pages/ChatRoomPage";
+const AdminProfile = lazy(() => import("../features/profiles/admin/pages/adminProfile.page"));
+const StudentProfile = lazy(() => import("../features/profiles/student/pages/studentProfile.page"));
+const MentorProfile = lazy(() => import("../features/profiles/mentor/pages/mentorProfile.page"));
+const AskDoubtPage = lazy(() => import("../features/doubt/pages/AskDoubtPage"));
+const SpecializationSelectPage = lazy(() => import("../features/assessment/pages/SpecializationSelectPage"));
+const AssessmentTestPage = lazy(() => import("../features/assessment/pages/AssessmentTestPage"));
+const DoubtOffersPage = lazy(() => import("../features/doubt/pages/DoubtOffersPage"));
+const ChatRoomPage = lazy(() => import("../features/chat/pages/ChatRoomPage"));
+
+const page = (Component) => (
+  <LazyRoute>
+    <Component />
+  </LazyRoute>
+);
 
 export const router = createBrowserRouter([
   {
-    element: <AuthLayout />,
-    children: [
-      { path: "/login", element: <LoginPage /> },
-      { path: "/register", element: <RegisterPage /> },
-      { path: "/verify", element: <OTPVerificationPage /> },
-      { path: "/forgot-password", element: <ForgetPasswordPage /> },
-      { path: "/reset-password", element: <ResetPasswordPage /> },
-    ],
-  },
-
-  {
-    path: "/",
-    element: <PublicPage />,
-  },
-
-  {
-    path: "/mentor-doc",
-    element: <MentorDocPage />,
-  },
-
-  {
-    path: "/student-doc",
-    element: <StudentDocPage />,
-  },
-
-  {
-    path: "/admin-doc",
-    element: <AdminDocPage />,
-  },
-
-  {
-    path: "/student-landing",
-    element: <StudentLandingPage />,
-  },
-
-  {
-    path: "/mentor-landing",
-    element: <MentorLandingPage />,
-  },
-
-  {
-    path: "/admin-landing",
-    element: <AdminLandingPage />,
-  },
-
-  {
-    path: "/privacy",
-    element: <PrivacyPolicyPage />,
-  },
-
-  {
-    path: "/terms",
-    element: <TermsConditionsPage />,
-  },
-
-  {
-    element: <ProtectedRoute />,
+    element: <RootLayout />,
     children: [
       {
-        element: <DashboardLayout />,
+        element: <AuthLayout />,
         children: [
-          { path: "/dashboard/admin", element: <AdminDashboard /> },
-          { path: "/dashboard/mentor", element: <MentorDashboard /> },
-          { path: "/dashboard/student", element: <StudentDashboard /> },
-          { path: "/student/ask-doubt", element: <AskDoubtPage /> },
-          { path: "/mentor/assessment/select", element: <SpecializationSelectPage /> },
-          { path: "/mentor/assessment/test", element: <AssessmentTestPage /> },
-          { path: "/student/doubt-sessions/:doubtSessionId/offers", element: <DoubtOffersPage /> },
-          { path: "/chat/:chatRoomId", element: <ChatRoomPage /> },
+          { path: "/login", element: page(LoginPage) },
+          { path: "/register", element: page(RegisterPage) },
+          { path: "/verify", element: page(OTPVerificationPage) },
+          { path: "/forgot-password", element: page(ForgetPasswordPage) },
+          { path: "/reset-password", element: page(ResetPasswordPage) },
         ],
       },
-      { path: "/admin/profile", element: <AdminProfile /> },
-      { path: "/student/profile", element: <StudentProfile /> },
-      { path: "/mentor/profile", element: <MentorProfile /> },
+
+      {
+        path: "/",
+        element: page(PublicPage),
+      },
+
+      {
+        path: "/mentor-doc",
+        element: page(MentorDocPage),
+      },
+
+      {
+        path: "/student-doc",
+        element: page(StudentDocPage),
+      },
+
+      {
+        path: "/admin-doc",
+        element: page(AdminDocPage),
+      },
+
+      {
+        path: "/student-landing",
+        element: page(StudentLandingPage),
+      },
+
+      {
+        path: "/mentor-landing",
+        element: page(MentorLandingPage),
+      },
+
+      {
+        path: "/admin-landing",
+        element: page(AdminLandingPage),
+      },
+
+      {
+        path: "/privacy",
+        element: page(PrivacyPolicyPage),
+      },
+
+      {
+        path: "/terms",
+        element: page(TermsConditionsPage),
+      },
+
+      {
+        element: <ProtectedRoute />,
+        children: [
+          {
+            element: <DashboardLayout />,
+            children: [
+              { path: "/dashboard/admin", element: page(AdminDashboard) },
+              { path: "/dashboard/mentor", element: page(MentorDashboard) },
+              { path: "/dashboard/student", element: page(StudentDashboard) },
+              { path: "/student/ask-doubt", element: page(AskDoubtPage) },
+              { path: "/mentor/assessment/select", element: page(SpecializationSelectPage) },
+              { path: "/mentor/assessment/test", element: page(AssessmentTestPage) },
+              { path: "/student/doubt-sessions/:doubtSessionId/offers", element: page(DoubtOffersPage) },
+              { path: "/chat/:chatRoomId", element: page(ChatRoomPage) },
+            ],
+          },
+          { path: "/admin/profile", element: page(AdminProfile) },
+          { path: "/student/profile", element: page(StudentProfile) },
+          { path: "/mentor/profile", element: page(MentorProfile) },
+        ],
+      },
+
+      { path: "/public", element: <Navigate to="/" replace /> },
+      { path: "*", element: page(NotFoundPage) },
     ],
   },
-
-  { path: "/public", element: <Navigate to="/" replace /> },
-  { path: "*", element: <NotFoundPage /> },
 ]);

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState, useCallback } from "react";
 
 const CHUNK_SIZE = 16384; // 16KB chunks for WebRTC cross-browser safety
@@ -10,10 +11,15 @@ export const useWebRTCWorkspace = (socket, chatRoomId, currentUser, localStream,
 
   const [peerMediaStates, setPeerMediaStates] = useState({}); // Key: socketId, Value: { videoOff }
   const peerMediaStatesRef = useRef({});
-  peerMediaStatesRef.current = peerMediaStates;
+  // Keep ref in sync without writing during render
+  useEffect(() => {
+    peerMediaStatesRef.current = peerMediaStates;
+  }, [peerMediaStates]);
 
   const isVideoOffRef = useRef(isVideoOff);
-  isVideoOffRef.current = isVideoOff;
+  useEffect(() => {
+    isVideoOffRef.current = isVideoOff;
+  }, [isVideoOff]);
 
   const pcsRef = useRef({}); // Key: socketId, Value: RTCPeerConnection
   const dcsRef = useRef({}); // Key: socketId, Value: RTCDataChannel
@@ -282,13 +288,20 @@ export const useWebRTCWorkspace = (socket, chatRoomId, currentUser, localStream,
       const videoTrack = localStream.getVideoTracks()[0];
       const audioTrack = localStream.getAudioTracks()[0];
 
+
       if (videoTrack) {
-        const videoSender = senders.find((s) => s.track?.kind === "video" || s.kind === "video");
+        // RTCRtpSender has no .kind property — match by track.kind when live.
+        // After screen track is stopped, s.track becomes null → fall back to
+        // any sender that doesn't hold an audio track (i.e., must be video).
+        const videoSender =
+          senders.find((s) => s.track?.kind === "video") ??
+          senders.find((s) => s.track === null && senders.every((a) => a === s || a.track?.kind !== null));
         if (videoSender) {
           videoSender.replaceTrack(videoTrack).catch((e) => {
             console.warn("replaceTrack video failed:", e);
           });
         } else {
+          // No video sender yet — add the track
           try {
             pc.addTrack(videoTrack, localStream);
           } catch (e) {
@@ -298,7 +311,7 @@ export const useWebRTCWorkspace = (socket, chatRoomId, currentUser, localStream,
       }
 
       if (audioTrack) {
-        const audioSender = senders.find((s) => s.track?.kind === "audio" || s.kind === "audio");
+        const audioSender = senders.find((s) => s.track?.kind === "audio");
         if (audioSender) {
           audioSender.replaceTrack(audioTrack).catch((e) => {
             console.warn("replaceTrack audio failed:", e);

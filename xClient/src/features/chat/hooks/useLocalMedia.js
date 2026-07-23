@@ -8,8 +8,7 @@ export const useLocalMedia = () => {
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   
   const rawStreamRef = useRef(null);
-  const canvasRef = useRef(null);
-  const videoRef = useRef(null); // hidden video element for canvas input
+  const screenTrackRef = useRef(null); // keep reference to active screen track
   const animationFrameId = useRef(null);
 
   // Resolution constraints mapper
@@ -31,6 +30,10 @@ export const useLocalMedia = () => {
     if (animationFrameId.current) {
       cancelAnimationFrame(animationFrameId.current);
     }
+    if (screenTrackRef.current) {
+      screenTrackRef.current.stop();
+      screenTrackRef.current = null;
+    }
     if (rawStreamRef.current) {
       rawStreamRef.current.getTracks().forEach(track => track.stop());
       rawStreamRef.current = null;
@@ -39,6 +42,7 @@ export const useLocalMedia = () => {
       localStream.getTracks().forEach(track => track.stop());
     }
     setLocalStream(null);
+    setIsScreenSharing(false);
   }, [localStream]);
 
   // Initialize Media Stream from camera
@@ -55,19 +59,64 @@ export const useLocalMedia = () => {
       setResolution(resPreset);
       setIsVideoOff(false);
       setIsScreenSharing(false);
+      screenTrackRef.current = null;
     } catch (error) {
       console.error("Error accessing user media:", error);
       throw error;
     }
   }, [getConstraints, stopMedia]);
 
-  // Screen Sharing
-  const startScreenShare = useCallback(async () => {
-    try {
-      if (isScreenSharing) return;
+  // Stop screen sharing — restore camera
+  const stopScreenShare = useCallback(async () => {
+    if (!isScreenSharing) return;
 
+    // Stop the screen track
+    if (screenTrackRef.current) {
+      screenTrackRef.current.onended = null; // prevent double-call
+      screenTrackRef.current.stop();
+      screenTrackRef.current = null;
+    }
+
+    // Restore camera
+    try {
+      const constraints = getConstraints(resolution);
+      const cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+      rawStreamRef.current = cameraStream;
+
+      // Replace screen track with camera track inside localStream
+      if (localStream) {
+        // Remove all video tracks (screen)
+        localStream.getVideoTracks().forEach(t => {
+          localStream.removeTrack(t);
+          t.stop();
+        });
+        // Add camera video track
+        cameraStream.getVideoTracks().forEach(t => localStream.addTrack(t));
+        // Trigger useEffect in useWebRTCWorkspace via new MediaStream reference
+        setLocalStream(new MediaStream(localStream.getTracks()));
+      } else {
+        setLocalStream(cameraStream);
+      }
+
+      setIsScreenSharing(false);
+      setIsVideoOff(false);
+    } catch (error) {
+      console.error("Error restoring camera after screen share:", error);
+    }
+  }, [isScreenSharing, localStream, resolution, getConstraints]);
+
+  // Screen Sharing — toggle on/off
+  const startScreenShare = useCallback(async () => {
+    // If already sharing → stop
+    if (isScreenSharing) {
+      stopScreenShare();
+      return;
+    }
+
+    try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
       const screenTrack = screenStream.getVideoTracks()[0];
+      screenTrackRef.current = screenTrack;
 
       // Stop canvas camera animation loop (but keep audio)
       if (animationFrameId.current) {
@@ -91,14 +140,15 @@ export const useLocalMedia = () => {
 
       setIsScreenSharing(true);
 
-      // When user stops screen share via browser UI, restore camera
+      // When user stops screen share via browser UI, restore camera automatically
       screenTrack.onended = () => {
+        screenTrackRef.current = null;
         startCamera(resolution);
       };
     } catch (error) {
       console.error("Error starting screen share:", error);
     }
-  }, [isScreenSharing, localStream, resolution, startCamera]);
+  }, [isScreenSharing, stopScreenShare, localStream, resolution, startCamera]);
 
   // Audio mute/unmute
   const toggleMute = useCallback(() => {
@@ -138,6 +188,7 @@ export const useLocalMedia = () => {
     isScreenSharing,
     startCamera,
     startScreenShare,
+    stopScreenShare,
     toggleMute,
     toggleVideo,
     stopMedia

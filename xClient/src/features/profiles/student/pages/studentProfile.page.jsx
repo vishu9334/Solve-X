@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useGetStudentProfile, useUpdateStudentProfile } from "../hooks/studentProfile.hook";
 import CustomCursor from "../../../../shared/components/CustomCursor";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser";
@@ -19,7 +19,7 @@ const StudentProfile = () => {
   };
   
   // useForm setup
-  const { register, handleSubmit, reset, watch } = useForm({
+  const { register, handleSubmit, reset, control } = useForm({
     defaultValues: {
       bio: "",
       name: "",
@@ -30,11 +30,11 @@ const StudentProfile = () => {
   });
 
   // Watch form fields for view mode rendering
-  const bio = watch("bio");
-  const name = watch("name");
-  const education = watch("education");
-  const preferredLanguage = watch("preferredLanguage");
-  const timezone = watch("timezone");
+  const bio = useWatch({ control, name: "bio" });
+  const name = useWatch({ control, name: "name" });
+  const education = useWatch({ control, name: "education" });
+  const preferredLanguage = useWatch({ control, name: "preferredLanguage" });
+  const timezone = useWatch({ control, name: "timezone" });
 
   // Keep array lists as state since they are edited dynamically outside standard form inputs
   const [socialLinks, setSocialLinks] = useState([]);
@@ -49,18 +49,22 @@ const StudentProfile = () => {
 
   // Sync state when profile data is loaded
   useEffect(() => {
-    if (profileResponse?.data) {
+    const data = profileResponse?.data;
+    if (data) {
       reset({
-        bio: profileData.bio || "",
-        name: profileData.name || currentUser?.name || "",
-        education: profileData.education || "",
-        preferredLanguage: profileData.preferredLanguage || "",
-        timezone: profileData.timezone || ""
+        bio: data.bio || "",
+        name: data.name || currentUser?.name || "",
+        education: data.education || "",
+        preferredLanguage: data.preferredLanguage || "",
+        timezone: data.timezone || ""
       });
-      setSocialLinks(profileData.socialLinks || []);
-      setSkills(profileData.skills || []);
+      const t = setTimeout(() => {
+        setSocialLinks(data.socialLinks || []);
+        setSkills(data.skills || []);
+      }, 0);
+      return () => clearTimeout(t);
     }
-  }, [profileResponse, currentUser, reset]);
+  }, [profileResponse?.data, currentUser, reset]);
 
   if (isCheckingSession) {
     return (

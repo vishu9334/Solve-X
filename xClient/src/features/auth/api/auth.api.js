@@ -1,7 +1,12 @@
 import api from "../../../lib/axios";
 
 const getAccessTokenFromHeader = (headers) => {
-  const authHeader = headers?.["authorization"];
+  const authHeader =
+    headers?.["authorization"] ||
+    headers?.["Authorization"] ||
+    (typeof headers?.get === "function"
+      ? headers.get("authorization") || headers.get("Authorization")
+      : null);
 
   return authHeader?.startsWith("Bearer ")
     ? authHeader.split(" ")[1]
@@ -116,6 +121,22 @@ export const getCurrentUserApi = async () => {
     const apiResponse = await api.get("/me");
 
     return apiResponse.data?.data?.userObj || apiResponse.data?.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+export const regenerateTokenApi = async () => {
+  try {
+    const apiResponse = await api.post("/regenerate-token");
+    const accessToken =
+      getAccessTokenFromHeader(apiResponse.headers) ||
+      apiResponse.data?.data?.accessToken;
+
+    return {
+      accessToken,
+      message: getMessage(apiResponse.data),
+    };
   } catch (error) {
     throw error.response?.data || error;
   }

@@ -13,10 +13,9 @@ import {
   RiCameraOffFill,
   RiCastFill,
   RiChat1Fill,
-  RiFullscreenExitFill,
   RiFullscreenLine,
+  RiFullscreenExitLine,
   RiSendPlaneFill,
-  RiCloseLargeLine,
   RiAttachment2,
   RiLayoutColumnFill,
   RiPhoneFill,
@@ -43,7 +42,9 @@ const VideoPlayer = ({ stream, isMuted = false, label, role, videoOff = false, c
 
   useEffect(() => {
     if (videoRef.current && stream && !videoOff && isTrackEnabled) {
-      videoRef.current.srcObject = stream;
+      if (videoRef.current.srcObject !== stream) {
+        videoRef.current.srcObject = stream;
+      }
     }
   }, [stream, videoOff, isTrackEnabled]);
 
@@ -51,12 +52,14 @@ const VideoPlayer = ({ stream, isMuted = false, label, role, videoOff = false, c
     if (!stream) return;
     const videoTrack = stream.getVideoTracks()[0];
     if (!videoTrack) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsTrackEnabled(false);
       return;
     }
 
     const checkTrack = () => {
-      setIsTrackEnabled(videoTrack.enabled && !videoTrack.muted && videoTrack.readyState === "live");
+      const enabled = videoTrack.enabled && !videoTrack.muted && videoTrack.readyState === "live";
+      setIsTrackEnabled((prev) => (prev !== enabled ? enabled : prev));
     };
 
     checkTrack();
@@ -150,20 +153,16 @@ const IconPhone = ({ color = "rgba(255,255,255,1)" }) => (
   <RiPhoneFill color={color} size={20} style={{ transform: "rotate(135deg)" }} />
 );
 
-const IconMinimize = ({ color = "rgba(255,255,255,1)" }) => (
-  <RiFullscreenExitFill color={color} size={16} />
+const IconMaximize = ({ color = "rgba(255,255,255,1)" }) => (
+  <RiFullscreenLine color={color} size={18} />
 );
 
-const IconMaximize = ({ color = "rgba(255,255,255,1)" }) => (
-  <RiFullscreenLine color={color} size={16} />
+const IconMinimize = ({ color = "rgba(255,255,255,1)" }) => (
+  <RiFullscreenExitLine color={color} size={18} />
 );
 
 const IconSend = ({ color = "rgba(255,255,255,1)" }) => (
   <RiSendPlaneFill color={color} size={16} />
-);
-
-const IconClose = ({ color = "rgba(255,255,255,1)" }) => (
-  <RiCloseLargeLine color={color} size={16} />
 );
 
 // Split View Layout Icon
@@ -176,24 +175,104 @@ const IconAttach = ({ color = "rgba(255,255,255,1)" }) => (
   <RiAttachment2 color={color} size={20} />
 );
 
+/* EMOJI LIST moved to module scope to avoid creating components during render */
+const EMOJI_LIST = ["😀","😂","🥰","😎","🤩","🎉","🔥","❤️","👍","🌟","💯","🤔","😮","🥳","✨","💪","🙌","😅","🤗","😊"];
+
+/* eslint-disable react-hooks/purity */
+const EmojiCanvasPanel = ({ onEmojiSend }) => {
+  const canvasRef = useRef(null);
+  const particlesRef = useRef([]);
+  const rafRef = useRef(null);
+
+  const spawnEmoji = (emoji, x, y) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const count = 7 + Math.floor(Math.random() * 5);
+    for (let i = 0; i < count; i++) {
+      particlesRef.current.push({
+        emoji, x, y,
+        vx: (Math.random() - 0.5) * 5,
+        vy: -(4 + Math.random() * 5),
+        life: 1,
+        scale: 0.9 + Math.random() * 0.8,
+        rotation: (Math.random() - 0.5) * 0.4,
+        rotSpeed: (Math.random() - 0.5) * 0.06,
+        decay: 0.013 + Math.random() * 0.008,
+      });
+    }
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particlesRef.current = particlesRef.current.filter(p => p.life > 0);
+      for (const p of particlesRef.current) {
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.font = `${Math.round(p.scale * 26)}px serif`;
+        ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(p.emoji, 0, 0);
+        ctx.restore();
+        p.x += p.vx; p.y += p.vy; p.vy += 0.13;
+        p.rotation += p.rotSpeed; p.life -= p.decay;
+      }
+      rafRef.current = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(rafRef.current); ro.disconnect(); };
+  }, []);
+
+  return (
+    <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.01)", borderRadius: "inherit" }}>
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1 }} />
+      <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: "6px", padding: "14px", alignContent: "flex-start", zIndex: 2, position: "relative" }}>
+        {EMOJI_LIST.map((em, idx) => (
+          <button key={idx}
+            onClick={(e) => {
+              const rect = canvasRef.current?.getBoundingClientRect();
+              spawnEmoji(em, e.clientX - (rect?.left || 0), e.clientY - (rect?.top || 0));
+              onEmojiSend(em);
+            }}
+            style={{ fontSize: "22px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "transform 0.12s, background 0.12s", backdropFilter: "blur(6px)", color: "#ffffff" }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.25)"; e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+          >{em}</button>
+        ))}
+      </div>
+      <div style={{ padding: "0 16px 14px", display: "flex", justifyContent: "flex-end", zIndex: 2, position: "relative" }}>
+        <span style={{ fontSize: "32px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.15))" }}>🙂</span>
+      </div>
+    </div>
+  );
+};
+
 
 
 
 /* ── Chat Panel ─────────────────────────────────────── */
-const ChatPanel = ({ session, messages, p2pMessages, inputText, setInputText, handleSendMessage, sessionCompleted, chatEndRef, onClose, showClose, inVideoCall }) => (
+const ChatPanel = ({ session, messages, inputText, setInputText, handleSendMessage, sessionCompleted, chatEndRef, inVideoCall }) => (
   <>
-    <div className="flex items-center px-4 py-3 shrink-0 border-b border-[#e8eaed]">
-      <span className="text-[10px] font-bold uppercase tracking-widest text-[#1a73e8] font-['Quicksand']">
+    <div className="flex items-center px-4 py-3 shrink-0 border-b border-white/10 bg-[#0a0a14]">
+      <span className="text-[10px] font-bold uppercase tracking-widest font-['Quicksand'] text-amber-400">
         {inVideoCall ? "In-Call Chat" : "Session Chat"}
       </span>
     </div>
-    <div className="px-4 py-3 shrink-0 border-b border-[#e8eaed] bg-[#f8f9fa]">
-      <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-[#1a73e8]">Question</p>
-      <p className="text-xs leading-relaxed italic m-0 line-clamp-4 text-[#3c4043]">"{session.question}"</p>
+    <div className="px-4 py-3 shrink-0 border-b border-white/10 bg-white/[0.03]">
+      <p className="text-[9px] font-bold uppercase tracking-widest mb-1 text-amber-400">Question</p>
+      <p className="text-xs leading-relaxed italic m-0 line-clamp-4 text-white/80">"{session.question}"</p>
     </div>
-    <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 min-h-0 [scrollbar-width:none] bg-white" data-lenis-prevent>
+    <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3 min-h-0 [scrollbar-width:none] bg-[#060612]" data-lenis-prevent>
       {messages.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-xs gap-1 text-center text-[#80868b]">
+        <div className="flex flex-col items-center justify-center h-full text-xs gap-1 text-center text-white/40">
           <span>👋 Connected to workspace.</span>
           <span>Type a message below.</span>
         </div>
@@ -202,24 +281,28 @@ const ChatPanel = ({ session, messages, p2pMessages, inputText, setInputText, ha
           const isMe = msg.senderId?.toString() === msg._selfId;
           return (
             <div key={`s-${i}`} className={`flex flex-col max-w-[82%] ${isMe ? "self-end items-end" : "self-start items-start"}`}>
-              <div className={`px-3 py-2.5 rounded-2xl text-xs leading-relaxed ${isMe ? "rounded-tr-none font-semibold text-white bg-[#1a73e8]" : "rounded-tl-none bg-[#f1f3f4] text-[#202124] border border-[#e8eaed]"}`}>{msg.message}</div>
-              <span className="text-[8px] mt-0.5 text-[#80868b]">{new Date(msg.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+              <div className={`px-3 py-2.5 rounded-2xl text-xs leading-relaxed ${
+                isMe
+                  ? "rounded-tr-none font-semibold text-white bg-blue-600 shadow-md"
+                  : "rounded-tl-none bg-white/10 text-white border border-white/10 shadow-sm"
+              }`}>{msg.message}</div>
+              <span className="text-[8px] mt-0.5 text-white/40">{new Date(msg.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
             </div>
           );
         })
       )}
       <div ref={chatEndRef} />
     </div>
-    <form onSubmit={handleSendMessage} className="flex gap-2 px-4 py-3 shrink-0 border-t border-[#e8eaed] bg-[#f8f9fa]">
+    <form onSubmit={handleSendMessage} className="flex gap-2 px-4 py-3 shrink-0 border-t border-white/10 bg-[#0a0a14]">
       <input
         type="text"
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         placeholder={sessionCompleted ? "Session closed." : "Write a message…"}
         disabled={sessionCompleted}
-        className="flex-1 rounded-full px-4 py-2.5 text-xs transition-colors focus:outline-none disabled:opacity-40 border border-[#dadce0] bg-white text-[#202124] font-['Quicksand']"
+        className="flex-1 rounded-full px-4 py-2.5 text-xs transition-colors focus:outline-none disabled:opacity-40 font-['Quicksand'] border border-white/15 bg-white/5 text-white placeholder-white/40 focus:border-blue-500"
       />
-      <button type="submit" disabled={sessionCompleted || !inputText.trim()} className="px-4 rounded-full font-bold transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed border-none flex items-center justify-center bg-[#1a73e8]">
+      <button type="submit" disabled={sessionCompleted || !inputText.trim()} className="px-4 rounded-full font-bold transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed border-none flex items-center justify-center bg-blue-600 text-white hover:bg-blue-500 shadow-md">
         <IconSend />
       </button>
     </form>
@@ -257,8 +340,8 @@ const ChatRoomPage = () => {
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  const { localStream, resolution, isMuted, isVideoOff, isScreenSharing, startCamera, startScreenShare, toggleMute, toggleVideo, stopMedia } = useLocalMedia();
-  const { peers, chatMessages: p2pMessages, fileProgress, incomingFile, sendP2PMessage, sendP2PFile, leaveCall, setIncomingFile } = useWebRTCWorkspace(socket, chatRoomId, currentUser, localStream, isVideoOff);
+  const { localStream, isMuted, isVideoOff, isScreenSharing, startCamera, startScreenShare, stopScreenShare, toggleMute, toggleVideo, stopMedia } = useLocalMedia();
+  const { peers, chatMessages: p2pMessages, fileProgress, incomingFile, sendP2PFile, leaveCall, setIncomingFile } = useWebRTCWorkspace(socket, chatRoomId, currentUser, localStream, isVideoOff);
 
   useEffect(() => {
     if (inVideoCall) {
@@ -277,11 +360,20 @@ const ChatRoomPage = () => {
     };
   }, [inVideoCall]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (session?.chatMessages) setMessages(session.chatMessages); }, [session]);
 
   const [showEndRequestModal, setShowEndRequestModal] = useState(false);
   const [requestingMentorName, setRequestingMentorName] = useState("");
   const hasHandledEndRef = useRef(false);
+
+  const handleLeaveCall = useCallback(() => {
+    stopMedia();
+    leaveCall();
+    setInVideoCall(false);
+    setScreenMaximized(false);
+    toast.info("Left video session.");
+  }, [stopMedia, leaveCall]);
 
   const finishSessionEnd = useCallback((msgText) => {
     if (hasHandledEndRef.current) return;
@@ -340,6 +432,7 @@ const ChatRoomPage = () => {
   }, [session]);
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, p2pMessages]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { if (isScreenSharing) setScreenMaximized(true); }, [isScreenSharing]);
 
   const handleSendMessage = (e) => {
@@ -391,7 +484,7 @@ const ChatRoomPage = () => {
     catch { toast.error("Failed to access camera/microphone."); }
   };
 
-  const handleLeaveCall = () => { stopMedia(); leaveCall(); setInVideoCall(false); setScreenMaximized(false); toast.info("Left video session."); };
+  
   const handleFileChange = (e) => { const f = e.target.files[0]; if (f) sendP2PFile(f); };
 
   const formatTime = (s) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
@@ -424,30 +517,39 @@ const ChatRoomPage = () => {
     const pipRole   = peers[0]?.role ?? (currentUser.role === "student" ? "mentor" : "student");
 
     return (
-      <div className="fixed inset-0 z-50 flex flex-col overflow-hidden font-['Quicksand'] bg-[#0A0A0B]">
+      <div className="fixed inset-0 z-50 flex flex-col overflow-hidden font-['Quicksand'] bg-[#060612] bg-[radial-gradient(circle_at_82%_6%,rgba(255,217,110,0.06),transparent_28%),radial-gradient(circle_at_76%_18%,rgba(62,62,244,0.12),transparent_34%),radial-gradient(circle_at_28%_99%,rgba(9,12,179,0.18),transparent_48%)]">
 
-        {/* Top bar – dark theme header */}
-        <div className="flex items-center justify-between px-5 py-2.5 shrink-0 bg-[#363664] border-b border-[#434656]/20 shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
+        {/* Top bar – dark glass header */}
+        <div className="flex items-center justify-between px-5 py-3 shrink-0 bg-[#0a0a14]/80 backdrop-blur-xl border-b border-white/10 shadow-lg">
           <div className="flex items-center gap-2.5">
-            <img src={otherUser?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser?.name || "User"}`} alt="" className="h-8 w-8 rounded-full border object-cover border-[#dadce0]" />
-            <span className="text-sm font-semibold text-[#e5e2e3]">{otherUser?.name || "Connecting…"}</span>
+            <img src={otherUser?.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${otherUser?.name || "User"}`} alt="" className="h-8 w-8 rounded-full border object-cover border-white/20" />
+            <span className="text-sm font-semibold text-white">{otherUser?.name || "Connecting…"}</span>
             {isScreenSharing && (
-              <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full flex items-center gap-1 bg-[#e8f0fe]/10 text-[#b7c4ff] border border-[#b7c4ff]/25">
-                <RiCastFill size={12} color="#b7c4ff" />
-                <span>Screen Sharing</span>
-              </span>
+              <button
+                onClick={stopScreenShare}
+                title="Stop Screen Sharing"
+                className="text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full flex items-center gap-1 bg-red-500/20 text-red-300 border border-red-500/30 cursor-pointer hover:bg-red-500/40 transition-colors"
+              >
+                <RiCastFill size={12} color="#fca5a5" />
+                <span>Stop Sharing</span>
+              </button>
             )}
           </div>
           <div className="flex items-center gap-2.5">
             {session.status === "in_session" && !sessionCompleted && (
-              <div className={`flex items-center gap-1.5 text-xs font-bold tabular-nums px-3 py-1 rounded-full border ${timeLeft < 120 ? "bg-[#fce8e6]/10 text-[#ffb3ae] border-[#ffb3ae]/25" : "bg-[#e8f0fe]/10 text-[#b7c4ff] border-[#b7c4ff]/25"}`}>
+              <div className={`flex items-center gap-1.5 text-xs font-bold tabular-nums px-3 py-1 rounded-full border ${timeLeft < 120 ? "bg-red-500/10 text-red-300 border-red-500/30" : "bg-white/10 text-white/90 border-white/15"}`}>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />{formatTime(timeLeft)}
               </div>
             )}
-            <button onClick={() => setScreenMaximized(false)} title="Split view" className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all border-none cursor-pointer text-white hover:opacity-90 bg-[#2d62ff]">
-              <IconLayoutColumn /><span>Split View</span>
+            <button
+              onClick={() => setScreenMaximized(false)}
+              title="Minimize Screen / Normal View"
+              className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all border-none cursor-pointer text-white hover:bg-blue-500 bg-blue-600 shadow-lg"
+            >
+              <IconMinimize color="white" />
+              <span>Minimize Screen</span>
             </button>
-            <button onClick={() => setChatOpen((v) => !v)} className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all border-none cursor-pointer hover:opacity-90 text-white ${chatOpen ? "bg-[#2d62ff]" : "bg-[#3c4043]"}`}>
+            <button onClick={() => setChatOpen((v) => !v)} className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-full transition-all border-none cursor-pointer hover:opacity-90 text-white ${chatOpen ? "bg-blue-600" : "bg-white/10 border border-white/15"}`}>
               <IconChat /><span>{chatOpen ? "Close Chat" : "Chat"}</span>
             </button>
           </div>
@@ -455,11 +557,11 @@ const ChatRoomPage = () => {
 
         {/* Main area */}
         <div className="flex flex-1 overflow-hidden">
-          {/* Big stream – smoke white bg */}
-          <div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden bg-[#0A0A0B] p-4">
+          {/* Big stream – dark glass container */}
+          <div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden p-4">
             {peers.length === 0 ? (
               <div className="w-full max-w-2xl flex flex-col gap-4">
-                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-[#434656]/20 w-full bg-[#131314]">
+                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/10 w-full bg-black/40">
                   {bigStream ? (
                     isVideoOff ? (
                       <div className="flex items-center justify-center w-full h-full animate-fade-in" style={{ backgroundColor: getFigmaAvatarColor(currentUser.name) }}>
@@ -468,18 +570,28 @@ const ChatRoomPage = () => {
                         </div>
                       </div>
                     ) : (
-                      <video ref={(el) => { if (el && bigStream) el.srcObject = bigStream; }} autoPlay playsInline muted className="w-full h-full object-contain" />
+                      <video
+                        ref={(el) => {
+                          if (el && bigStream && el.srcObject !== bigStream) {
+                            el.srcObject = bigStream;
+                          }
+                        }}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-full object-contain"
+                      />
                     )
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full gap-3 text-[#2d62ff] bg-[#131314]">
-                      <div className="h-10 w-10 rounded-full border-2 border-dashed animate-spin border-[#2d62ff]" />
+                    <div className="flex flex-col items-center justify-center h-full gap-3 text-blue-400 bg-black/40">
+                      <div className="h-10 w-10 rounded-full border-2 border-dashed animate-spin border-blue-400" />
                       <span className="text-xs uppercase tracking-widest">Loading stream…</span>
                     </div>
                   )}
-                  <div className="absolute bottom-4 left-4 text-xs font-semibold px-3 py-1 rounded-md text-[#e5e2e3] bg-[#0A0A0B]/80 border border-[#434656]/30 shadow-sm">{currentUser.name} (You)</div>
+                  <div className="absolute bottom-4 left-4 text-xs font-semibold px-3 py-1 rounded-md text-white bg-black/70 border border-white/10 shadow-sm">{currentUser.name} (You)</div>
                 </div>
-                <div className="flex items-center justify-center gap-2 text-xs font-bold px-4 py-2 rounded-full border border-dashed border-[#434656]/30 bg-[#131314] text-[#2d62ff] max-w-xs mx-auto shadow-sm">
-                  <div className="h-4 w-4 rounded-full border border-dashed animate-spin border-[#2d62ff]" />
+                <div className="flex items-center justify-center gap-2 text-xs font-bold px-4 py-2 rounded-full border border-dashed border-white/20 bg-white/5 text-blue-400 max-w-xs mx-auto shadow-sm">
+                  <div className="h-4 w-4 rounded-full border border-dashed animate-spin border-blue-400" />
                   <span>Waiting for {currentUser.role === "student" ? "Mentor" : "Student"} to join…</span>
                 </div>
               </div>
@@ -493,73 +605,95 @@ const ChatRoomPage = () => {
                       </div>
                     </div>
                   ) : (
-                    <video ref={(el) => { if (el && bigStream) el.srcObject = bigStream; }} autoPlay playsInline muted className="w-full h-full object-contain" />
+                    <video
+                      ref={(el) => {
+                        if (el && bigStream && el.srcObject !== bigStream) {
+                          el.srcObject = bigStream;
+                        }
+                      }}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-contain"
+                    />
                   )
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-full gap-3 text-[#2d62ff]">
-                    <div className="h-10 w-10 rounded-full border-2 border-dashed animate-spin border-[#2d62ff]" />
+                  <div className="flex flex-col items-center justify-center h-full gap-3 text-blue-400">
+                    <div className="h-10 w-10 rounded-full border-2 border-dashed animate-spin border-blue-400" />
                     <span className="text-xs uppercase tracking-widest">Loading stream…</span>
                   </div>
                 )}
                 {/* PiP */}
                 {pipStream && (
-                  <div className="absolute bottom-6 right-6 w-52 aspect-video rounded-2xl overflow-hidden shadow-2xl hover:scale-105 transition-transform cursor-pointer border-2 border-[#dadce0]">
+                  <div className="absolute bottom-6 right-6 w-52 aspect-video rounded-2xl overflow-hidden shadow-2xl hover:scale-105 transition-transform cursor-pointer border-2 border-white/20">
                     <VideoPlayer stream={pipStream} isMuted={false} label={pipLabel} role={pipRole} videoOff={peers[0]?.videoOff} className="w-full h-full" />
                   </div>
                 )}
-                <div className="absolute bottom-6 left-5 text-xs font-semibold px-2 py-0.5 rounded-md text-[#202124] bg-white/80">{currentUser.name} (You)</div>
+                <div className="absolute bottom-6 left-5 text-xs font-semibold px-2.5 py-1 rounded-md text-white bg-black/70 border border-white/10 backdrop-blur-md">{currentUser.name} (You)</div>
               </div>
             )}
           </div>
 
           {/* Sliding chat panel */}
-          <div className={`overflow-hidden transition-[width,min-width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] bg-white border-l border-[#e8eaed] flex flex-col ${chatOpen ? "w-[340px] min-w-[340px]" : "w-0 min-w-0"}`}>
+          <div className={`overflow-hidden transition-[width,min-width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] bg-[#0a0a14]/95 border-l border-white/10 flex flex-col ${chatOpen ? "w-[340px] min-w-[340px]" : "w-0 min-w-0"}`}>
             {chatOpen && (
-              <ChatPanel
-                session={session} messages={enriched} p2pMessages={p2pMessages}
-                inputText={inputText} setInputText={setInputText}
-                handleSendMessage={handleSendMessage} sessionCompleted={sessionCompleted}
-                chatEndRef={chatEndRef} onClose={() => setChatOpen(false)}
-                showClose inVideoCall
-              />
+                <ChatPanel
+                  session={session} messages={enriched}
+                  inputText={inputText} setInputText={setInputText}
+                  handleSendMessage={handleSendMessage} sessionCompleted={sessionCompleted}
+                  chatEndRef={chatEndRef} inVideoCall={inVideoCall}
+                />
             )}
           </div>
         </div>
 
-        {/* Bottom controls – light Google Meet style */}
-        <div className="shrink-0 flex items-center justify-center gap-3 py-4 bg-white border-t border-[#e8eaed]">
-          <button onClick={toggleMute} title={isMuted ? "Unmute" : "Mute"} className={`p-3.5 rounded-full transition-all border-none cursor-pointer flex items-center justify-center w-11 h-11 hover:opacity-90 shadow-sm ${isMuted ? "bg-[#d93025]" : "bg-[#3c4043]"}`}><IconMic off={isMuted} /></button>
-          <button onClick={toggleVideo} title={isVideoOff ? "Cam On" : "Cam Off"} className={`p-3.5 rounded-full transition-all border-none cursor-pointer flex items-center justify-center w-11 h-11 hover:opacity-90 shadow-sm ${isVideoOff ? "bg-[#d93025]" : "bg-[#3c4043]"}`}><IconCam off={isVideoOff} /></button>
-          <button onClick={startScreenShare} title={isScreenSharing ? "Stop Share" : "Share Screen"} className={`p-3.5 rounded-full transition-all border-none cursor-pointer flex items-center justify-center w-11 h-11 hover:opacity-90 shadow-sm ${isScreenSharing ? "bg-[#ffffff]" : "bg-[#3c4043]"}`}><IconScreen /></button>
-          <button onClick={() => fileInputRef.current?.click()} title="Send File" className="p-3.5 rounded-full transition-all border-none cursor-pointer flex items-center justify-center w-11 h-11 hover:opacity-90 shadow-sm bg-[#3c4043]"><IconAttach /></button>
+        {/* Bottom controls – dark glass style */}
+        <div className="shrink-0 flex items-center justify-center gap-3 py-3.5 bg-[#0a0a14]/90 backdrop-blur-xl border-t border-white/10 shadow-2xl">
+          <button onClick={toggleMute} title={isMuted ? "Unmute" : "Mute"} className={`p-3 rounded-full transition-all border cursor-pointer flex items-center justify-center w-11 h-11 hover:scale-105 shadow-sm ${isMuted ? "bg-red-600 border-red-500 text-white" : "bg-white/10 border-white/15 hover:bg-white/20 text-white"}`}><IconMic off={isMuted} /></button>
+          <button onClick={toggleVideo} title={isVideoOff ? "Cam On" : "Cam Off"} className={`p-3 rounded-full transition-all border cursor-pointer flex items-center justify-center w-11 h-11 hover:scale-105 shadow-sm ${isVideoOff ? "bg-red-600 border-red-500 text-white" : "bg-white/10 border-white/15 hover:bg-white/20 text-white"}`}><IconCam off={isVideoOff} /></button>
+          <button
+            onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+            title={isScreenSharing ? "Stop Screen Share" : "Share Screen"}
+            className={`p-3 rounded-full transition-all border cursor-pointer flex items-center justify-center w-11 h-11 hover:scale-105 shadow-sm ${isScreenSharing ? "bg-red-600 border-red-500 text-white" : "bg-white/10 border-white/15 hover:bg-white/20 text-white"}`}
+          >
+            <IconScreen color="white" />
+          </button>
+          <button onClick={() => fileInputRef.current?.click()} title="Send File" className="p-3 rounded-full transition-all border border-white/15 cursor-pointer flex items-center justify-center w-11 h-11 hover:bg-white/20 bg-white/10 text-white shadow-sm"><IconAttach /></button>
           <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-          <button onClick={handleLeaveCall} className="p-3.5 rounded-full transition-all border-none cursor-pointer flex items-center justify-center w-11 h-11 hover:opacity-90 shadow-sm mx-2 bg-[#d93025]"><IconPhone /></button>
+          <button
+            onClick={() => setScreenMaximized(false)}
+            title="Minimize Screen"
+            className="p-3 rounded-full transition-all border border-white/15 cursor-pointer flex items-center justify-center w-11 h-11 hover:bg-white/20 bg-white/10 text-white shadow-sm"
+          >
+            <IconMinimize color="white" />
+          </button>
+          <button onClick={handleLeaveCall} title="End Call" className="p-3 rounded-full transition-all border-none cursor-pointer flex items-center justify-center w-11 h-11 hover:scale-105 shadow-lg mx-2 bg-red-600 hover:bg-red-700 text-white"><IconPhone /></button>
           {currentUser.role === "student" && !sessionCompleted && (
-            <button onClick={handleEndSession} disabled={isEnding} className="text-[10px] font-bold uppercase tracking-wider px-4 py-2.5 rounded-full transition-all border cursor-pointer disabled:opacity-50 text-[#d93025] bg-[#fce8e6] border-[#f5c6c2]">
+            <button onClick={handleEndSession} disabled={isEnding} className="text-[10px] font-bold uppercase tracking-wider px-4 py-2.5 rounded-full transition-all border cursor-pointer disabled:opacity-50 text-red-300 bg-red-500/20 border-red-500/30 hover:bg-red-500/30">
               {isEnding ? "Ending…" : "End Session"}
             </button>
           )}
         </div>
 
         {fileProgress && (
-          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-64 rounded-xl p-3 text-xs shadow-2xl z-10 bg-white border border-[#e8eaed]">
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-64 rounded-xl p-3 text-xs shadow-2xl z-10 bg-[#0f0f1d] border border-white/15 text-white backdrop-blur-xl">
             <div className="flex justify-between mb-1.5">
-              <span className="truncate max-w-[70%] text-[#5f6368]">{fileProgress.isSending ? "Uploading" : "Downloading"}: {fileProgress.fileName}</span>
-              <span className="font-bold text-[#1a73e8]">{fileProgress.progress}%</span>
+              <span className="truncate max-w-[70%] text-white/70">{fileProgress.isSending ? "Uploading" : "Downloading"}: {fileProgress.fileName}</span>
+              <span className="font-bold text-blue-400">{fileProgress.progress}%</span>
             </div>
-            <div className="h-1 rounded-full overflow-hidden bg-[#e8eaed]"><div className="h-full transition-all bg-[#1a73e8]" style={{ width: `${fileProgress.progress}%` }} /></div>
+            <div className="h-1.5 rounded-full overflow-hidden bg-white/10"><div className="h-full transition-all bg-blue-500" style={{ width: `${fileProgress.progress}%` }} /></div>
           </div>
         )}
 
         {incomingFile && (
-          <div className="absolute inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-[#202124]/60">
-            <div className="rounded-2xl p-6 max-w-xs w-full text-center shadow-2xl mx-4 bg-white">
-              <RiDownload2Fill size={36} color="#1a73e8" className="mx-auto mb-3" />
-              <h3 className="text-sm font-bold uppercase tracking-wider mb-2 text-[#1a73e8]">File Received</h3>
-              <p className="text-xs break-all text-[#3c4043] font-mono">{incomingFile.fileName}</p>
+          <div className="absolute inset-0 flex items-center justify-center z-50 backdrop-blur-md bg-black/70">
+            <div className="rounded-2xl p-6 max-w-xs w-full text-center shadow-2xl mx-4 bg-[#12121e] border border-white/15 text-white">
+              <RiDownload2Fill size={36} color="#60a5fa" className="mx-auto mb-3" />
+              <h3 className="text-sm font-bold uppercase tracking-wider mb-2 text-blue-400">File Received</h3>
+              <p className="text-xs break-all text-white/80 font-mono">{incomingFile.fileName}</p>
               <div className="mt-5 flex justify-center gap-3">
-                <a href={incomingFile.downloadUrl} download={incomingFile.fileName} onClick={() => setIncomingFile(null)} className="px-4 py-2 font-bold text-xs uppercase rounded-full no-underline bg-[#1a73e8] text-white">Download</a>
-                <button onClick={() => setIncomingFile(null)} className="px-4 py-2 font-bold text-xs uppercase rounded-full border-none cursor-pointer bg-[#f1f3f4] text-[#3c4043]">Dismiss</button>
+                <a href={incomingFile.downloadUrl} download={incomingFile.fileName} onClick={() => setIncomingFile(null)} className="px-4 py-2 font-bold text-xs uppercase rounded-full no-underline bg-blue-600 hover:bg-blue-500 text-white shadow-md">Download</a>
+                <button onClick={() => setIncomingFile(null)} className="px-4 py-2 font-bold text-xs uppercase rounded-full border-none cursor-pointer bg-white/10 hover:bg-white/20 text-white">Dismiss</button>
               </div>
             </div>
           </div>
@@ -568,88 +702,7 @@ const ChatRoomPage = () => {
     );
   }
 
-  /* ────────────────────────────────────────
-     EMOJI CANVAS PANEL (right section)
-  ──────────────────────────────────────── */
-  const EMOJI_LIST = ["😀","😂","🥰","😎","🤩","🎉","🔥","❤️","👍","🌟","💯","🤔","😮","🥳","✨","💪","🙌","😅","🤗","😊"];
-
-  const EmojiCanvasPanel = ({ onEmojiSend }) => {
-    const canvasRef = useRef(null);
-    const particlesRef = useRef([]);
-    const rafRef = useRef(null);
-
-    const spawnEmoji = (emoji, x, y) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const count = 7 + Math.floor(Math.random() * 5);
-      for (let i = 0; i < count; i++) {
-        particlesRef.current.push({
-          emoji, x, y,
-          vx: (Math.random() - 0.5) * 5,
-          vy: -(4 + Math.random() * 5),
-          life: 1,
-          scale: 0.9 + Math.random() * 0.8,
-          rotation: (Math.random() - 0.5) * 0.4,
-          rotSpeed: (Math.random() - 0.5) * 0.06,
-          decay: 0.013 + Math.random() * 0.008,
-        });
-      }
-    };
-
-    useEffect(() => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext("2d");
-      const resize = () => { canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; };
-      resize();
-      const ro = new ResizeObserver(resize);
-      ro.observe(canvas);
-      const draw = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particlesRef.current = particlesRef.current.filter(p => p.life > 0);
-        for (const p of particlesRef.current) {
-          ctx.save();
-          ctx.globalAlpha = p.life;
-          ctx.translate(p.x, p.y);
-          ctx.rotate(p.rotation);
-          ctx.font = `${Math.round(p.scale * 26)}px serif`;
-          ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          ctx.fillText(p.emoji, 0, 0);
-          ctx.restore();
-          p.x += p.vx; p.y += p.vy; p.vy += 0.13;
-          p.rotation += p.rotSpeed; p.life -= p.decay;
-        }
-        rafRef.current = requestAnimationFrame(draw);
-      };
-      draw();
-      return () => { cancelAnimationFrame(rafRef.current); ro.disconnect(); };
-    }, []);
-
-    return (
-      <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.01)", borderRadius: "inherit" }}>
-        <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none", zIndex: 1 }} />
-        {/* Emoji grid */}
-        <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: "6px", padding: "14px", alignContent: "flex-start", zIndex: 2, position: "relative" }}>
-          {EMOJI_LIST.map((em, idx) => (
-            <button key={idx}
-              onClick={(e) => {
-                const rect = canvasRef.current?.getBoundingClientRect();
-                spawnEmoji(em, e.clientX - (rect?.left || 0), e.clientY - (rect?.top || 0));
-                onEmojiSend(em);
-              }}
-              style={{ fontSize: "22px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "transform 0.12s, background 0.12s", backdropFilter: "blur(6px)", color: "#ffffff" }}
-              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.25)"; e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
-            >{em}</button>
-          ))}
-        </div>
-        {/* 🙂 bottom-right like Figma */}
-        <div style={{ padding: "0 16px 14px", display: "flex", justifyContent: "flex-end", zIndex: 2, position: "relative" }}>
-          <span style={{ fontSize: "32px", filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.15))" }}>🙂</span>
-        </div>
-      </div>
-    );
-  };
+  /* EMOJI panel was moved to module scope above to avoid creating component during render */
 
   const handleEmojiSend = (emoji) => {
     if (socket) socket.emit("send_chat_message", { chatRoomId, senderId: currentUser._id || currentUser.id, message: emoji });
@@ -939,7 +992,13 @@ const ChatRoomPage = () => {
               <div style={{ padding: isMobile ? "0 8px 8px" : "0 12px 14px", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: isMobile ? "6px" : "8px", flexShrink: 0 }}>
                 <button onClick={toggleMute} style={{ width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "none", cursor: "pointer", background: isMuted ? "#d93025" : "rgba(255,255,255,0.08)", transition: "all 0.15s" }}><IconMic off={isMuted} color="white" /></button>
                 <button onClick={toggleVideo} style={{ width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "none", cursor: "pointer", background: isVideoOff ? "#d93025" : "rgba(255,255,255,0.08)", transition: "all 0.15s" }}><IconCam off={isVideoOff} color="white" /></button>
-                <button onClick={startScreenShare} style={{ width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "none", cursor: "pointer", background: isScreenSharing ? "#2563eb" : "rgba(255,255,255,0.08)", transition: "all 0.15s" }}><IconScreen color="white" /></button>
+                <button
+                  onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+                  title={isScreenSharing ? "Stop Screen Share" : "Share Screen"}
+                  style={{ width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "none", cursor: "pointer", background: isScreenSharing ? "#d93025" : "rgba(255,255,255,0.08)", transition: "all 0.15s" }}
+                >
+                  <IconScreen color="white" />
+                </button>
                 <button onClick={handleLeaveCall} style={{ width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "none", cursor: "pointer", background: "#d93025" }}><IconPhone color="white" /></button>
                 <button onClick={() => setScreenMaximized(true)} style={{ width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "none", cursor: "pointer", background: "rgba(255,255,255,0.08)" }}><IconMaximize color="white" /></button>
                 <button onClick={() => fileInputRef.current?.click()} style={{ width: isMobile ? "32px" : "36px", height: isMobile ? "32px" : "36px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "50%", border: "none", cursor: "pointer", background: "rgba(255,255,255,0.08)" }}><IconAttach color="white" /></button>

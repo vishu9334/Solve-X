@@ -178,11 +178,16 @@ const SessionRow = ({ session, isOpportunity, currentUser }) => {
   const [time, setTime] = useState("");
   const [isSending, setIsSending] = useState(false);
 
+   
   useEffect(() => {
     if (session.sessionType === "scheduled" && session.scheduledTime) {
-      setDate(getDateInputValue(session.scheduledTime));
-      setTime(getTimeInputValue(session.scheduledTime));
+      const t = setTimeout(() => {
+        setDate(getDateInputValue(session.scheduledTime));
+        setTime(getTimeInputValue(session.scheduledTime));
+      }, 0);
+      return () => clearTimeout(t);
     }
+    return undefined;
   }, [session]);
 
   const handleUseStudentTime = (e) => {
@@ -434,26 +439,10 @@ const MentorDashboard = () => {
   const [tab, setTab] = useState("opportunities"); // "opportunities" | "sessions"
 
   /* ── guards ─────────────────────────────────────────────────────── */
-  if (isCheckingSession) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
-        <p className="text-white/40 text-sm">Checking session…</p>
-      </div>
-    );
-  }
-
-  if (!currentUser) return <Navigate to="/" replace />;
-  if (currentUser.role !== "mentor") {
+  if (!isCheckingSession && !currentUser) return <Navigate to="/" replace />;
+  if (!isCheckingSession && currentUser && currentUser.role !== "mentor") {
     if (currentUser.role === "admin") return <Navigate to="/admin-landing" replace />;
     return <Navigate to="/student-landing" replace />;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#080810]">
-        <p className="text-white/40 text-sm">Loading dashboard…</p>
-      </div>
-    );
   }
 
   if (isError) {
@@ -467,6 +456,7 @@ const MentorDashboard = () => {
   }
 
   /* ── data ───────────────────────────────────────────────────────── */
+  const loading = isCheckingSession || isLoading;
   const {
     profile = {},
     stats = {},
@@ -482,7 +472,7 @@ const MentorDashboard = () => {
   const rating = Number(profile.rating || 0);
   const ratingCount = profile.ratingCount || 0;
   const isVerified = Boolean(profile.isVerifiedMentor);
-  const displayName = profile.name || currentUser.name || "Mentor";
+  const displayName = profile.name || currentUser?.name || "Mentor";
   const initials = displayName.slice(0, 2).toUpperCase();
 
   /* ── chart data ─────────────────────────────────────────────────── */

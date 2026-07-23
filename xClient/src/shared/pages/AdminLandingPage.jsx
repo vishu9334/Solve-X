@@ -21,11 +21,7 @@ const AdminLandingPage = () => {
         );
     }
 
-    if (!currentUser) {
-        return <Navigate to="/" replace />;
-    }
-
-    if (currentUser.role !== 'admin') {
+    if (currentUser && currentUser.role !== 'admin') {
         if (currentUser.role === 'mentor') return <Navigate to="/mentor-landing" replace />;
         return <Navigate to="/student-landing" replace />;
     }

@@ -7,6 +7,7 @@ const useAuthStore = create(
       accessToken: null,
       user: null,
       isCheckingSession: false,
+      sessionInitialized: false,
 
       setAccessToken: (token) =>
         set({ accessToken: token }, false, "auth/setAccessToken"),
@@ -17,12 +18,16 @@ const useAuthStore = create(
       setCheckingSession: (isCheckingSession) =>
         set({ isCheckingSession }, false, "auth/setCheckingSession"),
 
+      setSessionInitialized: () =>
+        set({ sessionInitialized: true }, false, "auth/setSessionInitialized"),
+
       logout: () =>
         set(
           {
             accessToken: null,
             user: null,
             isCheckingSession: false,
+            sessionInitialized: true,
           },
           false,
           "auth/logout"

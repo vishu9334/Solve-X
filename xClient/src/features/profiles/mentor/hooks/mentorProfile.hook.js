@@ -1,11 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { mentorProfileUpdate, mentorProfileGet } from "../api/mentorProfile.api.js";
 import { toast } from "react-toastify";
+import useAuthStore from "../../../auth/store/auth.store.js";
 
 export const useGetMentorProfile = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   return useQuery({
     queryKey: ["mentorProfile"],
     queryFn: mentorProfileGet,
+    enabled: !!accessToken,
   });
 };
 

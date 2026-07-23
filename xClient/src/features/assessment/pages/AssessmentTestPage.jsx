@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
@@ -163,11 +163,14 @@ const AssessmentTestPage = () => {
 
   const { attempt: stateAttempt, questions: stateQuestions, specializationName: stateSpecializationName, switched: stateSwitched, remainingAttempts: stateRemainingAttempts } = location.state || {};
 
-  const attempt = activeAssessment?.attempt || stateAttempt;
-  const questions = activeAssessment?.questions?.questions || stateQuestions?.questions || [];
-  const specializationName = activeAssessment?.specialized?.name || stateSpecializationName;
-  const remainingAttempts = activeAssessment?.remainingAttempts ?? stateRemainingAttempts ?? 3;
-  const switched = stateSwitched;
+  const { attempt, questions, specializationName, remainingAttempts, switched } = useMemo(() => {
+    const att = activeAssessment?.attempt || stateAttempt;
+    const qs = activeAssessment?.questions?.questions || (stateQuestions?.questions || []);
+    const spec = activeAssessment?.specialized?.name || stateSpecializationName;
+    const rem = activeAssessment?.remainingAttempts ?? stateRemainingAttempts ?? 3;
+    const sw = stateSwitched;
+    return { attempt: att, questions: qs, specializationName: spec, remainingAttempts: rem, switched: sw };
+  }, [activeAssessment, stateAttempt, stateQuestions, stateSpecializationName, stateRemainingAttempts, stateSwitched]);
 
   const [answers, setAnswers] = useState({});
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -199,7 +202,7 @@ const AssessmentTestPage = () => {
     setWarnings((w) => w + 1);
   }, []);
 
-  const submitFinal = async (isTimeExpired = false) => {
+  const submitFinal = useCallback(async (isTimeExpired = false) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     clearInterval(timerRef.current);
@@ -213,7 +216,7 @@ const AssessmentTestPage = () => {
     try {
       const res = await submitAssessment({ attemptId: attempt._id, answers: answersArray });
       setResult(res?.data || {});
-      
+
       // Exit fullscreen only after successful submission
       try {
         if (document.fullscreenElement) {
@@ -226,9 +229,9 @@ const AssessmentTestPage = () => {
       showToast(err?.message || "Submission failed. Try again.");
       setIsSubmitting(false);
     }
-  };
+  }, [isSubmitting, submitAssessment, answers, questions, attempt]);
 
-  const handleAutoSubmit = async (eventType = "TIME_EXPIRED") => {
+  const handleAutoSubmit = useCallback(async (eventType = "TIME_EXPIRED") => {
     clearInterval(timerRef.current);
     if (activitySessionIdRef.current) {
       await recordEvent({
@@ -239,7 +242,7 @@ const AssessmentTestPage = () => {
       }).catch(() => {});
     }
     submitFinal(eventType === "TIME_EXPIRED");
-  };
+  }, [recordEvent, submitFinal]);
 
   // Initialize timer once activeAssessment is loaded
   useEffect(() => {
@@ -260,7 +263,7 @@ const AssessmentTestPage = () => {
     if (!isActiveAssessmentLoading && !attempt && !questions.length) {
       navigate("/mentor/assessment/select", { replace: true });
     }
-  }, [isActiveAssessmentLoading, attempt, questions]);
+  }, [isActiveAssessmentLoading, attempt, questions, navigate]);
 
   // Pause all background React Query refetches during assessment
   // This prevents auth token refresh from kicking user out mid-test
@@ -274,7 +277,7 @@ const AssessmentTestPage = () => {
         queries: { refetchOnWindowFocus: true },
       });
     };
-  }, []);
+  }, [queryClient]);
 
   // Auto-redirect after result is shown: 5 mins if time expired, 60s otherwise
   useEffect(() => {
@@ -293,7 +296,7 @@ const AssessmentTestPage = () => {
       });
     }, 1000);
     return () => clearInterval(redirectTimerRef.current);
-  }, [result, timeExpired]);
+  }, [result, timeExpired, navigate]);
 
   // Start proctoring session after fullscreen entered
   // Note: startSession already creates a TEST_STARTED event internally
@@ -334,7 +337,7 @@ const AssessmentTestPage = () => {
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [showFullscreenPrompt, result]);
+  }, [showFullscreenPrompt, result, handleAutoSubmit]);
 
   // Proctoring: tab switch
   useEffect(() => {
@@ -352,7 +355,7 @@ const AssessmentTestPage = () => {
     };
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, []);
+  }, [addWarning, recordEvent]);
 
   // Proctoring: window blur
   useEffect(() => {
@@ -370,7 +373,7 @@ const AssessmentTestPage = () => {
     };
     window.addEventListener("blur", handleBlur);
     return () => window.removeEventListener("blur", handleBlur);
-  }, []);
+  }, [addWarning, recordEvent]);
 
   // Proctoring: fullscreen exit
   useEffect(() => {
@@ -388,7 +391,7 @@ const AssessmentTestPage = () => {
     };
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, [showFullscreenPrompt, result, isSubmitting]);
+  }, [showFullscreenPrompt, result, isSubmitting, addWarning, recordEvent]);
 
 
 

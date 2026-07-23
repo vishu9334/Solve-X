@@ -193,6 +193,11 @@ class AuthService {
             throw new ApiError(401, "Refresh token is not valid or provided.");
         }
 
+        const isBlacklisted = await redisWhereHouse.isTokenBlacklisted(refreshToken, 'refresh');
+        if (isBlacklisted) {
+            throw new ApiError(401, "Refresh token has been invalidated. Please login again.");
+        }
+
         let decoded;
         try {
             decoded = TokenManager.verifyRefreshToken(refreshToken);
@@ -200,7 +205,7 @@ class AuthService {
             throw new ApiError(401, "Refresh token is expired or invalid.");
         }
 
-        const userId = decoded?.userId;;
+        const userId = decoded?.userId;
         if (!userId) {
             throw new ApiError(401, "Invalid refresh token payload.");
         }

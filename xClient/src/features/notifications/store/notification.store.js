@@ -60,7 +60,7 @@ const EVENT_MAP = {
         type: "scheduled",
         icon: "RiCheckboxCircleLine",
         getMessage: (p) => p.message || "Doubt session has been scheduled.",
-        route: (p) => `/dashboard/student`,
+        route: () => `/dashboard/student`,
     },
     mentor_warning: {
         type: "warning",

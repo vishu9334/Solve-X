@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navigate, Link } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useGetMentorProfile, useUpdateMentorProfile } from "../hooks/mentorProfile.hook";
 import CustomCursor from "../../../../shared/components/CustomCursor";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser";
@@ -15,7 +15,7 @@ const MentorProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   // useForm setup
-  const { register, handleSubmit, reset, watch } = useForm({
+  const { register, handleSubmit, reset, control } = useForm({
     defaultValues: {
       jobTitle: "",
       company: "",
@@ -33,13 +33,13 @@ const MentorProfile = () => {
   });
 
   // Watch form fields so they can be rendered correctly in view mode
-  const jobTitle = watch("jobTitle");
-  const company = watch("company");
-  const experienceYears = watch("experienceYears");
-  const education = watch("education");
-  const timezone = watch("timezone");
-  const preferredLanguage = watch("preferredLanguage");
-  const payoutDetails = watch("payoutDetails");
+  const jobTitle = useWatch({ control, name: "jobTitle" });
+  const company = useWatch({ control, name: "company" });
+  const experienceYears = useWatch({ control, name: "experienceYears" });
+  const education = useWatch({ control, name: "education" });
+  const timezone = useWatch({ control, name: "timezone" });
+  const preferredLanguage = useWatch({ control, name: "preferredLanguage" });
+  const payoutDetails = useWatch({ control, name: "payoutDetails" });
 
   // Keep array lists as state since they are edited dynamically outside standard form inputs
   const [socialLinks, setSocialLinks] = useState([]);
@@ -54,25 +54,29 @@ const MentorProfile = () => {
 
   // Sync state when profile data is loaded
   useEffect(() => {
-    if (profileResponse?.data) {
+    const data = profileResponse?.data;
+    if (data) {
       reset({
-        jobTitle: profileData.jobTitle || "",
-        company: profileData.company || "",
-        experienceYears: profileData.experienceYears || 0,
-        education: profileData.education || "",
-        timezone: profileData.timezone || "",
-        preferredLanguage: profileData.preferredLanguage || "",
+        jobTitle: data.jobTitle || "",
+        company: data.company || "",
+        experienceYears: data.experienceYears || 0,
+        education: data.education || "",
+        timezone: data.timezone || "",
+        preferredLanguage: data.preferredLanguage || "",
         payoutDetails: {
-          upiId: profileData.payoutDetails?.upiId || "",
-          bankName: profileData.payoutDetails?.bankName || "",
-          accountNumber: profileData.payoutDetails?.accountNumber || "",
-          ifscCode: profileData.payoutDetails?.ifscCode || ""
+          upiId: data.payoutDetails?.upiId || "",
+          bankName: data.payoutDetails?.bankName || "",
+          accountNumber: data.payoutDetails?.accountNumber || "",
+          ifscCode: data.payoutDetails?.ifscCode || ""
         }
       });
-      setSocialLinks(profileData.socialLinks || []);
-      setCertifications(profileData.certifications || []);
+      const t = setTimeout(() => {
+        setSocialLinks(data.socialLinks || []);
+        setCertifications(data.certifications || []);
+      }, 0);
+      return () => clearTimeout(t);
     }
-  }, [profileResponse, reset]);
+  }, [profileResponse?.data, reset]);
 
   if (isCheckingSession) {
     return (

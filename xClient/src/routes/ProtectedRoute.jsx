@@ -5,7 +5,11 @@ const ProtectedRoute = () => {
   const { data: user, isPending, isError } = useCurrentUser();
 
   if (isPending) {
-    return null;
+    return (
+      <div className="min-h-screen bg-[#050509] flex items-center justify-center text-white font-mono">
+        <div className="animate-pulse">Loading session...</div>
+      </div>
+    );
   }
 
   if (isError || !user) {

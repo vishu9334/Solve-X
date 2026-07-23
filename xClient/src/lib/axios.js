@@ -10,7 +10,12 @@ const api = axios.create({
 });
 
 const getAccessTokenFromHeader = (headers) => {
-  const authHeader = headers?.["authorization"];
+  const authHeader =
+    headers?.["authorization"] ||
+    headers?.["Authorization"] ||
+    (typeof headers?.get === "function"
+      ? headers.get("authorization") || headers.get("Authorization")
+      : null);
 
   return authHeader?.startsWith("Bearer ")
     ? authHeader.split(" ")[1]

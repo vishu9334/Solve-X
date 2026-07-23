@@ -14,10 +14,9 @@ class AuthController {
     verifyOTP = asyncHandler(async(req, res)=>{
       const {email, otp} = req.body;
       const {accessToken,refreshToken,userObj} = await AuthService.verifyOTP(email, otp);
-     TokenManager.setAccessTokenHeader(res, accessToken);
+      TokenManager.setAccessTokenHeader(res, accessToken);
       TokenManager.setRefreshTokenCookie(res, refreshToken);
-     return res.status(200).json(new ApiResponse(200, {userObj}, {message:"User register successful"}));
-    //  return res.status(200).json(new ApiResponse(200, {accessToken,refreshToken,userObj}, {message:"User register successful"}));
+      return res.status(200).json(new ApiResponse(200, { userObj, accessToken }, {message:"User register successful"}));
     })
 
     login = asyncHandler(async (req, res) => {
@@ -28,8 +27,7 @@ class AuthController {
        TokenManager.setRefreshTokenCookie(res, refreshToken);
 
       return res.status(200).json(
-        new ApiResponse(200, { userObj }, { message: "Login successful" })
-        // new ApiResponse(200, { accessToken, refreshToken, userObj }, { message: "Login successful" })
+        new ApiResponse(200, { userObj, accessToken }, { message: "Login successful" })
       );
     })
 
@@ -74,7 +72,7 @@ class AuthController {
       TokenManager.setAccessTokenHeader(res, accessToken);
 
       return res.status(200).json(
-        new ApiResponse(200, {}, { message: "Access token regenerated successfully." })
+        new ApiResponse(200, { accessToken }, { message: "Access token regenerated successfully." })
       );
     })
 

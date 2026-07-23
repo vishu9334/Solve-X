@@ -1,15 +1,17 @@
-import { Outlet, Navigate, useLocation } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import useAuthStore from "../../features/auth/store/auth.store";
+import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 const DashboardLayout = () => {
-    const { user } = useAuthStore();
+    const { data: currentUser } = useCurrentUser();
+    const { user: storeUser } = useAuthStore();
+    const user = currentUser || storeUser;
     const location = useLocation();
 
-    // Redirect to public page if user is not logged in
     if (!user) {
-        return <Navigate to="/" replace />;
+        return null;
     }
 
     const isAssessmentTest = location.pathname === "/mentor/assessment/test";

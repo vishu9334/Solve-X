@@ -18,8 +18,12 @@ const getAvatarUrl = (user) => {
     return `https://api.dicebear.com/9.x/${style}/svg?seed=${seed}`;
 };
 
+import { useCurrentUser } from "../../features/auth/hooks/useCurrentUser.js";
+
 const Header = () => {
-    const { user } = useAuthStore();
+    const { user: storeUser } = useAuthStore();
+    const { data: currentUser } = useCurrentUser();
+    const user = currentUser || storeUser;
     const location = useLocation();
     const { mutate: performLogout } = useLogout();
     const [menuOpen, setMenuOpen] = useState(false);

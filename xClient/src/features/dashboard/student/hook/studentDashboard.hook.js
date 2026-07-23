@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "../../../../lib/axios.js";
+import useAuthStore from "../../../auth/store/auth.store.js";
 
 export const studentDashboard = async () => {
   try {
@@ -11,8 +12,11 @@ export const studentDashboard = async () => {
 };
 
 export const useGetStudentDashboard = () => {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   return useQuery({
     queryKey: ["studentDashboard"],
     queryFn: studentDashboard,
+    enabled: !!accessToken,
   });
 };
